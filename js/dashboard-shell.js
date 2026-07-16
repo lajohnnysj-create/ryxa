@@ -2184,7 +2184,33 @@ function updateTierUI() {
   }
   document.body.classList.toggle('max-user', max);
   document.body.classList.toggle('pro-user', pro && !max);
-  // Welcome badge text adapts to tier
+
+  // Bottom-nav "Plans" button swaps to "Media Kit" for paid users. Free users
+  // keep "Plans" (their entry to the Plans & Billing page). The click handler
+  // (show-plans-nav) also routes by tier, so label and behavior stay in sync.
+  var planNavLabel = document.getElementById('bnav-plans-label');
+  var planNavBtn = document.getElementById('bnav-plans');
+  var planNavIcon = document.getElementById('bnav-plans-icon');
+  if (planNavLabel && planNavBtn) {
+    if (pro) {
+      planNavLabel.textContent = 'Media Kit';
+      planNavBtn.setAttribute('aria-label', 'Media Kit');
+      if (planNavIcon) {
+        planNavIcon.innerHTML = '<rect x="3" y="4" width="18" height="14" rx="2"/><path d="M3 9h18"/><path d="M8 4v5"/>';
+      }
+    } else {
+      planNavLabel.textContent = 'Plans';
+      planNavBtn.setAttribute('aria-label', 'Plans');
+      if (planNavIcon) {
+        planNavIcon.innerHTML = '<path d="M12 2l2.5 6.5L21 9l-5 4.5L17.5 21 12 17l-5.5 4L8 13.5 3 9l6.5-.5z"/>';
+      }
+    }
+  }
+  // Free users: hide the Settings Subscription section (Plans page is their
+  // single upgrade surface). Paid users keep it.
+  if (typeof plansBillingApplySettingsVisibility === 'function') {
+    plansBillingApplySettingsVisibility();
+  }
   const welcomeBadge = document.getElementById('welcome-badge');
   if (welcomeBadge) {
     welcomeBadge.innerHTML = max
@@ -2252,6 +2278,17 @@ function showFollowerTool() {
 }
 
 function showTool(tool) {
+  // Leaving the Plans & Billing page (a hash-routed view that sits outside the
+  // normal tool system): restore the topbar/padding it hid and clear its hash
+  // so the tool renders normally.
+  if (document.body.classList.contains('plans-billing-active')) {
+    document.body.classList.remove('plans-billing-active');
+    var _pbView = document.getElementById('plans-billing-view');
+    if (_pbView) { _pbView.innerHTML = ''; _pbView.style.display = 'none'; }
+    if ((window.location.hash || '').replace('#', '') === 'plans-billing') {
+      try { history.replaceState(null, '', window.location.pathname); } catch (e) {}
+    }
+  }
   // Cancel any in-flight surface loads from the view being left, but ONLY when
   // the tool actually changes. A fast double-tap on the same nav item would
   // otherwise bump the generation and cancel the tool's OWN in-flight load,
@@ -4102,6 +4139,26 @@ dashRegisterAction('show-tool', (e, el) => {
   // calendar's gear button), used by links that point at the timezone setting.
   if (el.dataset.dashScrollCalendar === '1') window._scrollToCalendarSettings = true;
   if (typeof showTool === 'function') showTool(el.dataset.dashTool);
+});
+
+// Bottom-nav "Plans" button (replaces the old Subscribers slot). Tier-aware:
+// free users go to the in-dashboard Plans & Billing page; paid users, whose
+// button reads "Media Kit", go to the Media Kit tool. The label/behavior swap
+// is applied in updateTierUI once tier is known; this handler routes by the
+// current tier at click time as the source of truth.
+dashRegisterAction('show-plans-nav', (e, el) => {
+  if (e && e.preventDefault) e.preventDefault();
+  if (isPro()) {
+    // Paid: acts as the Media Kit entry point.
+    if (typeof showTool === 'function') showTool('mediakit');
+  } else {
+    // Free: open the Plans & Billing page via its hash route.
+    if (window.location.hash !== '#plans-billing') {
+      window.location.hash = 'plans-billing';
+    } else if (typeof plansBillingRouteCheck === 'function') {
+      plansBillingRouteCheck();
+    }
+  }
 });
 
 dashRegisterAction('toggle-analytics-menu', (e, el) => {

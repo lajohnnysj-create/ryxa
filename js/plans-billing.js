@@ -25,9 +25,14 @@ function plansBillingAllowed() {
   try {
     var u = (typeof currentUser !== 'undefined' && currentUser) ? currentUser : null;
     if (!u) return false;
+    // Launched to free-tier users: the Plans & Billing page is their upgrade
+    // surface. Paid users don't see it (they manage plans in Settings). Admin
+    // and test accounts always pass so the page can be inspected on any tier.
     if (u.id && u.id === PLANS_BILLING_ADMIN_ID) return true;
     if (u.email && PLANS_BILLING_ALLOWED_EMAILS.indexOf(u.email.toLowerCase()) !== -1) return true;
-    return false;
+    // Free tier (no active paid subscription) sees the page.
+    if (typeof isPro === 'function') return !isPro();
+    return (typeof userTier !== 'undefined') ? (userTier === 'free') : false;
   } catch (e) { return false; }
 }
 
@@ -457,7 +462,20 @@ function plansBillingHandleAction(e) {
   }
 }
 
-// Gated hash route: #plans-billing shows the page ONLY for the admin account.
+// Free users' upgrade home is the Plans & Billing page, so their Settings
+// "Subscription" section is hidden, one upgrade surface, not two. Paid users
+// keep it (Change Plan / Manage Billing). Admin/test accounts follow the same
+// free-vs-paid rule so the hiding can be verified. Called from updateTierUI
+// once tier is known.
+function plansBillingApplySettingsVisibility() {
+  var section = document.getElementById('settings-sub-section');
+  if (!section) return;
+  var isFree = (typeof isPro === 'function') ? !isPro()
+    : ((typeof userTier !== 'undefined') ? userTier === 'free' : false);
+  section.style.display = isFree ? 'none' : '';
+}
+
+// Gated hash route: #plans-billing shows the page ONLY for allowed users.
 function plansBillingRouteCheck() {
   var host = document.getElementById('plans-billing-view');
   if (!host) return;
