@@ -69,11 +69,11 @@ function iapRenderSection() {
       // per-plan flag so a re-render doesn't slam the reveal shut mid-use.
       var openClass = (iapRevealOpen[plan]) ? ' pb-iap-open' : '';
       slot.innerHTML =
-        '<button class="pb-iap-toggle" data-iap-plan="' + plan + '" style="display:flex;' +
-        'align-items:center;justify-content:center;width:100%;margin-top:10px;background:none;' +
-        'border:1px solid var(--border);color:var(--muted);font-family:\'DM Sans\',sans-serif;' +
-        'font-size:13px;font-weight:600;padding:10px;border-radius:10px;cursor:pointer;">' +
-        APPLE_LOGO + '<span>Prefer to pay with Apple?</span></button>' +
+        '<button class="pb-iap-toggle" data-iap-plan="' + plan + '" style="display:block;' +
+        'width:100%;margin-top:10px;background:none;border:none;color:var(--muted);' +
+        'font-family:\'DM Sans\',sans-serif;font-size:13px;font-weight:600;padding:8px;' +
+        'text-align:center;cursor:pointer;text-decoration:underline;">' +
+        'Prefer to pay with Apple?</button>' +
         '<div class="pb-iap-reveal' + openClass + '">' + buyBtn + '</div>';
     } else {
       // IAP-only: Apple button is the primary buy action, shown directly.
