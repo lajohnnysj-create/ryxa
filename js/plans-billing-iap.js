@@ -271,20 +271,26 @@ function iapApplyStorefrontGate() {
   // reports USA. Forcing wins over the real value until reload. Delete this
   // whole block (and iapDebugRefresh calls) to remove.
   (function () {
-    if (!document.body.classList.contains('plans-billing-active')) return;
+    var host = document.getElementById('plans-billing-view');
+    if (!host) return;
+    var body = host.querySelector('.pb-body');
+    if (!body) return;
     var dot = document.getElementById('pb-iap-debug-dot');
     if (!dot) {
+      var wrap = document.createElement('div');
+      wrap.style.cssText = 'display:flex;justify-content:flex-end;margin-top:20px;';
       dot = document.createElement('div');
       dot.id = 'pb-iap-debug-dot';
-      dot.style.cssText = 'position:fixed;right:14px;bottom:14px;width:14px;height:14px;' +
-        'border-radius:50%;background:#7c3aed;opacity:0.35;z-index:99999;cursor:pointer;';
+      dot.style.cssText = 'width:14px;height:14px;border-radius:50%;background:#7c3aed;' +
+        'opacity:0.35;cursor:pointer;';
       var panel = document.createElement('div');
       panel.id = 'pb-iap-debug-panel';
-      panel.style.cssText = 'position:fixed;right:14px;bottom:36px;max-width:280px;display:none;' +
-        'padding:10px 12px;border-radius:8px;background:#1a1a2e;border:1px dashed #7c3aed;' +
-        'color:#c4b5fd;font:600 12px \'DM Sans\',sans-serif;text-align:center;z-index:99999;cursor:pointer;';
-      document.body.appendChild(dot);
-      document.body.appendChild(panel);
+      panel.style.cssText = 'display:none;margin-top:8px;padding:10px 12px;border-radius:8px;' +
+        'background:#1a1a2e;border:1px dashed #7c3aed;color:#c4b5fd;' +
+        'font:600 12px \'DM Sans\',sans-serif;text-align:center;cursor:pointer;';
+      wrap.appendChild(dot);
+      body.appendChild(wrap);
+      body.appendChild(panel);
       // Tapping the dot shows/hides the panel.
       dot.addEventListener('click', function () {
         panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
