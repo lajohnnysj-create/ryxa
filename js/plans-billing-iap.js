@@ -15,6 +15,17 @@ var iapLastErrSig = '';             // dedupe: last purchase-error signature
 var iapLastErrAt = 0;               // dedupe: timestamp of last error alert
 var iapLastLoadAt = 0;              // throttle: last iapLoadProducts request time
 
+// TESTING DEBUG helper (remove before public launch): update the panel text.
+function iapDebugRefresh() {
+  var panel = document.getElementById('pb-iap-debug-panel');
+  if (!panel) return;
+  var forced = window.__iapForceStorefront !== undefined;
+  panel.textContent = (forced ? 'FORCED (tap to cycle)' : 'tap to force') +
+    ' | storefront: ' + (iapStorefront === null ? 'null' : iapStorefront) +
+    ' | mode: ' + (iapUsStorefront() ? 'US dual-rail' : 'IAP-only') +
+    ' | prices: ' + Object.keys(iapPrices).length;
+}
+
 var IAP_SKUS = {
   pro: { monthly: 'io.ryxa.pro.monthly', annual: 'io.ryxa.pro.annual' },
   max: { monthly: 'io.ryxa.max.monthly', annual: 'io.ryxa.max.annual' }
@@ -254,36 +265,42 @@ function iapApplyStorefrontGate() {
   document.body.classList.toggle('iap-only', iapOnly);
 
   // --- TESTING DEBUG READOUT (remove before public launch) ---
-  // Shows the storefront StoreKit reported. TAP IT to force-cycle the value
-  // (USA -> CAN -> null) so you can preview each layout on-device, since iOS 18+
-  // sandbox wrongly reports USA. Forcing sets a manual override that wins over
-  // the real value until you reload. Delete this block to remove.
+  // A small dot fixed in the lower-right corner. Tap it to expand a panel that
+  // shows the storefront/mode/prices and lets you force-cycle the storefront
+  // (USA -> CAN -> null) to preview each layout, since iOS 18+ sandbox wrongly
+  // reports USA. Forcing wins over the real value until reload. Delete this
+  // whole block (and iapDebugRefresh calls) to remove.
   (function () {
-    var host = document.getElementById('plans-billing-view');
-    if (!host) return;
-    var dbg = document.getElementById('pb-iap-debug');
-    if (!dbg) {
-      dbg = document.createElement('div');
-      dbg.id = 'pb-iap-debug';
-      dbg.style.cssText = 'margin:14px auto;max-width:340px;padding:8px 12px;border-radius:8px;' +
-        'background:#1a1a2e;border:1px dashed #7c3aed;color:#c4b5fd;font:600 12px \'DM Sans\',sans-serif;' +
-        'text-align:center;cursor:pointer;';
-      var body = host.querySelector('.pb-body');
-      if (body) body.appendChild(dbg);
-      // Tap to cycle the forced storefront and re-render.
-      dbg.addEventListener('click', function () {
+    if (!document.body.classList.contains('plans-billing-active')) return;
+    var dot = document.getElementById('pb-iap-debug-dot');
+    if (!dot) {
+      dot = document.createElement('div');
+      dot.id = 'pb-iap-debug-dot';
+      dot.style.cssText = 'position:fixed;right:14px;bottom:14px;width:14px;height:14px;' +
+        'border-radius:50%;background:#7c3aed;opacity:0.35;z-index:99999;cursor:pointer;';
+      var panel = document.createElement('div');
+      panel.id = 'pb-iap-debug-panel';
+      panel.style.cssText = 'position:fixed;right:14px;bottom:36px;max-width:280px;display:none;' +
+        'padding:10px 12px;border-radius:8px;background:#1a1a2e;border:1px dashed #7c3aed;' +
+        'color:#c4b5fd;font:600 12px \'DM Sans\',sans-serif;text-align:center;z-index:99999;cursor:pointer;';
+      document.body.appendChild(dot);
+      document.body.appendChild(panel);
+      // Tapping the dot shows/hides the panel.
+      dot.addEventListener('click', function () {
+        panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+        iapDebugRefresh();
+      });
+      // Tapping the panel cycles the forced storefront and re-renders.
+      panel.addEventListener('click', function () {
         var cur = window.__iapForceStorefront === undefined ? iapStorefront : window.__iapForceStorefront;
         var next = cur === 'USA' ? 'CAN' : (cur === 'CAN' ? null : 'USA');
         window.__iapForceStorefront = next;
         iapStorefront = next;
         iapApplyStorefrontGate();
+        iapDebugRefresh();
       });
     }
-    var forced = window.__iapForceStorefront !== undefined;
-    dbg.textContent = 'DEBUG' + (forced ? ' (FORCED, tap to cycle)' : ' (tap to force)') +
-      ' - storefront: ' + (iapStorefront === null ? 'unknown (null)' : iapStorefront) +
-      '  |  mode: ' + (iapOnly ? 'IAP-only' : 'US dual-rail') +
-      '  |  prices: ' + Object.keys(iapPrices).length;
+    iapDebugRefresh();
   })();
   // --- END TESTING DEBUG ---
 
