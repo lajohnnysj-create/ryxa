@@ -283,7 +283,7 @@ function renderPlansBilling() {
   // and logos, causing a visible flash. So we ensure a stable shell (hero +
   // empty body) exists, then only replace the body's inner content.
   var HERO = '<div class="pb-hero">'
-    + '<img src="/ryxamodel.webp" alt="" class="pb-hero-img">'
+    + '<img src="/ryxa-plansbilling.webp" alt="" class="pb-hero-img">'
     + '<div class="pb-hero-fade"></div>'
     + '</div>';
   function ensureShell(bodyClass) {
