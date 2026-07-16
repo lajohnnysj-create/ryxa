@@ -2278,6 +2278,16 @@ function showFollowerTool() {
 }
 
 function showTool(tool) {
+  // Tier gate: tools above the user's plan don't render a locked preview;
+  // they route straight to Plans & Billing (the single upgrade surface).
+  // Unknown tier (still loading) falls through and renders normally.
+  var TOOL_MIN_TIER = { mediakit: 'pro', courses: 'max', coaching: 'max', products: 'max', deals: 'max' };
+  var _needs = TOOL_MIN_TIER[tool];
+  if (_needs && typeof userTier !== 'undefined' && userTier) {
+    var _t = (userTier === 'monthly' || userTier === 'pro') ? 'pro' : userTier;
+    var _locked = (_needs === 'pro' && _t === 'free') || (_needs === 'max' && _t !== 'max');
+    if (_locked) { goToPricing(_needs); return; }
+  }
   // Leaving the Plans & Billing page (a hash-routed view that sits outside the
   // normal tool system): restore the topbar/padding it hid and clear its hash
   // so the tool renders normally.

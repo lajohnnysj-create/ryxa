@@ -250,7 +250,11 @@ function openPricingPage() {
   if (userTier === 'free') target = 'pro';
   else if (userTier === 'monthly' || userTier === 'pro') target = 'max';
   else if (userTier === 'max') target = 'max';
-  goToPricing(target);
+  // Settings is plan MANAGEMENT, not an upsell CTA: it keeps the direct
+  // pricing hand-off (in-app: Safari link-out) rather than routing through
+  // the Plans & Billing page.
+  if (typeof goToPricingDirect === 'function') goToPricingDirect(target);
+  else goToPricing(target);
 }
 
 // "Manage billing" opens the Stripe Customer Portal, where the user can change
