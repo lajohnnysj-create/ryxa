@@ -53,8 +53,21 @@ function iapRenderSection() {
     if (!IAP_SKUS[plan]) return;
     var sku = IAP_SKUS[plan][cycle];
     var price = iapPrices[sku] || '';
-    var cycleLabel = cycle === 'annual' ? ' / year' : ' / month';
-    var priceLabel = (price ? ' - ' + price : '') + cycleLabel;
+    var cycleWord = cycle === 'annual' ? 'year' : 'month';
+    var priceLabel = (price ? ' - ' + price : '') + ' / ' + cycleWord;
+
+    // Idempotency signature: only rewrite this slot's DOM when something that
+    // affects its markup actually changed. Rewriting innerHTML on every render
+    // destroys the elements mid-tap and eats clicks (the toggle glitch), so we
+    // skip the rewrite when nothing changed and just leave the live DOM alone.
+    var sig = [us ? 'us' : 'iap', sku, price, (iapRevealOpen[plan] ? 'open' : 'shut')].join('|');
+    if (slot._iapSig === sig) return;
+    slot._iapSig = sig;
+
+    // Dynamic disclosure: reflect the real price + renewal terms Apple returns.
+    var note = price
+      ? ('Auto-renews at ' + price + ' / ' + cycleWord + ' through your Apple ID until cancelled. Manage in Apple Settings.')
+      : ('Billed through your Apple ID. Manage or cancel anytime in Apple Settings.');
 
     var buyBtn =
       '<button class="pb-iap-buy" data-sku="' + sku + '" style="display:flex;' +
@@ -63,23 +76,34 @@ function iapRenderSection() {
       'color:var(--text);font-family:\'DM Sans\',sans-serif;font-size:14px;font-weight:600;' +
       'cursor:pointer;">' + APPLE_LOGO + '<span>Pay with Apple' + priceLabel + '</span></button>' +
       '<div class="pb-iap-note" style="margin-top:6px;font-size:11px;color:var(--muted);">' +
-      'Billed through your Apple ID. Manage or cancel anytime in Apple Settings.</div>';
+      note + '</div>';
 
     if (us) {
-      // Dual-rail: keep it secondary behind a compact toggle so the Stripe CTA
-      // stays the primary action. Preserve open state across re-renders via a
-      // per-plan flag so a re-render doesn't slam the reveal shut mid-use.
+      // Dual-rail: secondary, behind a plain-text toggle (no underline, no
+      // border) so the Stripe CTA stays primary. Open state preserved per plan.
       var openClass = (iapRevealOpen[plan]) ? ' pb-iap-open' : '';
       slot.innerHTML =
         '<button class="pb-iap-toggle" data-iap-plan="' + plan + '" style="display:block;' +
         'width:100%;margin-top:10px;background:none;border:none;color:var(--muted);' +
         'font-family:\'DM Sans\',sans-serif;font-size:13px;font-weight:600;padding:8px;' +
-        'text-align:center;cursor:pointer;text-decoration:underline;">' +
+        'text-align:center;cursor:pointer;">' +
         'Prefer to pay with Apple?</button>' +
         '<div class="pb-iap-reveal' + openClass + '">' + buyBtn + '</div>';
     } else {
       // IAP-only: Apple button is the primary buy action, shown directly.
       slot.innerHTML = buyBtn;
+      // The card's headline price is the US web price; in IAP-only markets the
+      // user pays the Apple price, so override the big price on this card to
+      // match what they'll actually be charged. Only when Apple returned one.
+      if (price) {
+        var card = slot.closest('.pb-card');
+        if (card) {
+          var big = card.querySelector('.pb-price-big');
+          var suf = card.querySelector('.pb-price-suffix');
+          if (big) big.textContent = price;
+          if (suf) suf.textContent = '/ ' + cycleWord;
+        }
+      }
     }
   });
 
@@ -94,6 +118,10 @@ function iapRenderSection() {
         iapRevealOpen[plan] = !iapRevealOpen[plan];
         var rev = tgl.parentNode.querySelector('.pb-iap-reveal');
         if (rev) rev.classList.toggle('pb-iap-open', iapRevealOpen[plan]);
+        // Keep the signature in sync so the next render doesn't rewrite (which
+        // would reset this toggle we just changed).
+        var slot = tgl.closest('.pb-iap-slot');
+        if (slot) slot._iapSig = null;
         return;
       }
       var btn = e.target.closest('.pb-iap-buy');
@@ -104,7 +132,7 @@ function iapRenderSection() {
       var span = btn.querySelector('span');
       if (span) span.textContent = 'Opening App Store...';
       iapPost({ type: 'iapPurchase', sku: btn.dataset.sku, appAccountToken: uid });
-      setTimeout(function () { iapBusy = false; iapRenderSection(); }, 4000);
+      setTimeout(function () { iapBusy = false; }, 4000);
     });
   }
 }
@@ -324,6 +352,9 @@ document.addEventListener('ryxa-iap', function (e) {
     iapApplyStorefrontGate();
   } else if (ev.type === 'iapProducts') {
     (ev.products || []).forEach(function (p) { iapPrices[p.id] = p.displayPrice; });
+    // Prices just arrived: re-render so buttons and (IAP-only) card prices show
+    // the real Apple price instead of blank.
+    iapRenderSection();
   } else if (ev.type === 'iapPurchaseResult') {
     iapHandlePurchase(ev);
   } else if (ev.type === 'iapPurchaseError') {
