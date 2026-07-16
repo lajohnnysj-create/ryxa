@@ -232,7 +232,7 @@ function plansBillingCard(key) {
   } else if (!showDisclosure) {
     disclosureHtml = '';
   } else {
-    disclosureHtml = '<div class="pb-disclosure">' + escapeHtml(disclosureText) + '</div>'
+    disclosureHtml = '<div class="pb-disclosure pb-disclosure-bill">' + escapeHtml(disclosureText) + '</div>'
       + (inAppUI ? '<div class="pb-disclosure pb-disclosure-ext">By clicking this button you\'ll be taken to our website.</div>' : '');
   }
 

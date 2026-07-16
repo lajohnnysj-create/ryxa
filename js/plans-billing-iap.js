@@ -102,6 +102,17 @@ function iapRenderSection() {
           var suf = card.querySelector('.pb-price-suffix');
           if (big) big.textContent = price;
           if (suf) suf.textContent = '/ ' + cycleWord;
+          // The hardcoded US billing disclosure ("Billed $100/year", "7-day
+          // free trial, then $240/year") and the "$X billed annually" subline
+          // are wrong in IAP-only markets. Replace them with Apple's price.
+          var bill = card.querySelector('.pb-disclosure-bill');
+          if (bill) {
+            bill.textContent = (plan === 'max')
+              ? ('7-day free trial, then ' + price + ' / ' + cycleWord + '. Cancel anytime in Apple Settings.')
+              : ('Billed ' + price + ' / ' + cycleWord + '. Cancel anytime in Apple Settings.');
+          }
+          var subl = card.querySelector('.pb-price-sub');
+          if (subl) subl.textContent = (cycle === 'annual') ? (price + ' billed annually') : '';
         }
       }
     }
