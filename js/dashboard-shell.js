@@ -2400,6 +2400,7 @@ function showTool(tool) {
     }
     document.getElementById('settings-sub-free').style.display = pro ? 'none' : 'block';
     document.getElementById('settings-sub-pro').style.display = pro ? 'block' : 'none';
+    if (pro && typeof iapApplySettingsManagement === 'function') iapApplySettingsManagement();
     if (typeof updateSettingsCancelBtn === 'function') updateSettingsCancelBtn();
     const pwBtn = document.getElementById('settings-reset-password-btn');
     const pwMsg = document.getElementById('settings-password-msg');

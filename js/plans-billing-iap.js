@@ -178,6 +178,58 @@ function iapApplyStorefrontGate() {
   }
 })();
 
+// ---- Settings: swap Stripe management for Apple management --------------------
+// When the user's active sub is an Apple IAP, the Stripe "Change Plan / Manage
+// Billing" controls do nothing useful (and could create a conflicting Stripe
+// sub), so hide them and show the Apple path instead: in-app, a button that
+// deep-links to Apple's subscription settings; on desktop web, instructions
+// (no native bridge to deep-link with).
+async function iapApplySettingsManagement() {
+  var stripeControls = document.getElementById('settings-sub-stripe-controls');
+  var appleControls = document.getElementById('settings-sub-apple-controls');
+  if (!stripeControls || !appleControls) return;
+  var uid = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.id : null;
+  if (!uid) return;
+  var isApple = false;
+  try {
+    var q = await sb.from('subscriptions')
+      .select('source, apple_expires_at')
+      .eq('user_id', uid)
+      .limit(1);
+    if (q && q.data && q.data.length) {
+      isApple = q.data[0].source === 'apple' &&
+        q.data[0].apple_expires_at &&
+        new Date(q.data[0].apple_expires_at).getTime() > Date.now();
+    }
+  } catch (e) { /* on error, leave Stripe controls (safe default) */ }
+
+  if (isApple) {
+    stripeControls.style.display = 'none';
+    appleControls.style.display = 'block';
+    // In-app: working deep-link button. Web: hide button, show instructions.
+    var btn = document.getElementById('settings-apple-manage-btn');
+    var hint = document.getElementById('settings-apple-web-hint');
+    if (iapInApp()) {
+      if (btn) btn.style.display = 'block';
+      if (hint) hint.style.display = 'none';
+    } else {
+      if (btn) btn.style.display = 'none';
+      if (hint) hint.style.display = 'block';
+    }
+  } else {
+    stripeControls.style.display = 'block';
+    appleControls.style.display = 'none';
+  }
+}
+
+// Wire the "Manage in Apple Settings" button to the native deep-link.
+document.addEventListener('click', function (e) {
+  var t = e.target;
+  if (t && t.getAttribute && t.getAttribute('data-settings-action') === 'manage-apple') {
+    if (iapInApp()) iapPost({ type: 'iapManage' });
+  }
+});
+
 // Native -> web events.
 document.addEventListener('ryxa-iap', function (e) {
   var ev;
