@@ -148,16 +148,34 @@ function iapApplyStorefrontGate() {
   }
 }
 
-// Page re-renders wipe the appended section; watch and re-apply.
+// Page re-renders wipe the appended section; watch and re-apply. Also covers
+// the timing gap: iapReady fires at app launch (on the dashboard home), long
+// before the user opens the Plans page, so the initial render is a no-op. This
+// observer re-runs the render the moment the Plans page becomes active, using
+// the already-cached iapStorefront/iapPrices. Belt-and-suspenders with the
+// hashchange/DOMContentLoaded re-attempts below.
 (function () {
-  var host = document.getElementById('plans-billing-view');
-  var target = host || document.body;
-  new MutationObserver(function () {
+  var reapply = function () {
     if (document.body.classList.contains('plans-billing-active')) {
+      if (iapInApp() && !Object.keys(iapPrices).length) {
+        iapPost({ type: 'iapLoadProducts' });
+      }
       iapRenderSection();
       iapApplyStorefrontGate();
     }
-  }).observe(target, { childList: true, subtree: !host });
+  };
+  // 1) Fire the instant the page becomes active (body class flips). Cheap:
+  //    only watches body's own class attribute.
+  new MutationObserver(reapply).observe(document.body, {
+    attributes: true, attributeFilter: ['class'],
+  });
+  // 2) Re-apply when the view's content is (re)built while already active, so
+  //    a cycle-toggle or tier re-render doesn't drop the IAP section. Scoped to
+  //    the view container only.
+  var view = document.getElementById('plans-billing-view');
+  if (view) {
+    new MutationObserver(reapply).observe(view, { childList: true, subtree: true });
+  }
 })();
 
 // Native -> web events.
