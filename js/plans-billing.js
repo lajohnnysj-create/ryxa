@@ -25,15 +25,36 @@ function plansBillingAllowed() {
   try {
     var u = (typeof currentUser !== 'undefined' && currentUser) ? currentUser : null;
     if (!u) return false;
-    // Launched to free-tier users: the Plans & Billing page is their upgrade
-    // surface. Paid users don't see it (they manage plans in Settings). Admin
-    // and test accounts always pass so the page can be inspected on any tier.
-    if (u.id && u.id === PLANS_BILLING_ADMIN_ID) return true;
-    if (u.email && PLANS_BILLING_ALLOWED_EMAILS.indexOf(u.email.toLowerCase()) !== -1) return true;
-    // Free tier (no active paid subscription) sees the page.
-    if (typeof isPro === 'function') return !isPro();
-    return (typeof userTier !== 'undefined') ? (userTier === 'free') : false;
+    // Plans & Billing is the single source of truth for plans. Everyone signed
+    // in can open it; what renders depends on their state:
+    //   free            -> plan cards (US dual-rail / non-US IAP-only)
+    //   paid via Stripe -> "See plans" link-out panel
+    //   paid via Apple  -> "Manage in Apple Settings" panel
+    return true;
   } catch (e) { return false; }
+}
+
+// Cached subscription state for render branching. Fetched on route open;
+// falls back to tier-only knowledge (userTier) if the fetch fails.
+var pbSource = null;          // 'stripe' | 'apple' | null (unknown/free)
+var pbAppleActive = false;    // true when source apple and not expired
+
+async function plansBillingFetchState() {
+  pbSource = null;
+  pbAppleActive = false;
+  try {
+    var uid = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.id : null;
+    if (!uid) return;
+    var q = await sb.from('subscriptions')
+      .select('tier, status, source, apple_expires_at')
+      .eq('user_id', uid)
+      .limit(1);
+    if (q && q.data && q.data.length) {
+      pbSource = q.data[0].source || 'stripe';
+      pbAppleActive = pbSource === 'apple' && q.data[0].apple_expires_at
+        && new Date(q.data[0].apple_expires_at).getTime() > Date.now();
+    }
+  } catch (e) { /* render falls back to tier-only info */ }
 }
 
 // Plan data mirrors pricing.html (kept in sync manually). Prices shown per the
@@ -249,13 +270,46 @@ function renderPlansBilling() {
   var host = document.getElementById('plans-billing-view');
   if (!host) return;
 
-  // Hard gate: never render for anyone but the admin account.
   if (!plansBillingAllowed()) {
     host.innerHTML = '';
     host.style.display = 'none';
     return;
   }
   host.style.display = 'block';
+
+  // ---- Paid users: no purchase cards on this page. ----
+  // Stripe-paid -> a single "See plans" hand-off to the pricing page (in-app
+  // this is the permitted US link-out; the storefront gate keeps non-US free
+  // users IAP-only so a non-US Stripe sub is a legacy edge routed the same).
+  // Apple-paid -> manage in Apple Settings (their sub lives there).
+  var paid = (typeof isPro === 'function') ? isPro()
+    : (typeof userTier !== 'undefined' && (userTier === 'monthly' || userTier === 'max'));
+  if (paid) {
+    var inApp = !!(window.RyxaNative && window.ReactNativeWebView);
+    var panel;
+    if (pbAppleActive) {
+      panel =
+        '<h1 class="pb-title">Your plan</h1>'
+        + '<p class="pb-paid-msg" style="color:var(--muted);font-size:14px;line-height:1.6;margin:14px 0 22px;">Your subscription is billed through Apple. Manage, change, or cancel it in your Apple subscription settings.</p>'
+        + (inApp
+          ? '<button class="pb-cta" data-plans-action="manage-apple-sub">Manage in Apple Settings</button>'
+          : '<p class="pb-paid-msg" style="color:var(--muted);font-size:14px;line-height:1.6;margin:14px 0 22px;">On your iPhone or iPad, open Settings, tap your name, then Subscriptions to manage your Ryxa plan.</p>');
+    } else {
+      panel =
+        '<h1 class="pb-title">Your plan</h1>'
+        + '<p class="pb-paid-msg" style="color:var(--muted);font-size:14px;line-height:1.6;margin:14px 0 22px;">View available plans, switch your billing cycle, or change your plan on our pricing page.</p>'
+        + '<button class="pb-cta" data-plans-action="see-plans">See plans'
+        + ' <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-left:4px;" aria-hidden="true"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg></button>'
+        + (inApp ? '<div class="pb-disclosure pb-disclosure-ext">By clicking this button you\'ll be taken to our website.</div>' : '');
+    }
+    host.innerHTML =
+      '<div class="pb-hero">'
+      + '<img src="/ryxamodel.webp" alt="" class="pb-hero-img">'
+      + '<div class="pb-hero-fade"></div>'
+      + '</div>'
+      + '<div class="pb-body pb-paid-body">' + panel + '</div>';
+    return;
+  }
 
   var cyc = plansBillingCycle;
   host.innerHTML =
@@ -481,6 +535,19 @@ function plansBillingHandleAction(e) {
   } else if (action === 'checkout') {
     if (!plansBillingAllowed()) return; // defensive: never checkout for non-admin
     plansBillingCheckout(el.dataset.plan, el);
+  } else if (action === 'see-plans') {
+    // Paid (Stripe) hand-off to the pricing page: in-app this is the permitted
+    // link-out (Safari + signed ticket), on web a normal navigation.
+    if (el && window.RyxaNative && window.ReactNativeWebView) {
+      var orig = el.innerHTML;
+      el.disabled = true;
+      el.textContent = 'Redirecting to website...';
+      setTimeout(function () { el.disabled = false; el.innerHTML = orig; }, 1500);
+    }
+    if (typeof goToPricingDirect === 'function') goToPricingDirect();
+  } else if (action === 'manage-apple-sub') {
+    // Apple-billed subscriber: open Apple's subscription management (native).
+    try { window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'iapManage' })); } catch (err) {}
   }
 }
 
@@ -511,6 +578,11 @@ function plansBillingRouteCheck() {
     document.body.classList.add('plans-billing-active');
     renderPlansBilling();
     window.scrollTo(0, 0);
+    // Subscription source (stripe vs apple) decides the paid-user panel;
+    // fetch it and re-render once known.
+    plansBillingFetchState().then(function () {
+      if (document.body.classList.contains('plans-billing-active')) renderPlansBilling();
+    });
     // Tier (userTier/userBillingCycle) may still be loading on first open;
     // re-render shortly after so "Current plan" / "Switch billing" states
     // reflect the user's actual subscription once it's known.

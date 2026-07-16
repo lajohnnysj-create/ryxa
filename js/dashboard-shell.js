@@ -2583,6 +2583,21 @@ document.addEventListener('visibilitychange', function () {
 // page could use to visually emphasize a plan. Harmless if unused.
 // =============================================================================
 function goToPricing(highlightPlan) {
+  // SINGLE SOURCE OF TRUTH: every upsell CTA routes to the in-dashboard Plans &
+  // Billing page. From there, free users buy (dual-rail/IAP by storefront) and
+  // paid Stripe users get the "See plans" link-out to the pricing page. The
+  // direct pricing link-out lives in goToPricingDirect (used by "See plans").
+  if (window.location.hash !== '#plans-billing') {
+    window.location.hash = 'plans-billing';
+  } else if (typeof plansBillingRouteCheck === 'function') {
+    plansBillingRouteCheck();
+  }
+}
+
+// The original pricing-page hand-off (in-app: Safari link-out with a signed
+// ticket; web: normal navigation). Called by the Plans & Billing "See plans"
+// button, not by upsell CTAs directly.
+function goToPricingDirect(highlightPlan) {
   var query = '';
   if (highlightPlan === 'pro' || highlightPlan === 'max') {
     query = '?highlight=' + highlightPlan;
