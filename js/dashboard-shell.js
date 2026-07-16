@@ -2759,8 +2759,19 @@ async function mintPricingTicketThenOpen(query) {
       }
     }
     document.querySelectorAll(sel).forEach(function (el) {
-      decorateExternalCta(el, 'By clicking this button you\'ll be taken to our website.');
+      // These upsell buttons now route to the IN-APP Plans & Billing page (via
+      // goToPricing), not out to Safari, so they must NOT carry the external
+      // glyph or the "taken to our website" disclosure - that wrongly implied a
+      // Stripe link-out. Strip any stale decoration a previous pass added.
+      var glyph = el.querySelector('.ryxa-ext-ico');
+      if (glyph) glyph.remove();
+      var maybeNote = el.nextElementSibling;
+      if (maybeNote && maybeNote.classList && maybeNote.classList.contains('ryxa-ext-note')) {
+        maybeNote.remove();
+      }
     });
+    // Only the genuine link-out (Manage Billing opens the browser) keeps the
+    // external affordance.
     document.querySelectorAll('[data-settings-action="manage-billing"]').forEach(function (el) {
       decorateExternalCta(el, 'By clicking this button you\'ll be taken to your browser.');
     });
