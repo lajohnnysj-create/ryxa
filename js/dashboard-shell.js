@@ -2288,6 +2288,9 @@ function showTool(tool) {
     if ((window.location.hash || '').replace('#', '') === 'plans-billing') {
       try { history.replaceState(null, '', window.location.pathname); } catch (e) {}
     }
+    // Clear the Plans tab highlight; the tool being opened lights its own.
+    var _pbNav = document.getElementById('bnav-plans');
+    if (_pbNav) _pbNav.classList.remove('active');
   }
   // Cancel any in-flight surface loads from the view being left, but ONLY when
   // the tool actually changes. A fast double-tap on the same nav item would
@@ -4159,6 +4162,13 @@ dashRegisterAction('show-plans-nav', (e, el) => {
     } else if (typeof plansBillingRouteCheck === 'function') {
       plansBillingRouteCheck();
     }
+    // Highlight the Plans tab. It sits outside the tool system (hash route), so
+    // clear any tool-driven bnav highlight, then light this one.
+    document.querySelectorAll('.mobile-bottom-nav-item.active')
+      .forEach(function (b) { b.classList.remove('active'); });
+    var _pb = document.getElementById('bnav-plans');
+    if (_pb) _pb.classList.add('active');
+    if (typeof positionBnavPill === 'function') positionBnavPill();
   }
 });
 
