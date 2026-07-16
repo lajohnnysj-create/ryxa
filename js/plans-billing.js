@@ -241,6 +241,7 @@ function plansBillingCard(key) {
     + '<div class="pb-features">' + creditsHtml + everythingHtml + featuresHtml + upgradesHtml + '</div>'
     + btnHtml
     + disclosureHtml
+    + (inAppUI ? '<div class="pb-iap-slot" data-iap-plan="' + key + '"></div>' : '')
     + '</div>';
 }
 

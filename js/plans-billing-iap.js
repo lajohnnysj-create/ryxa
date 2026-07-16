@@ -16,6 +16,12 @@ var IAP_SKUS = {
   max: { monthly: 'io.ryxa.max.monthly', annual: 'io.ryxa.max.annual' }
 };
 
+// Apple logo (inline SVG), sized to sit left of button text. currentColor so it
+// matches whatever text color the button uses.
+var APPLE_LOGO = '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" ' +
+  'style="margin-right:8px;flex:0 0 auto;" aria-hidden="true">' +
+  '<path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg>';
+
 function iapInApp() {
   return !!(window.RyxaNative && window.ReactNativeWebView);
 }
@@ -25,62 +31,73 @@ function iapPost(msg) {
 }
 
 // Render the Apple pay section under the cards (in-app only, page active only).
+// Fill each plan card's Apple-pay slot with that tier's button at the CURRENT
+// cycle. plans-billing re-renders cards on every monthly/annual toggle, so the
+// slots regenerate empty and we refill them. US dual-rail: a compact "Prefer to
+// pay with Apple?" toggle that reveals the Apple button. IAP-only: the Apple
+// button shows directly (Stripe CTA is hidden by the gate).
 function iapRenderSection() {
   var host = document.getElementById('plans-billing-view');
   if (!host || !iapInApp()) return;
   if (!document.body.classList.contains('plans-billing-active')) return;
-  if (document.getElementById('pb-iap-section')) return;
-  var body = host.querySelector('.pb-body');
-  if (!body) return;
+  var slots = host.querySelectorAll('.pb-iap-slot');
+  if (!slots.length) return;
+  var cycle = (typeof plansBillingCycle !== 'undefined' && plansBillingCycle) ? plansBillingCycle : 'annual';
+  var us = iapUsStorefront();
 
-  var el = document.createElement('div');
-  el.id = 'pb-iap-section';
-  el.style.cssText = 'margin-top:26px;text-align:center;';
-  el.innerHTML =
-    '<button id="pb-iap-toggle" style="background:none;border:1px solid var(--border);' +
-    'color:var(--muted);font-family:\'DM Sans\',sans-serif;font-size:13px;font-weight:600;' +
-    'padding:10px 18px;border-radius:10px;cursor:pointer;">Prefer to pay with Apple?</button>' +
-    '<div id="pb-iap-options" style="display:none;margin-top:14px;"></div>';
-  body.appendChild(el);
+  slots.forEach(function (slot) {
+    var plan = slot.getAttribute('data-iap-plan'); // 'pro' | 'max'
+    if (!IAP_SKUS[plan]) return;
+    var sku = IAP_SKUS[plan][cycle];
+    var price = iapPrices[sku] || '';
+    var cycleLabel = cycle === 'annual' ? ' / year' : ' / month';
+    var priceLabel = (price ? ' - ' + price : '') + cycleLabel;
 
-  document.getElementById('pb-iap-toggle').addEventListener('click', function () {
-    var opts = document.getElementById('pb-iap-options');
-    if (!opts) return;
-    var plan = 'pro', cycle = plansBillingCycle || 'annual';
-    // Offer both tiers at the selected cycle, with Apple's localized prices.
-    var rows = ['pro', 'max'].map(function (p) {
-      var sku = IAP_SKUS[p][cycle];
-      var price = iapPrices[sku] || '';
-      var name = p === 'max' ? 'Creator Max' : 'Pro';
-      return '<button class="pb-iap-buy" data-sku="' + sku + '" style="display:block;width:100%;' +
-        'max-width:340px;margin:8px auto;padding:12px;border-radius:10px;border:1px solid var(--border);' +
-        'background:var(--surface2);color:var(--text);font-family:\'DM Sans\',sans-serif;font-size:14px;' +
-        'font-weight:600;cursor:pointer;">' + name + (price ? ' - ' + price : '') +
-        (cycle === 'annual' ? ' / year' : ' / month') + '</button>';
-    }).join('');
-    opts.innerHTML = rows +
-      '<div style="font-size:11px;color:var(--muted);margin-top:8px;">Billed through your Apple ID. ' +
-      'Manage or cancel anytime in Apple Settings.</div>';
-    opts.style.display = opts.style.display === 'none' ? 'block' : 'none';
+    var buyBtn =
+      '<button class="pb-iap-buy" data-sku="' + sku + '" style="display:flex;' +
+      'align-items:center;justify-content:center;width:100%;margin-top:10px;padding:12px;' +
+      'border-radius:10px;border:1px solid var(--border);background:var(--surface2);' +
+      'color:var(--text);font-family:\'DM Sans\',sans-serif;font-size:14px;font-weight:600;' +
+      'cursor:pointer;">' + APPLE_LOGO + '<span>Pay with Apple' + priceLabel + '</span></button>' +
+      '<div class="pb-iap-note" style="margin-top:6px;font-size:11px;color:var(--muted);">' +
+      'Billed through your Apple ID. Manage or cancel anytime in Apple Settings.</div>';
+
+    if (us) {
+      // Dual-rail: keep it secondary behind a compact toggle so the Stripe CTA
+      // stays the primary action.
+      slot.innerHTML =
+        '<button class="pb-iap-toggle" style="display:flex;align-items:center;' +
+        'justify-content:center;width:100%;margin-top:10px;background:none;' +
+        'border:1px solid var(--border);color:var(--muted);font-family:\'DM Sans\',sans-serif;' +
+        'font-size:13px;font-weight:600;padding:10px;border-radius:10px;cursor:pointer;">' +
+        APPLE_LOGO + '<span>Prefer to pay with Apple?</span></button>' +
+        '<div class="pb-iap-reveal" style="display:none;">' + buyBtn + '</div>';
+    } else {
+      // IAP-only: Apple button is the primary buy action, shown directly.
+      slot.innerHTML = buyBtn;
+    }
   });
 
-  el.addEventListener('click', function (e) {
-    var btn = e.target && e.target.closest ? e.target.closest('.pb-iap-buy') : null;
-    if (!btn || iapBusy) return;
-    var uid = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.id : null;
-    if (!uid) return;
-    iapBusy = true;
-    btn.textContent = 'Opening App Store...';
-    iapPost({ type: 'iapPurchase', sku: btn.dataset.sku, appAccountToken: uid });
-    setTimeout(function () { iapBusy = false; iapRefreshLabels(); }, 4000);
-  });
-}
-
-function iapRefreshLabels() {
-  var opts = document.getElementById('pb-iap-options');
-  if (opts && opts.style.display !== 'none') {
-    opts.style.display = 'none';
-    document.getElementById('pb-iap-toggle') && document.getElementById('pb-iap-toggle').click();
+  // Delegate clicks once (toggles reveal; buy posts purchase).
+  if (!host._iapBound) {
+    host._iapBound = true;
+    host.addEventListener('click', function (e) {
+      var tgl = e.target && e.target.closest ? e.target.closest('.pb-iap-toggle') : null;
+      if (tgl) {
+        var rev = tgl.parentNode.querySelector('.pb-iap-reveal');
+        if (rev) rev.style.display = rev.style.display === 'none' ? 'block' : 'none';
+        return;
+      }
+      var btn = e.target && e.target.closest ? e.target.closest('.pb-iap-buy') : null;
+      if (!btn || iapBusy) return;
+      var uid = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.id : null;
+      if (!uid) return;
+      iapBusy = true;
+      var span = btn.querySelector('span');
+      if (span) span.textContent = 'Opening App Store...';
+      iapPost({ type: 'iapPurchase', sku: btn.dataset.sku, appAccountToken: uid });
+      setTimeout(function () { iapBusy = false; iapRenderSection(); }, 4000);
+    });
   }
 }
 
@@ -158,10 +175,14 @@ function iapApplyStorefrontGate() {
   if (!document.getElementById('pb-iap-gate-css')) {
     var st = document.createElement('style');
     st.id = 'pb-iap-gate-css';
-    st.textContent = 'body.iap-only .pb-cta[data-plans-action="checkout"],' +
-      'body.iap-only .pb-disclosure{display:none !important;}' +
-      'body.iap-only #pb-iap-toggle{display:none !important;}' +
-      'body.iap-only #pb-iap-options{display:block !important;margin-top:4px;}';
+    st.textContent =
+      // Hide the Stripe CTA and its link-out disclosure in IAP-only markets.
+      'body.iap-only .pb-cta[data-plans-action="checkout"],' +
+      'body.iap-only .pb-disclosure-ext{display:none !important;}' +
+      // In IAP-only mode the per-card Apple toggle is not used (button shows
+      // directly), so hide any stray toggle and force reveals open.
+      'body.iap-only .pb-iap-toggle{display:none !important;}' +
+      'body.iap-only .pb-iap-reveal{display:block !important;}';
     document.head.appendChild(st);
   }
   // Hard block: even if a link-out element slips through, the checkout
@@ -174,12 +195,10 @@ function iapApplyStorefrontGate() {
       return _origPlansCheckout(plan, btn);
     };
   }
-  // In IAP-only mode the Apple options render open as the primary buy method.
+  // In IAP-only mode the per-card Apple buttons are the primary buy action;
+  // (re)render the slots so they show directly under each card.
   if (iapOnly) {
     iapRenderSection();
-    var opts = document.getElementById('pb-iap-options');
-    var toggle = document.getElementById('pb-iap-toggle');
-    if (opts && toggle && !opts.innerHTML) toggle.click();
   }
 }
 
