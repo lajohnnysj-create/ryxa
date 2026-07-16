@@ -2281,7 +2281,12 @@ function showTool(tool) {
   // Tier gate: tools above the user's plan don't render a locked preview;
   // they route straight to Plans & Billing (the single upgrade surface).
   // Unknown tier (still loading) falls through and renders normally.
-  var TOOL_MIN_TIER = { mediakit: 'pro', courses: 'max', coaching: 'max', products: 'max', deals: 'max' };
+  var TOOL_MIN_TIER = {
+    mediakit: 'pro', courses: 'max', coaching: 'max', products: 'max', deals: 'max',
+    // More Tools Pro items: route free users straight to Plans & Billing rather
+    // than opening the tool and letting its own upsell fire (double hop).
+    scripts: 'pro', aichat: 'pro', thumbanalyzer: 'pro', contractanalyzer: 'pro'
+  };
   var _needs = TOOL_MIN_TIER[tool];
   if (_needs && typeof userTier !== 'undefined' && userTier) {
     var _t = (userTier === 'monthly' || userTier === 'pro') ? 'pro' : userTier;
