@@ -2298,7 +2298,7 @@ function showTool(tool) {
   if (document.body.classList.contains('plans-billing-active')) {
     document.body.classList.remove('plans-billing-active');
     var _pbView = document.getElementById('plans-billing-view');
-    if (_pbView) { _pbView.innerHTML = ''; _pbView.style.display = 'none'; }
+    if (_pbView) { _pbView.style.display = 'none'; }
     if ((window.location.hash || '').replace('#', '') === 'plans-billing') {
       try { history.replaceState(null, '', window.location.pathname); } catch (e) {}
     }

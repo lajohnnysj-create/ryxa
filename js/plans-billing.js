@@ -277,6 +277,26 @@ function renderPlansBilling() {
   }
   host.style.display = 'block';
 
+  // Build the hero ONCE and keep it across re-renders. renderPlansBilling runs
+  // several times per open (immediately, after the source fetch, after tier
+  // loads), and rebuilding host.innerHTML each time re-fetches the hero image
+  // and logos, causing a visible flash. So we ensure a stable shell (hero +
+  // empty body) exists, then only replace the body's inner content.
+  var HERO = '<div class="pb-hero">'
+    + '<img src="/ryxamodel.webp" alt="" class="pb-hero-img">'
+    + '<div class="pb-hero-fade"></div>'
+    + '</div>';
+  function ensureShell(bodyClass) {
+    var body = host.querySelector('.pb-body');
+    // Rebuild the shell only if missing or the body variant changed (paid vs
+    // free need different body classes). Otherwise keep the live hero/body.
+    if (!body || body.getAttribute('data-pb-variant') !== bodyClass) {
+      host.innerHTML = HERO + '<div class="pb-body ' + bodyClass + '" data-pb-variant="' + bodyClass + '"></div>';
+      body = host.querySelector('.pb-body');
+    }
+    return body;
+  }
+
   // ---- Paid users: no purchase cards on this page. ----
   // Stripe-paid -> a single "See plans" hand-off to the pricing page (in-app
   // this is the permitted US link-out; the storefront gate keeps non-US free
@@ -302,23 +322,13 @@ function renderPlansBilling() {
         + ' <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-left:4px;" aria-hidden="true"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg></button>'
         + (inApp ? '<div class="pb-disclosure pb-disclosure-ext">By clicking this button you\'ll be taken to our website.</div>' : '');
     }
-    host.innerHTML =
-      '<div class="pb-hero">'
-      + '<img src="/ryxamodel.webp" alt="" class="pb-hero-img">'
-      + '<div class="pb-hero-fade"></div>'
-      + '</div>'
-      + '<div class="pb-body pb-paid-body">' + panel + '</div>';
+    ensureShell('pb-paid-body').innerHTML = panel;
     return;
   }
 
   var cyc = plansBillingCycle;
-  host.innerHTML =
-    '<div class="pb-hero">'
-    + '<img src="/ryxamodel.webp" alt="" class="pb-hero-img">'
-    + '<div class="pb-hero-fade"></div>'
-    + '</div>'
-    + '<div class="pb-body">'
-    + '<h1 class="pb-title">Get more out of your creator business with Ryxa Pro or Max.</h1>'
+  ensureShell('').innerHTML =
+    '<h1 class="pb-title">Get more out of your creator business with Ryxa Pro or Max.</h1>'
     + '<div class="pb-section-head">'
     + '<h2>Available plans</h2>'
     + '<div class="pb-cycle" role="tablist" aria-label="Billing cycle">'
@@ -329,7 +339,6 @@ function renderPlansBilling() {
     + '<div class="pb-cards">'
     + plansBillingCard('pro')
     + plansBillingCard('max')
-    + '</div>'
     + '</div>';
 }
 

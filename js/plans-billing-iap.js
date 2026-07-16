@@ -13,6 +13,7 @@ var iapBusy = false;
 var iapRevealOpen = {};             // plan -> bool, preserves toggle state across re-renders
 var iapLastErrSig = '';             // dedupe: last purchase-error signature
 var iapLastErrAt = 0;               // dedupe: timestamp of last error alert
+var iapLastLoadAt = 0;              // throttle: last iapLoadProducts request time
 
 var IAP_SKUS = {
   pro: { monthly: 'io.ryxa.pro.monthly', annual: 'io.ryxa.pro.annual' },
@@ -271,8 +272,15 @@ function iapApplyStorefrontGate() {
     applying = true;
     if (viewObs) viewObs.disconnect();
     try {
+      // Request products at most once every 6s. Without this, while products
+      // are failing to load (prices stay empty), every DOM mutation re-fires
+      // iapLoadProducts, producing a storm of "couldn't communicate" errors.
       if (iapInApp() && (!Object.keys(iapPrices).length || iapStorefront === null)) {
-        iapPost({ type: 'iapLoadProducts' });
+        var now = Date.now();
+        if (now - iapLastLoadAt > 6000) {
+          iapLastLoadAt = now;
+          iapPost({ type: 'iapLoadProducts' });
+        }
       }
       iapRenderSection();
       iapApplyStorefrontGate();
