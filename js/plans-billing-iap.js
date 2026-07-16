@@ -11,6 +11,8 @@ var iapStorefront = null;           // e.g. 'USA'; null until iapReady
 var iapPrices = {};                 // productId -> localized display price
 var iapBusy = false;
 var iapRevealOpen = {};             // plan -> bool, preserves toggle state across re-renders
+var iapLastErrSig = '';             // dedupe: last purchase-error signature
+var iapLastErrAt = 0;               // dedupe: timestamp of last error alert
 
 var IAP_SKUS = {
   pro: { monthly: 'io.ryxa.pro.monthly', annual: 'io.ryxa.pro.annual' },
@@ -327,7 +329,15 @@ document.addEventListener('ryxa-iap', function (e) {
   } else if (ev.type === 'iapPurchaseError') {
     iapBusy = false;
     if (ev.code !== 'user_cancelled' && ev.code !== 'E_USER_CANCELLED') {
-      alert(ev.message || 'Purchase failed.');
+      // Dedupe: suppress an identical error fired within 3s (guards against any
+      // double-emit from the native layer producing two alerts).
+      var sig = String(ev.code) + '|' + String(ev.message);
+      var now = Date.now();
+      if (!(sig === iapLastErrSig && now - iapLastErrAt < 3000)) {
+        iapLastErrSig = sig;
+        iapLastErrAt = now;
+        alert(ev.message || 'Purchase failed.');
+      }
     }
   }
 });
