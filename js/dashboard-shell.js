@@ -2290,6 +2290,9 @@ function showTool(tool) {
   // Unknown tier (still loading) falls through and renders normally.
   var TOOL_MIN_TIER = {
     mediakit: 'pro', courses: 'max', coaching: 'max', products: 'max', deals: 'max',
+    // Analytics submenu: Link in Bio analytics is Pro, Store analytics is Max.
+    // Route locked users to Plans & Billing instead of the tool's own CTA.
+    'bio-analytics': 'pro', analytics: 'max',
     // More Tools Pro items: route free users straight to Plans & Billing rather
     // than opening the tool and letting its own upsell fire (double hop).
     scripts: 'pro', aichat: 'pro', thumbanalyzer: 'pro', contractanalyzer: 'pro'
@@ -2304,12 +2307,24 @@ function showTool(tool) {
       // highlight first, then light this one, so the sidebar reflects the click.
       // "More Tools" sub-items (scripts/aichat/thumbanalyzer/contractanalyzer)
       // have no direct sidebar entry, so light their parent (nav-moretools).
-      document.querySelectorAll('.sidebar-item.active, [id^="nav-"].active')
+      // Analytics sub-items (bio-analytics/analytics) light the Analytics parent
+      // and keep the submenu open.
+      document.querySelectorAll('.sidebar-item.active, .sidebar-subitem.active, [id^="nav-"].active')
         .forEach(function (n) { n.classList.remove('active'); });
       var _moreTools = { scripts: 1, aichat: 1, thumbanalyzer: 1, contractanalyzer: 1 };
-      var _lockNavId = _moreTools[tool] ? 'nav-moretools' : ('nav-' + tool);
-      var _lockNav = document.getElementById(_lockNavId);
-      if (_lockNav) _lockNav.classList.add('active');
+      var _anaTools = { 'bio-analytics': 1, analytics: 1 };
+      if (_anaTools[tool]) {
+        var _anaTog = document.getElementById('nav-analytics-toggle');
+        var _anaSub = document.getElementById('nav-analytics-submenu');
+        if (_anaTog) { _anaTog.classList.add('active'); _anaTog.setAttribute('aria-expanded', 'true'); }
+        if (_anaSub) _anaSub.classList.add('open');
+        var _anaSubItem = document.getElementById('nav-' + tool);
+        if (_anaSubItem) _anaSubItem.classList.add('active');
+      } else {
+        var _lockNavId = _moreTools[tool] ? 'nav-moretools' : ('nav-' + tool);
+        var _lockNav = document.getElementById(_lockNavId);
+        if (_lockNav) _lockNav.classList.add('active');
+      }
       if (typeof closeSidebar === 'function') closeSidebar();
       goToPricing(_needs);
       return;
@@ -2718,7 +2733,7 @@ async function mintPricingTicketThenOpen(query) {
     for (var i = 0; i < el.attributes.length; i++) {
       attrs += ' ' + el.attributes[i].name + '=' + el.attributes[i].value;
     }
-    return /max/i.test(attrs) ? 'Ryxa Max' : 'Ryxa Pro';
+    return /max/i.test(attrs) ? '🚀 Ryxa Max' : '🚀 Ryxa Pro';
   }
 
   function relabel() {
