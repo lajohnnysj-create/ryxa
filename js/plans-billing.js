@@ -336,7 +336,8 @@ function renderPlansBilling() {
   // visible 3x flicker. Skip the rewrite when nothing that affects the cards
   // changed.
   var freeSig = [cyc, (typeof userTier !== 'undefined' ? userTier : ''),
-    (typeof userBillingCycle !== 'undefined' ? userBillingCycle : '')].join('|');
+    (typeof userBillingCycle !== 'undefined' ? userBillingCycle : ''),
+    (typeof iapStorefront !== 'undefined' ? iapStorefront : '')].join('|');
   if (freeBody.getAttribute('data-pb-sig') === freeSig) return;
   freeBody.setAttribute('data-pb-sig', freeSig);
   freeBody.innerHTML =
