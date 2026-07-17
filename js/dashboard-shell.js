@@ -2299,6 +2299,17 @@ function showTool(tool) {
     var _t = (userTier === 'monthly' || userTier === 'pro') ? 'pro' : userTier;
     var _locked = (_needs === 'pro' && _t === 'free') || (_needs === 'max' && _t !== 'max');
     if (_locked) {
+      // Keep the left-menu highlight on the tool the user actually clicked, even
+      // though it routes to Plans & Billing instead of opening. Clear the old
+      // highlight first, then light this one, so the sidebar reflects the click.
+      // "More Tools" sub-items (scripts/aichat/thumbanalyzer/contractanalyzer)
+      // have no direct sidebar entry, so light their parent (nav-moretools).
+      document.querySelectorAll('.sidebar-item.active, [id^="nav-"].active')
+        .forEach(function (n) { n.classList.remove('active'); });
+      var _moreTools = { scripts: 1, aichat: 1, thumbanalyzer: 1, contractanalyzer: 1 };
+      var _lockNavId = _moreTools[tool] ? 'nav-moretools' : ('nav-' + tool);
+      var _lockNav = document.getElementById(_lockNavId);
+      if (_lockNav) _lockNav.classList.add('active');
       if (typeof closeSidebar === 'function') closeSidebar();
       goToPricing(_needs);
       return;
