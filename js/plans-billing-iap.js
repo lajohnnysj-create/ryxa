@@ -209,19 +209,21 @@ function iapRenderSection() {
           var subl = card.querySelector('.pb-price-sub');
           if (subl) subl.textContent = (cycle === 'annual') ? (price + ' billed annually') : '';
         }
-      } else if (storefrontUnknown) {
-        // Unknown storefront: don't show the US fallback price. Defer to the
-        // App Store so we never display a number that won't match checkout.
-        var cardU = slot.closest('.pb-card');
-        if (cardU) {
-          var bigU = cardU.querySelector('.pb-price-big');
-          var sufU = cardU.querySelector('.pb-price-suffix');
-          var subU = cardU.querySelector('.pb-price-sub');
-          var billU = cardU.querySelector('.pb-disclosure-bill');
-          if (bigU) bigU.textContent = 'See App Store';
-          if (sufU) sufU.textContent = '';
-          if (subU) subU.textContent = '';
-          if (billU) billU.textContent = (plan === 'max')
+      } else {
+        // IAP-only market (or forced non-US) but Apple's price hasn't loaded
+        // yet. Don't leave the hardcoded US disclosure ("7-day free trial,
+        // billed $100/year") showing - that dollar amount is wrong here. Defer
+        // to the App Store until the real localized price arrives.
+        var cardP = slot.closest('.pb-card');
+        if (cardP) {
+          var bigP = cardP.querySelector('.pb-price-big');
+          var sufP = cardP.querySelector('.pb-price-suffix');
+          var subP = cardP.querySelector('.pb-price-sub');
+          var billP = cardP.querySelector('.pb-disclosure-bill');
+          if (bigP) bigP.textContent = 'See App Store';
+          if (sufP) sufP.textContent = '';
+          if (subP) subP.textContent = '';
+          if (billP) billP.textContent = (plan === 'max')
             ? '7-day free trial. Pricing shown in the App Store at checkout, billed through your Apple ID.'
             : 'Pricing shown in the App Store at checkout, billed through your Apple ID.';
         }
