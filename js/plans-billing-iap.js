@@ -363,6 +363,9 @@ function iapApplyStorefrontGate() {
         var next = cur === 'USA' ? 'CAN' : (cur === 'CAN' ? null : 'USA');
         window.__iapForceStorefront = next;
         iapStorefront = next;
+        // Full re-render so the cards rebuild with correct prices for the new
+        // storefront (US restores Stripe prices; non-US re-applies deferral).
+        if (typeof renderPlansBilling === 'function') renderPlansBilling();
         iapApplyStorefrontGate();
         iapDebugRefresh();
       });
@@ -519,6 +522,12 @@ document.addEventListener('ryxa-iap', function (e) {
       ? window.__iapForceStorefront
       : (ev.storefront || null);
     iapStorefrontResolved = true;
+    // Full re-render so cards rebuild for the resolved storefront (US shows
+    // Stripe prices; non-US applies the IAP deferral / Apple price).
+    if (typeof renderPlansBilling === 'function' &&
+        document.body.classList.contains('plans-billing-active')) {
+      renderPlansBilling();
+    }
     iapRenderSection();
     iapApplyStorefrontGate();
   } else if (ev.type === 'iapProducts') {
