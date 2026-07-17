@@ -2173,9 +2173,32 @@ function showStripeConnectToast() {
     // 400ms removal window isn't blocked by the "already showing" guard and
     // can't act on this outgoing node.
     toast.id = '';
+    if (livenessTimer) clearInterval(livenessTimer);
     toast.style.transform = 'translateX(110%)';
     setTimeout(function() { if (toast.parentNode) toast.remove(); }, 400);
   }
+
+  // Self-policing: the toast lives ONLY while the dashboard (welcome) view is
+  // actually visible. Rather than hiding it at every possible exit (tool switch,
+  // plans-billing hash route, logout, or any future path), it watches its own
+  // liveness and removes itself the instant the dashboard isn't the visible
+  // view. This makes it structurally impossible for it to linger anywhere else,
+  // no matter how the view changed.
+  function dashboardVisible() {
+    if (typeof currentTool !== 'undefined' && currentTool !== 'welcome') return false;
+    var login = document.getElementById('pwa-login-screen');
+    if (login && login.style.display !== 'none' && login.offsetParent !== null) return false;
+    var main = document.querySelector('.main');
+    if (main && main.style.display === 'none') return false;
+    if (document.body.classList.contains('plans-billing-active')) return false;
+    return true;
+  }
+  function liveness() {
+    if (!toast.id) { clearInterval(livenessTimer); return; } // sliding out; stop
+    if (!dashboardVisible()) { clearInterval(livenessTimer); slideOut(); }
+  }
+  var livenessTimer = setInterval(liveness, 250);
+
   // Clicking the toast body just closes it (does NOT persist dismissal, so it
   // returns next time the dashboard loads).
   toast.addEventListener('click', slideOut);
@@ -2663,12 +2686,6 @@ function showTool(tool) {
     if (chatSideToggle) chatSideToggle.setAttribute('aria-expanded', 'false');
   }
   currentTool = tool;
-  // The Stripe connect toast is dashboard-only. If we're navigating to any other
-  // view, slide it away so it never lingers over another tool. (It re-appears on
-  // return to the dashboard via loadStripeConnectStatus, unless dismissed.)
-  if (tool !== 'welcome') {
-    if (typeof hideStripeConnectToast === 'function') hideStripeConnectToast();
-  }
   // Let the responsive CSS gutter govern. Previously this hardcoded 32px
   // (the desktop value), which overrode the mobile gutter on every tool switch.
   const toolArea = document.querySelector('.tool-area');
@@ -3334,10 +3351,6 @@ var pwaTurnstileWidgetId = null;
 
 function showPwaLogin() {
   try { localStorage.removeItem('ryxa_tier_label'); } catch (e) {}
-  // The Stripe toast is a fixed element on the body; logging out doesn't go
-  // through showTool, so hide it here (the single choke point every logout path
-  // reaches) or it lingers over the login screen.
-  if (typeof hideStripeConnectToast === 'function') hideStripeConnectToast();
   var screen = document.getElementById('pwa-login-screen');
   if (!screen) return;
   screen.style.display = 'flex';
