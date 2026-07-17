@@ -566,6 +566,13 @@ document.addEventListener('ryxa-iap', function (e) {
   var ev;
   try { ev = JSON.parse(e.detail); } catch (err) { return; }
   if (!ev || !ev.type) return;
+  // TEMP DIAGNOSTIC: prove which native events actually cross the bridge. The
+  // noisy 'iapReady'/'iapProducts' fire on load; the ones we care about are
+  // iapPurchaseResult / iapPurchaseError. Alert only on those so we can see if
+  // a completed purchase reaches the web at all.
+  if (ev.type === 'iapPurchaseResult' || ev.type === 'iapPurchaseError') {
+    alert('Bridge received: ' + ev.type + (ev.code ? (' [' + ev.code + ']') : '') + (ev.transactionId ? (' txn=' + ev.transactionId) : ''));
+  }
   if (ev.type === 'iapReady') {
     // Testing override: if the debug readout forced a storefront, keep it
     // instead of the real (sandbox-buggy) value. Remove with the debug block.
