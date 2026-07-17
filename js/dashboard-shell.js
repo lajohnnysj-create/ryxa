@@ -2092,26 +2092,40 @@ function showStripeConnectToast() {
   if (document.getElementById('dash-stripe-toast')) return; // already showing
   const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#7c3aed';
 
+  // Inject the glow keyframes once (the bulb pulses so the toast feels alive).
+  if (!document.getElementById('stripe-toast-css')) {
+    const st = document.createElement('style');
+    st.id = 'stripe-toast-css';
+    st.textContent =
+      '@keyframes stripeBulbGlow{0%,100%{filter:drop-shadow(0 0 3px ' + accent + ')}50%{filter:drop-shadow(0 0 9px ' + accent + ')}}'
+      + '#dash-stripe-toast .stripe-bulb{animation:stripeBulbGlow 2s ease-in-out infinite}';
+    document.head.appendChild(st);
+  }
+
   const toast = document.createElement('div');
   toast.id = 'dash-stripe-toast';
   toast.setAttribute('role', 'status');
-  // Anchor to the right edge, WELL below showDashToast (which sits ~topbar+12)
-  // so even a wrapped two-line social error toast above it can never collide.
-  const bar = document.querySelector('.topbar');
-  const topPos = bar
-    ? (bar.getBoundingClientRect().bottom + 150) + 'px'
-    : 'calc(216px + env(safe-area-inset-top, 0px))';
-  toast.style.cssText = 'position:fixed;right:0;top:' + topPos + ';z-index:10000;'
+  // Anchored to the bottom-right, sitting about 15% up from the bottom of the
+  // viewport so it clears the very edge and any bottom nav / safe area.
+  toast.style.cssText = 'position:fixed;right:0;bottom:15vh;z-index:10000;'
     + 'width:min(340px, 86vw);background:#1b1b26;color:#ffffff;'
     + 'border-left:3px solid ' + accent + ';border-radius:12px 0 0 12px;'
     + 'padding:16px 18px 16px 16px;font-family:\'DM Sans\',sans-serif;'
     + 'box-shadow:0 8px 32px rgba(0,0,0,0.45);cursor:pointer;'
     + 'transform:translateX(110%);transition:transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);';
 
-  // Title.
+  // Title row: glowing lightbulb + text.
+  const titleRow = document.createElement('div');
+  titleRow.style.cssText = 'display:flex;align-items:center;gap:9px;margin:0 0 5px 0;';
+  const bulb = document.createElement('span');
+  bulb.className = 'stripe-bulb';
+  bulb.style.cssText = 'display:inline-flex;flex-shrink:0;color:' + accent + ';';
+  bulb.innerHTML = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/></svg>';
   const title = document.createElement('p');
-  title.style.cssText = 'font-size:14px;font-weight:600;color:#fff;margin:0 0 5px 0;line-height:1.3;';
+  title.style.cssText = 'font-size:14px;font-weight:600;color:#fff;margin:0;line-height:1.3;';
   title.textContent = 'Connect Stripe to start earning';
+  titleRow.appendChild(bulb);
+  titleRow.appendChild(title);
 
   // Subtext.
   const sub = document.createElement('p');
@@ -2126,20 +2140,25 @@ function showStripeConnectToast() {
   connectBtn.style.cssText = 'flex:1;display:inline-flex;align-items:center;justify-content:center;'
     + 'padding:9px 20px;background:' + accent + ';color:#fff;border:none;border-radius:8px;'
     + 'font-size:13px;font-weight:600;font-family:\'DM Sans\',sans-serif;cursor:pointer;'
-    + 'box-shadow:0 0 20px var(--accent-glow);';
+    + 'box-shadow:0 0 20px var(--accent-glow);transition:filter 0.15s, transform 0.15s;';
   connectBtn.textContent = 'Connect';
+  connectBtn.addEventListener('mouseenter', function () { connectBtn.style.filter = 'brightness(1.12)'; connectBtn.style.transform = 'translateY(-1px)'; });
+  connectBtn.addEventListener('mouseleave', function () { connectBtn.style.filter = ''; connectBtn.style.transform = ''; });
 
   const dismissBtn = document.createElement('button');
   dismissBtn.style.cssText = 'flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;'
     + 'padding:9px 14px;background:transparent;color:rgba(255,255,255,0.6);'
     + 'border:1px solid rgba(255,255,255,0.16);border-radius:8px;'
-    + 'font-size:13px;font-weight:500;font-family:\'DM Sans\',sans-serif;cursor:pointer;';
+    + 'font-size:13px;font-weight:500;font-family:\'DM Sans\',sans-serif;cursor:pointer;'
+    + 'transition:background 0.15s, color 0.15s, border-color 0.15s;';
   dismissBtn.textContent = 'Dismiss';
+  dismissBtn.addEventListener('mouseenter', function () { dismissBtn.style.background = 'rgba(255,255,255,0.08)'; dismissBtn.style.color = '#fff'; dismissBtn.style.borderColor = 'rgba(255,255,255,0.28)'; });
+  dismissBtn.addEventListener('mouseleave', function () { dismissBtn.style.background = 'transparent'; dismissBtn.style.color = 'rgba(255,255,255,0.6)'; dismissBtn.style.borderColor = 'rgba(255,255,255,0.16)'; });
 
   btnRow.appendChild(connectBtn);
   btnRow.appendChild(dismissBtn);
 
-  toast.appendChild(title);
+  toast.appendChild(titleRow);
   toast.appendChild(sub);
   toast.appendChild(btnRow);
   document.body.appendChild(toast);
