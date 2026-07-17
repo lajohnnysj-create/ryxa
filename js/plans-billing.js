@@ -340,6 +340,9 @@ function renderPlansBilling() {
     (typeof iapStorefront !== 'undefined' ? iapStorefront : '')].join('|');
   if (freeBody.getAttribute('data-pb-sig') === freeSig) return;
   freeBody.setAttribute('data-pb-sig', freeSig);
+  // Fade the content in to mask the brief flash as prices/tier resolve.
+  freeBody.style.opacity = '0';
+  freeBody.style.transition = 'opacity 0.35s ease';
   freeBody.innerHTML =
     '<h1 class="pb-title">Get more out of your creator business with Ryxa Pro or Max.</h1>'
     + '<div class="pb-section-head">'
@@ -353,6 +356,10 @@ function renderPlansBilling() {
     + plansBillingCard('pro')
     + plansBillingCard('max')
     + '</div>';
+  // Next frame: fade the freshly-built content in.
+  requestAnimationFrame(function () {
+    requestAnimationFrame(function () { freeBody.style.opacity = '1'; });
+  });
 }
 
 // ---- Actions -------------------------------------------------------------

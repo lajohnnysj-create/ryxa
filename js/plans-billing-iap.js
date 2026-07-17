@@ -10,6 +10,8 @@
 var iapStorefront = null;           // e.g. 'USA'; null until iapReady
 var iapPrices = {};                 // productId -> localized display price
 var iapBusy = false;
+var iapBusyBtn = null;              // the buy button currently mid-purchase
+var iapBusyLabel = '';              // its label to restore on completion/error
 var iapRevealOpen = {};             // plan -> bool, preserves toggle state across re-renders
 var iapLastErrSig = '';             // dedupe: last purchase-error signature
 var iapLastErrAt = 0;               // dedupe: timestamp of last error alert
@@ -254,10 +256,28 @@ function iapRenderSection() {
       if (!uid) return;
       iapBusy = true;
       var span = btn.querySelector('span');
+      // Remember this button + its label so any end path (result, error, cancel,
+      // timeout) can restore it instead of leaving "Opening App Store..." stuck.
+      iapBusyBtn = btn;
+      iapBusyLabel = span ? span.textContent : '';
       if (span) span.textContent = 'Opening App Store...';
       iapPost({ type: 'iapPurchase', sku: btn.dataset.sku, appAccountToken: uid });
-      setTimeout(function () { iapBusy = false; }, 4000);
+      // Safety timeout: if no result/error/cancel event arrives (e.g. the user
+      // backgrounds the app at the sheet), un-stick the button.
+      setTimeout(function () { iapResetBusy(); }, 8000);
     });
+  }
+}
+
+// Reset the purchase busy state and restore the button label. Safe to call
+// multiple times / from any end path.
+function iapResetBusy() {
+  iapBusy = false;
+  if (iapBusyBtn) {
+    var s = iapBusyBtn.querySelector('span');
+    if (s && iapBusyLabel) s.textContent = iapBusyLabel;
+    iapBusyBtn = null;
+    iapBusyLabel = '';
   }
 }
 
@@ -499,9 +519,10 @@ document.addEventListener('ryxa-iap', function (e) {
     // the real Apple price instead of blank.
     iapRenderSection();
   } else if (ev.type === 'iapPurchaseResult') {
+    iapResetBusy();
     iapHandlePurchase(ev);
   } else if (ev.type === 'iapPurchaseError') {
-    iapBusy = false;
+    iapResetBusy();
     if (ev.code !== 'user_cancelled' && ev.code !== 'E_USER_CANCELLED') {
       // Dedupe: suppress an identical error fired within 3s (guards against any
       // double-emit from the native layer producing two alerts).
