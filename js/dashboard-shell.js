@@ -2169,6 +2169,10 @@ function showStripeConnectToast() {
   });
 
   function slideOut() {
+    // Clear the id immediately so a quick re-show (or a hide call) during the
+    // 400ms removal window isn't blocked by the "already showing" guard and
+    // can't act on this outgoing node.
+    toast.id = '';
     toast.style.transform = 'translateX(110%)';
     setTimeout(function() { if (toast.parentNode) toast.remove(); }, 400);
   }
@@ -2196,6 +2200,9 @@ function showStripeConnectToast() {
 function hideStripeConnectToast() {
   const t = document.getElementById('dash-stripe-toast');
   if (!t) return;
+  // Clear the id first so a re-show during the 400ms removal window creates a
+  // fresh toast instead of being blocked by this outgoing one.
+  t.id = '';
   t.style.transform = 'translateX(110%)';
   setTimeout(function() { if (t.parentNode) t.remove(); }, 400);
 }
