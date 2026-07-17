@@ -260,7 +260,7 @@ function iapRenderSection() {
       var btn = e.target.closest('.pb-iap-buy');
       if (!btn || iapBusy) return;
       var uid = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.id : null;
-      if (!uid) { alert('Cannot purchase: not signed in (no user id). Sign out and back in.'); return; }
+      if (!uid) { alert('Please sign in before subscribing.'); return; }
       iapBusy = true;
       var span = btn.querySelector('span');
       // Remember this button + its label so any end path (result, error, cancel,
@@ -316,7 +316,7 @@ async function iapHandlePurchase(detail) {
         iapPost({ type: 'iapForceFinish', transactionId: detail.transactionId });
         alert('This purchase could not be applied and was cleared. If you were charged, contact support@ryxa.io.');
       } else {
-        alert('Verify failed [HTTP ' + status + ']: ' + (bodyText || resp.error.message));
+        alert('We could not confirm your purchase. Please try again in a moment, or contact support@ryxa.io if you were charged.');
       }
       return;
     }
@@ -344,14 +344,14 @@ async function iapHandlePurchase(detail) {
         iapPost({ type: 'iapForceFinish', transactionId: detail.transactionId });
         alert('This purchase could not be applied and was cleared. If you were charged, contact support@ryxa.io.');
       } else {
-        alert('Purchase not confirmed (verify): ' + JSON.stringify(reason));
+        alert('We could not confirm your purchase. Please try again in a moment, or contact support@ryxa.io if you were charged.');
       }
     }
   } catch (e) {
     // The invoke itself failed (auth/session/network) - never reached the
     // function, which is why the server logs are empty. Show it directly.
     console.error('verify-apple-purchase invoke threw:', e && (e.message || e));
-    alert('Purchase not confirmed (invoke error): ' + (e && (e.message || String(e))));
+    alert('We could not reach the store to confirm your purchase. Please check your connection and try again.');
   } finally {
     iapBusy = false;
   }
@@ -575,10 +575,6 @@ function _ryxaHandleIapDetail(detailStr) {
     if (_iapSeen[key]) return;
     _iapSeen[key] = true;
   }
-  // TEMP DIAGNOSTIC: surface purchase events so failures aren't invisible.
-  if (ev.type === 'iapPurchaseResult' || ev.type === 'iapPurchaseError') {
-    alert('Bridge received: ' + ev.type + (ev.code ? (' [' + ev.code + ']') : '') + (ev.message ? ('\n' + ev.message) : '') + (ev.transactionId ? ('\ntxn=' + ev.transactionId) : ''));
-  }
   _ryxaDispatchIap(ev);
 }
 
@@ -645,7 +641,7 @@ function _ryxaDispatchIap(ev) {
       if (!(sig === iapLastErrSig && now - iapLastErrAt < 3000)) {
         iapLastErrSig = sig;
         iapLastErrAt = now;
-        alert('Purchase failed [' + (ev.code || 'no-code') + ']: ' + (ev.message || 'no message'));
+        alert('The purchase did not go through. Please try again, or contact support@ryxa.io if the problem continues.');
       }
     }
   }
