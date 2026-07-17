@@ -314,7 +314,14 @@ async function iapHandlePurchase(detail) {
       var hitPerm = permReasons.some(function (r) { return bodyText.indexOf(r) !== -1; });
       if (hitPerm) {
         iapPost({ type: 'iapForceFinish', transactionId: detail.transactionId });
-        alert('Purchase could not be applied (' + bodyText + ') and was cleared. If charged, contact support@ryxa.io.');
+        if (bodyText.indexOf('account_mismatch') !== -1) {
+          // This Apple ID already has an active Ryxa subscription bound to a
+          // different Ryxa account. Apple allows one subscription per Apple ID,
+          // so a new account cannot subscribe until the existing one is cancelled.
+          alert('There is already an active Ryxa subscription on this Apple ID. Please cancel it in your Apple subscription settings before purchasing for a new account.');
+        } else {
+          alert('This purchase could not be applied and was cleared. If you were charged, contact support@ryxa.io.');
+        }
       } else {
         alert('Verify failed [HTTP ' + status + ']: ' + (bodyText || resp.error.message));
       }
@@ -342,7 +349,11 @@ async function iapHandlePurchase(detail) {
       var reasonStr = (typeof reason === 'string') ? reason : (reason && reason.error) || '';
       if (permanent.indexOf(reasonStr) !== -1) {
         iapPost({ type: 'iapForceFinish', transactionId: detail.transactionId });
-        alert('This purchase could not be applied to your account (' + reasonStr + ') and has been cleared. If you were charged, contact support@ryxa.io.');
+        if (reasonStr === 'account_mismatch') {
+          alert('There is already an active Ryxa subscription on this Apple ID. Please cancel it in your Apple subscription settings before purchasing for a new account.');
+        } else {
+          alert('This purchase could not be applied and was cleared. If you were charged, contact support@ryxa.io.');
+        }
       } else {
         alert('Purchase not confirmed (verify): ' + JSON.stringify(reason));
       }
