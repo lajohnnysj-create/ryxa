@@ -3,6 +3,15 @@
 // Layers onto plans-billing.js. Listens for native 'ryxa-iap' events (bridge in
 // DashboardScreen), renders the "Prefer to pay with Apple?" option under the
 // plan cards, and runs purchase -> server verify -> finishTransaction.
+// IAP-BUILD-MARKER: v-drain-2 (repeated queue drain). Visible one-time alert on
+// first load so we can confirm on-device that the CURRENT web JS is running
+// (not a cached old one). Remove after confirming.
+try {
+  if (!window.__ryxaMarkerShown) {
+    window.__ryxaMarkerShown = true;
+    setTimeout(function () { alert('Ryxa IAP web build: v-drain-2'); }, 500);
+  }
+} catch (e) {}
 // Storefront: US shows link-out (existing) + this Apple option; non-US will
 // show Apple only (link-out hiding wired at global launch using iapStorefront).
 // ============================================================================
@@ -598,8 +607,20 @@ document.addEventListener('ryxa-iap', function (e) {
   _ryxaHandleIapDetail(e.detail);
 });
 
-// Drain once on load in case events were queued before this script attached.
-setTimeout(function () { if (window.__ryxaDrainIap) window.__ryxaDrainIap(); }, 300);
+// Drain the native queue REPEATEDLY after load. The native side may inject a
+// redelivered transaction (e.g. on cold relaunch) before OR after this script
+// attaches; a single drain can miss that race. Poll for ~15s so the queued
+// event is caught whenever it lands, then rely on the live listener.
+(function () {
+  var drains = 0;
+  var t = setInterval(function () {
+    drains += 1;
+    if (window.__ryxaDrainIap) window.__ryxaDrainIap();
+    if (drains >= 30) clearInterval(t); // 30 x 500ms = 15s
+  }, 500);
+  // Also drain immediately.
+  if (window.__ryxaDrainIap) window.__ryxaDrainIap();
+})();
 
 function _ryxaDispatchIap(ev) {
   if (ev.type === 'iapReady') {
