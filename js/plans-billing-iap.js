@@ -562,17 +562,46 @@ document.addEventListener('click', function (e) {
 });
 
 // Native -> web events.
-document.addEventListener('ryxa-iap', function (e) {
+// Process a single native IAP event (deduped). Exposed so both the live
+// CustomEvent path AND the window-queue drain (for events that arrived while
+// the page was loading/navigating) funnel through one place.
+var _iapSeen = {};
+function _ryxaHandleIapDetail(detailStr) {
   var ev;
-  try { ev = JSON.parse(e.detail); } catch (err) { return; }
+  try { ev = JSON.parse(detailStr); } catch (err) { return; }
   if (!ev || !ev.type) return;
-  // TEMP DIAGNOSTIC: prove which native events actually cross the bridge. The
-  // noisy 'iapReady'/'iapProducts' fire on load; the ones we care about are
-  // iapPurchaseResult / iapPurchaseError. Alert only on those so we can see if
-  // a completed purchase reaches the web at all.
+  // Dedup purchase result/error by transaction id so the native retry loop
+  // can't process the same purchase twice.
+  if (ev.type === 'iapPurchaseResult' || ev.type === 'iapPurchaseError') {
+    var key = ev.type + '|' + (ev.transactionId || ev.code || '') + '|' + (ev.message || '');
+    if (_iapSeen[key]) return;
+    _iapSeen[key] = true;
+  }
+  // TEMP DIAGNOSTIC: surface purchase events so failures aren't invisible.
   if (ev.type === 'iapPurchaseResult' || ev.type === 'iapPurchaseError') {
     alert('Bridge received: ' + ev.type + (ev.code ? (' [' + ev.code + ']') : '') + (ev.message ? ('\n' + ev.message) : '') + (ev.transactionId ? ('\ntxn=' + ev.transactionId) : ''));
   }
+  _ryxaDispatchIap(ev);
+}
+
+// Drain any events the native side queued on window (covers events injected
+// while this page was still loading, which the live listener would have missed).
+window.__ryxaDrainIap = function () {
+  try {
+    var q = window.__ryxaIapQueue || [];
+    for (var i = 0; i < q.length; i++) { _ryxaHandleIapDetail(q[i]); }
+    window.__ryxaIapQueue = [];
+  } catch (e) {}
+};
+
+document.addEventListener('ryxa-iap', function (e) {
+  _ryxaHandleIapDetail(e.detail);
+});
+
+// Drain once on load in case events were queued before this script attached.
+setTimeout(function () { if (window.__ryxaDrainIap) window.__ryxaDrainIap(); }, 300);
+
+function _ryxaDispatchIap(ev) {
   if (ev.type === 'iapReady') {
     // Testing override: if the debug readout forced a storefront, keep it
     // instead of the real (sandbox-buggy) value. Remove with the debug block.
@@ -614,7 +643,7 @@ document.addEventListener('ryxa-iap', function (e) {
       alert('Purchase closed [' + (ev.code || 'cancel') + ']: ' + (ev.message || 'sheet dismissed or did not present'));
     }
   }
-});
+}
 
 // The page renders after iapReady in most flows; re-attempt on route changes.
 window.addEventListener('hashchange', function () { setTimeout(iapRenderSection, 400); });
