@@ -2107,7 +2107,7 @@ function showStripeConnectToast() {
   toast.setAttribute('role', 'status');
   // Anchored to the bottom-right, sitting about 15% up from the bottom of the
   // viewport so it clears the very edge and any bottom nav / safe area.
-  toast.style.cssText = 'position:fixed;right:0;bottom:15vh;z-index:10000;'
+  toast.style.cssText = 'position:fixed;right:0;bottom:10vh;z-index:10000;'
     + 'width:min(340px, 86vw);background:#1b1b26;color:#ffffff;'
     + 'border-left:3px solid ' + accent + ';border-radius:12px 0 0 12px;'
     + 'padding:16px 18px 16px 16px;font-family:\'DM Sans\',sans-serif;'
