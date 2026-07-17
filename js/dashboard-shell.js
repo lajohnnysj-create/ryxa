@@ -2727,13 +2727,24 @@ async function mintPricingTicketThenOpen(query) {
 (function relabelUpgradeUiInApp() {
   if (!window.RyxaNative) return;
 
+  // The bottom-nav rocket (line-style, currentColor so it matches button text).
+  // Sized to sit inline before the tier label.
+  var ROCKET_SVG = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" ' +
+    'stroke="currentColor" stroke-width="2" stroke-linecap="round" ' +
+    'stroke-linejoin="round" aria-hidden="true" ' +
+    'style="vertical-align:-2px;margin-right:6px;flex-shrink:0;">' +
+    '<path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91 0z"/>' +
+    '<path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/>' +
+    '<path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/>' +
+    '<path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>';
+
   function tierFor(el) {
     // Max if the action or any nearby data attribute names 'max'; else Pro.
     var attrs = '';
     for (var i = 0; i < el.attributes.length; i++) {
       attrs += ' ' + el.attributes[i].name + '=' + el.attributes[i].value;
     }
-    return /max/i.test(attrs) ? '🚀 Ryxa Max' : '🚀 Ryxa Pro';
+    return ROCKET_SVG + (/max/i.test(attrs) ? 'Ryxa Max' : 'Ryxa Pro');
   }
 
   function relabel() {
@@ -2774,7 +2785,7 @@ async function mintPricingTicketThenOpen(query) {
       // Only rewrite if it currently reads as an upgrade/price CTA, so we don't
       // clobber unrelated labels if a selector is ever reused.
       if (/upgrade|\$\d|\/mo|unlock/i.test(current) || current === '') {
-        el.textContent = label;
+        el.innerHTML = label;
       }
     });
 
