@@ -571,7 +571,7 @@ document.addEventListener('ryxa-iap', function (e) {
   // iapPurchaseResult / iapPurchaseError. Alert only on those so we can see if
   // a completed purchase reaches the web at all.
   if (ev.type === 'iapPurchaseResult' || ev.type === 'iapPurchaseError') {
-    alert('Bridge received: ' + ev.type + (ev.code ? (' [' + ev.code + ']') : '') + (ev.transactionId ? (' txn=' + ev.transactionId) : ''));
+    alert('Bridge received: ' + ev.type + (ev.code ? (' [' + ev.code + ']') : '') + (ev.message ? ('\n' + ev.message) : '') + (ev.transactionId ? ('\ntxn=' + ev.transactionId) : ''));
   }
   if (ev.type === 'iapReady') {
     // Testing override: if the debug readout forced a storefront, keep it
