@@ -2215,7 +2215,7 @@ function showStripeConnectToast() {
   // Dismiss: permanent dismiss (persists in localStorage so it never returns).
   dismissBtn.addEventListener('click', function (e) {
     e.stopPropagation();
-    try { localStorage.setItem('ryxa_stripe_nudge_dismissed', '1'); } catch (err) {}
+    try { localStorage.setItem(stripeNudgeDismissKey(), '1'); } catch (err) {}
     slideOut();
   });
 }
@@ -4500,8 +4500,14 @@ dashRegisterAction('go-connect-stripe', () => {
   }, 100);
 });
 // Stripe nudge: permanent dismiss (per-device, localStorage). Overrides the Stripe-status check.
+function stripeNudgeDismissKey() {
+  // Per-user key so a dismiss on one account doesn't suppress the toast for a
+  // different account signed in on the same device.
+  var uid = (typeof currentUser !== 'undefined' && currentUser && currentUser.id) ? currentUser.id : 'anon';
+  return 'ryxa_stripe_nudge_dismissed_' + uid;
+}
 function isStripeNudgeDismissed() {
-  try { return localStorage.getItem('ryxa_stripe_nudge_dismissed') === '1'; } catch (e) { return false; }
+  try { return localStorage.getItem(stripeNudgeDismissKey()) === '1'; } catch (e) { return false; }
 }
 
 // Compound actions - these combine menu-close with another action so the menu
