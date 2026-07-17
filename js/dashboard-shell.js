@@ -3334,6 +3334,10 @@ var pwaTurnstileWidgetId = null;
 
 function showPwaLogin() {
   try { localStorage.removeItem('ryxa_tier_label'); } catch (e) {}
+  // The Stripe toast is a fixed element on the body; logging out doesn't go
+  // through showTool, so hide it here (the single choke point every logout path
+  // reaches) or it lingers over the login screen.
+  if (typeof hideStripeConnectToast === 'function') hideStripeConnectToast();
   var screen = document.getElementById('pwa-login-screen');
   if (!screen) return;
   screen.style.display = 'flex';
