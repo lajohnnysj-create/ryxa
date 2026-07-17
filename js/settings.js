@@ -359,7 +359,7 @@ async function loadStripeConnectStatus() {
       // Connected
       if (disconnectedEl) disconnectedEl.style.display = 'none';
       if (connectedEl) connectedEl.style.display = 'block';
-      if (nudgeEl) nudgeEl.style.display = 'none';
+      if (nudgeEl) nudgeEl.classList.remove('show');
       if (acctIdEl && status.masked_id) {
         acctIdEl.textContent = status.masked_id;
       }
@@ -367,7 +367,19 @@ async function loadStripeConnectStatus() {
       // Not connected
       if (disconnectedEl) disconnectedEl.style.display = 'block';
       if (connectedEl) connectedEl.style.display = 'none';
-      if (nudgeEl) nudgeEl.style.display = (typeof isStripeNudgeDismissed === 'function' && isStripeNudgeDismissed()) ? 'none' : 'flex';
+      // The toast is dashboard-only: only slide it in when the current view is
+      // the dashboard (welcome), never over Settings or other tools. It reuses
+      // the dismissed check so a prior X dismiss keeps it hidden for good.
+      var _dismissed = (typeof isStripeNudgeDismissed === 'function' && isStripeNudgeDismissed());
+      var _onDashboard = (typeof currentTool === 'undefined') || currentTool === 'welcome' || !currentTool;
+      if (nudgeEl) {
+        if (!_dismissed && _onDashboard) {
+          // Delay one tick so the CSS transition runs from the off-screen state.
+          requestAnimationFrame(function () { nudgeEl.classList.add('show'); });
+        } else {
+          nudgeEl.classList.remove('show');
+        }
+      }
     }
   } catch (err) {
     console.error('Failed to load Stripe status:', err);

@@ -2538,6 +2538,13 @@ function showTool(tool) {
     if (chatSideToggle) chatSideToggle.setAttribute('aria-expanded', 'false');
   }
   currentTool = tool;
+  // The Stripe connect toast is dashboard-only. If we're navigating to any other
+  // view, slide it away so it never lingers over another tool. (It re-appears on
+  // return to the dashboard via loadStripeConnectStatus, unless dismissed.)
+  if (tool !== 'welcome') {
+    var _stripeToast = document.getElementById('dash-stripe-nudge');
+    if (_stripeToast) _stripeToast.classList.remove('show');
+  }
   // Let the responsive CSS gutter govern. Previously this hardcoded 32px
   // (the desktop value), which overrode the mobile gutter on every tool switch.
   const toolArea = document.querySelector('.tool-area');
@@ -2560,7 +2567,15 @@ function showTool(tool) {
   if (tool === 'thumbanalyzer') initThumbanalyzerTool();
   if (tool === 'contractanalyzer') initContractanalyzerTool();
   if (tool === 'clients') initClientsTool();
-  if (tool === 'welcome') loadDashStats();
+  if (tool === 'welcome') {
+    loadDashStats();
+    // Re-evaluate Stripe status on every return to the dashboard so the connect
+    // toast slides in when appropriate (not connected + not dismissed). It's the
+    // only view that shows it, matching the "dashboard only" requirement.
+    if (typeof loadStripeConnectStatus === 'function') {
+      try { loadStripeConnectStatus(); } catch (e) {}
+    }
+  }
   // Close sidebar on mobile
   closeSidebar();
 }
@@ -4350,7 +4365,7 @@ function isStripeNudgeDismissed() {
 dashRegisterAction('dismiss-stripe-nudge', () => {
   try { localStorage.setItem('ryxa_stripe_nudge_dismissed', '1'); } catch (e) {}
   const n = document.getElementById('dash-stripe-nudge');
-  if (n) n.style.display = 'none';
+  if (n) n.classList.remove('show');
 });
 
 // Compound actions - these combine menu-close with another action so the menu
