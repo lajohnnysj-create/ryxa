@@ -605,6 +605,11 @@ function plansBillingRouteCheck() {
     });
     // Hide the dashboard topbar so the hero image flows to the very top.
     document.body.classList.add('plans-billing-active');
+    // Plans & Billing is hash-routed (not shown via showTool), so the
+    // dashboard-only Stripe toast's normal hide-on-leave never fires. Hiding it
+    // here, at the single render choke point every entry path funnels through,
+    // covers all current and future routes into this page.
+    if (typeof hideStripeConnectToast === 'function') hideStripeConnectToast();
     renderPlansBilling();
     window.scrollTo(0, 0);
     // Subscription source (stripe vs apple) decides the paid-user panel;
