@@ -2082,6 +2082,96 @@ function showDashToast(type, message, opts) {
   }
 }
 
+// Stripe connect toast. Same GeForce slide-in mechanic as showDashToast (built
+// dynamically, appended to body, starts off-screen at translateX(110%), then
+// slides in from the right edge), but it's a persistent card: title + subtext +
+// Connect button + X, no auto-hide. Sits lower than showDashToast so a social
+// error toast can stack above it. Dashboard-only; the X persists dismissal via
+// localStorage so it never returns.
+function showStripeConnectToast() {
+  if (document.getElementById('dash-stripe-toast')) return; // already showing
+  const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#7c3aed';
+
+  const toast = document.createElement('div');
+  toast.id = 'dash-stripe-toast';
+  toast.setAttribute('role', 'status');
+  // Anchor to the right edge, lower than showDashToast (which sits ~topbar+12)
+  // so a social error toast can appear above this one.
+  const bar = document.querySelector('.topbar');
+  const topPos = bar
+    ? (bar.getBoundingClientRect().bottom + 74) + 'px'
+    : 'calc(140px + env(safe-area-inset-top, 0px))';
+  toast.style.cssText = 'position:fixed;right:0;top:' + topPos + ';z-index:10000;'
+    + 'width:min(340px, 86vw);background:#1b1b26;color:#ffffff;'
+    + 'border-left:3px solid ' + accent + ';border-radius:12px 0 0 12px;'
+    + 'padding:16px 18px 16px 16px;font-family:\'DM Sans\',sans-serif;'
+    + 'box-shadow:0 8px 32px rgba(0,0,0,0.45);'
+    + 'transform:translateX(110%);transition:transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);';
+
+  // Close (X) button.
+  const closeBtn = document.createElement('button');
+  closeBtn.setAttribute('aria-label', 'Dismiss');
+  closeBtn.style.cssText = 'position:absolute;top:10px;right:12px;width:24px;height:24px;'
+    + 'display:flex;align-items:center;justify-content:center;padding:0;background:none;'
+    + 'border:none;color:rgba(255,255,255,0.55);cursor:pointer;border-radius:6px;';
+  closeBtn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+
+  // Title.
+  const title = document.createElement('p');
+  title.style.cssText = 'font-size:14px;font-weight:600;color:#fff;margin:0 24px 5px 0;line-height:1.3;';
+  title.textContent = 'Connect Stripe to start earning';
+
+  // Subtext.
+  const sub = document.createElement('p');
+  sub.style.cssText = 'font-size:12.5px;color:rgba(255,255,255,0.62);margin:0 0 13px;line-height:1.45;';
+  sub.textContent = 'Ryxa integrates with Stripe to make your business transactions seamless.';
+
+  // Connect button (purple).
+  const connectBtn = document.createElement('button');
+  connectBtn.style.cssText = 'display:inline-flex;align-items:center;justify-content:center;'
+    + 'padding:8px 20px;background:' + accent + ';color:#fff;border:none;border-radius:8px;'
+    + 'font-size:13px;font-weight:600;font-family:\'DM Sans\',sans-serif;cursor:pointer;'
+    + 'box-shadow:0 0 20px var(--accent-glow);';
+  connectBtn.textContent = 'Connect';
+
+  toast.appendChild(closeBtn);
+  toast.appendChild(title);
+  toast.appendChild(sub);
+  toast.appendChild(connectBtn);
+  document.body.appendChild(toast);
+
+  // Next frame: slide in from the right edge (same double-rAF as showDashToast).
+  requestAnimationFrame(function() {
+    requestAnimationFrame(function() { toast.style.transform = 'translateX(0)'; });
+  });
+
+  function slideOut() {
+    toast.style.transform = 'translateX(110%)';
+    setTimeout(function() { if (toast.parentNode) toast.remove(); }, 400);
+  }
+  // X: permanent dismiss (persists in localStorage) + slide out.
+  closeBtn.addEventListener('click', function () {
+    try { localStorage.setItem('ryxa_stripe_nudge_dismissed', '1'); } catch (e) {}
+    slideOut();
+  });
+  // Connect: route to the Stripe connect flow (existing action).
+  connectBtn.addEventListener('click', function () {
+    if (typeof showTool === 'function') showTool('settings');
+    setTimeout(function () {
+      const target = document.getElementById('settings-stripe-section');
+      if (target && target.scrollIntoView) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+    slideOut();
+  });
+}
+
+function hideStripeConnectToast() {
+  const t = document.getElementById('dash-stripe-toast');
+  if (!t) return;
+  t.style.transform = 'translateX(110%)';
+  setTimeout(function() { if (t.parentNode) t.remove(); }, 400);
+}
+
 async function fetchTier(userId) {
   // Safety net: if fetchTier hangs or errors, ensure tier-loading is removed
   // after 5s so the UI doesn't get stuck with hidden pills forever.
@@ -2542,8 +2632,7 @@ function showTool(tool) {
   // view, slide it away so it never lingers over another tool. (It re-appears on
   // return to the dashboard via loadStripeConnectStatus, unless dismissed.)
   if (tool !== 'welcome') {
-    var _stripeToast = document.getElementById('dash-stripe-nudge');
-    if (_stripeToast) _stripeToast.classList.remove('show');
+    if (typeof hideStripeConnectToast === 'function') hideStripeConnectToast();
   }
   // Let the responsive CSS gutter govern. Previously this hardcoded 32px
   // (the desktop value), which overrode the mobile gutter on every tool switch.
@@ -4362,11 +4451,6 @@ dashRegisterAction('go-connect-stripe', () => {
 function isStripeNudgeDismissed() {
   try { return localStorage.getItem('ryxa_stripe_nudge_dismissed') === '1'; } catch (e) { return false; }
 }
-dashRegisterAction('dismiss-stripe-nudge', () => {
-  try { localStorage.setItem('ryxa_stripe_nudge_dismissed', '1'); } catch (e) {}
-  const n = document.getElementById('dash-stripe-nudge');
-  if (n) n.classList.remove('show');
-});
 
 // Compound actions - these combine menu-close with another action so the menu
 // closes when navigating away (mimics the original inline `a();b();` pattern).

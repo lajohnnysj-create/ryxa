@@ -344,7 +344,6 @@ async function loadStripeConnectStatus() {
   const connectedEl = document.getElementById('settings-stripe-connected');
   const acctIdEl = document.getElementById('settings-stripe-acct-id');
   const msgEl = document.getElementById('settings-stripe-msg');
-  const nudgeEl = document.getElementById('dash-stripe-nudge');
   if (msgEl) msgEl.style.display = 'none';
 
   if (!currentUser) return;
@@ -359,7 +358,7 @@ async function loadStripeConnectStatus() {
       // Connected
       if (disconnectedEl) disconnectedEl.style.display = 'none';
       if (connectedEl) connectedEl.style.display = 'block';
-      if (nudgeEl) nudgeEl.classList.remove('show');
+      if (typeof hideStripeConnectToast === 'function') hideStripeConnectToast();
       if (acctIdEl && status.masked_id) {
         acctIdEl.textContent = status.masked_id;
       }
@@ -372,13 +371,10 @@ async function loadStripeConnectStatus() {
       // the dismissed check so a prior X dismiss keeps it hidden for good.
       var _dismissed = (typeof isStripeNudgeDismissed === 'function' && isStripeNudgeDismissed());
       var _onDashboard = (typeof currentTool === 'undefined') || currentTool === 'welcome' || !currentTool;
-      if (nudgeEl) {
-        if (!_dismissed && _onDashboard) {
-          // Delay one tick so the CSS transition runs from the off-screen state.
-          requestAnimationFrame(function () { nudgeEl.classList.add('show'); });
-        } else {
-          nudgeEl.classList.remove('show');
-        }
+      if (!_dismissed && _onDashboard) {
+        if (typeof showStripeConnectToast === 'function') showStripeConnectToast();
+      } else {
+        if (typeof hideStripeConnectToast === 'function') hideStripeConnectToast();
       }
     }
   } catch (err) {
