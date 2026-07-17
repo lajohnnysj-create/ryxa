@@ -308,7 +308,20 @@ async function iapHandlePurchase(detail) {
       // Verify ran but did not return ok: surface the reason for debugging.
       var reason = (resp && (resp.error || (resp.data && resp.data.error))) || 'unknown';
       console.error('verify-apple-purchase not ok:', reason);
-      alert('Purchase not confirmed (verify): ' + JSON.stringify(reason));
+      // PERMANENT failures mean this transaction can NEVER be granted to this
+      // user (e.g. its embedded appAccountToken belongs to a different/old
+      // account). Left unfinished, it redelivers forever and BLOCKS all new
+      // purchases of the same product. Force-finish it to clear the block.
+      // Transient failures (network, 500) are NOT force-finished - they should
+      // retry on the next redelivery.
+      var permanent = ['account_mismatch', 'wrong_bundle', 'unknown_product', 'expired'];
+      var reasonStr = (typeof reason === 'string') ? reason : (reason && reason.error) || '';
+      if (permanent.indexOf(reasonStr) !== -1) {
+        iapPost({ type: 'iapForceFinish', transactionId: detail.transactionId });
+        alert('This purchase could not be applied to your account (' + reasonStr + ') and has been cleared. If you were charged, contact support@ryxa.io.');
+      } else {
+        alert('Purchase not confirmed (verify): ' + JSON.stringify(reason));
+      }
     }
   } catch (e) {
     // The invoke itself failed (auth/session/network) - never reached the
