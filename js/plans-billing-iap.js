@@ -296,6 +296,32 @@ async function iapHandlePurchase(detail) {
     var resp = await sb.functions.invoke('verify-apple-purchase', {
       body: { transactionId: detail.transactionId }
     });
+    // supabase-js puts a non-2xx into resp.error as a FunctionsHttpError whose
+    // .context is the raw Response. The real reason (account_mismatch,
+    // transaction_not_found, etc.) is in that response BODY, not resp.error.message
+    // (which is just "non-2xx status code"). Pull it out so we can see it.
+    if (resp && resp.error) {
+      var status = '';
+      var bodyText = '';
+      try {
+        if (resp.error.context && typeof resp.error.context.status !== 'undefined') {
+          status = resp.error.context.status;
+        }
+        if (resp.error.context && typeof resp.error.context.text === 'function') {
+          bodyText = await resp.error.context.text();
+        }
+      } catch (x) { bodyText = '(could not read body)'; }
+      console.error('verify-apple-purchase HTTP error', status, bodyText);
+      var permReasons = ['account_mismatch', 'wrong_bundle', 'unknown_product', 'expired'];
+      var hitPerm = permReasons.some(function (r) { return bodyText.indexOf(r) !== -1; });
+      if (hitPerm) {
+        iapPost({ type: 'iapForceFinish', transactionId: detail.transactionId });
+        alert('Purchase could not be applied (' + bodyText + ') and was cleared. If charged, contact support@ryxa.io.');
+      } else {
+        alert('Verify failed [HTTP ' + status + ']: ' + (bodyText || resp.error.message));
+      }
+      return;
+    }
     if (resp && resp.data && resp.data.ok) {
       iapPost({ type: 'iapFinish', transactionId: detail.transactionId });
       if (typeof showToast === 'function') showToast('Purchase complete. Welcome!');
