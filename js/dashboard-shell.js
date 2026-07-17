@@ -2095,30 +2095,22 @@ function showStripeConnectToast() {
   const toast = document.createElement('div');
   toast.id = 'dash-stripe-toast';
   toast.setAttribute('role', 'status');
-  // Anchor to the right edge, lower than showDashToast (which sits ~topbar+12)
-  // so a social error toast can appear above this one.
+  // Anchor to the right edge, WELL below showDashToast (which sits ~topbar+12)
+  // so even a wrapped two-line social error toast above it can never collide.
   const bar = document.querySelector('.topbar');
   const topPos = bar
-    ? (bar.getBoundingClientRect().bottom + 74) + 'px'
-    : 'calc(140px + env(safe-area-inset-top, 0px))';
+    ? (bar.getBoundingClientRect().bottom + 150) + 'px'
+    : 'calc(216px + env(safe-area-inset-top, 0px))';
   toast.style.cssText = 'position:fixed;right:0;top:' + topPos + ';z-index:10000;'
     + 'width:min(340px, 86vw);background:#1b1b26;color:#ffffff;'
     + 'border-left:3px solid ' + accent + ';border-radius:12px 0 0 12px;'
     + 'padding:16px 18px 16px 16px;font-family:\'DM Sans\',sans-serif;'
-    + 'box-shadow:0 8px 32px rgba(0,0,0,0.45);'
+    + 'box-shadow:0 8px 32px rgba(0,0,0,0.45);cursor:pointer;'
     + 'transform:translateX(110%);transition:transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);';
-
-  // Close (X) button.
-  const closeBtn = document.createElement('button');
-  closeBtn.setAttribute('aria-label', 'Dismiss');
-  closeBtn.style.cssText = 'position:absolute;top:10px;right:12px;width:24px;height:24px;'
-    + 'display:flex;align-items:center;justify-content:center;padding:0;background:none;'
-    + 'border:none;color:rgba(255,255,255,0.55);cursor:pointer;border-radius:6px;';
-  closeBtn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
 
   // Title.
   const title = document.createElement('p');
-  title.style.cssText = 'font-size:14px;font-weight:600;color:#fff;margin:0 24px 5px 0;line-height:1.3;';
+  title.style.cssText = 'font-size:14px;font-weight:600;color:#fff;margin:0 0 5px 0;line-height:1.3;';
   title.textContent = 'Connect Stripe to start earning';
 
   // Subtext.
@@ -2126,18 +2118,30 @@ function showStripeConnectToast() {
   sub.style.cssText = 'font-size:12.5px;color:rgba(255,255,255,0.62);margin:0 0 13px;line-height:1.45;';
   sub.textContent = 'Ryxa integrates with Stripe to make your business transactions seamless.';
 
-  // Connect button (purple).
+  // Button row: Connect takes most of the width, Dismiss is the smaller one.
+  const btnRow = document.createElement('div');
+  btnRow.style.cssText = 'display:flex;gap:8px;';
+
   const connectBtn = document.createElement('button');
-  connectBtn.style.cssText = 'display:inline-flex;align-items:center;justify-content:center;'
-    + 'padding:8px 20px;background:' + accent + ';color:#fff;border:none;border-radius:8px;'
+  connectBtn.style.cssText = 'flex:1;display:inline-flex;align-items:center;justify-content:center;'
+    + 'padding:9px 20px;background:' + accent + ';color:#fff;border:none;border-radius:8px;'
     + 'font-size:13px;font-weight:600;font-family:\'DM Sans\',sans-serif;cursor:pointer;'
     + 'box-shadow:0 0 20px var(--accent-glow);';
   connectBtn.textContent = 'Connect';
 
-  toast.appendChild(closeBtn);
+  const dismissBtn = document.createElement('button');
+  dismissBtn.style.cssText = 'flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;'
+    + 'padding:9px 14px;background:transparent;color:rgba(255,255,255,0.6);'
+    + 'border:1px solid rgba(255,255,255,0.16);border-radius:8px;'
+    + 'font-size:13px;font-weight:500;font-family:\'DM Sans\',sans-serif;cursor:pointer;';
+  dismissBtn.textContent = 'Dismiss';
+
+  btnRow.appendChild(connectBtn);
+  btnRow.appendChild(dismissBtn);
+
   toast.appendChild(title);
   toast.appendChild(sub);
-  toast.appendChild(connectBtn);
+  toast.appendChild(btnRow);
   document.body.appendChild(toast);
 
   // Next frame: slide in from the right edge (same double-rAF as showDashToast).
@@ -2149,18 +2153,23 @@ function showStripeConnectToast() {
     toast.style.transform = 'translateX(110%)';
     setTimeout(function() { if (toast.parentNode) toast.remove(); }, 400);
   }
-  // X: permanent dismiss (persists in localStorage) + slide out.
-  closeBtn.addEventListener('click', function () {
-    try { localStorage.setItem('ryxa_stripe_nudge_dismissed', '1'); } catch (e) {}
-    slideOut();
-  });
-  // Connect: route to the Stripe connect flow (existing action).
-  connectBtn.addEventListener('click', function () {
+  // Clicking the toast body just closes it (does NOT persist dismissal, so it
+  // returns next time the dashboard loads).
+  toast.addEventListener('click', slideOut);
+  // Connect: route to the Stripe connect flow.
+  connectBtn.addEventListener('click', function (e) {
+    e.stopPropagation();
     if (typeof showTool === 'function') showTool('settings');
     setTimeout(function () {
       const target = document.getElementById('settings-stripe-section');
       if (target && target.scrollIntoView) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 100);
+    slideOut();
+  });
+  // Dismiss: permanent dismiss (persists in localStorage so it never returns).
+  dismissBtn.addEventListener('click', function (e) {
+    e.stopPropagation();
+    try { localStorage.setItem('ryxa_stripe_nudge_dismissed', '1'); } catch (err) {}
     slideOut();
   });
 }
