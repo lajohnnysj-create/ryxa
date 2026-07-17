@@ -4236,6 +4236,37 @@
      can appear over a confirmation dialog if needed. Pointer-events:none
      so it never blocks clicks underneath. */
   .dash-toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); background: var(--surface2); border: 1px solid var(--border-hover); color: var(--text); padding: 12px 20px; border-radius: 10px; font-size: 13px; z-index: 10001; animation: dashToastIn 0.25s ease; max-width: 90vw; pointer-events: none; opacity: 1; transition: opacity 0.25s ease, transform 0.25s ease; }
+
+  /* NVIDIA-style Stripe connect toast: slides out from the right. Sits lower
+     than the top so it clears any social-connect error toast. Dashboard-only;
+     shown by loadStripeConnectStatus when Stripe is not connected and not
+     dismissed. Dismiss (X) persists via localStorage. */
+  .stripe-toast {
+    position: fixed; top: calc(var(--topbar-height, 56px) + 74px); right: 20px;
+    width: 340px; max-width: calc(100vw - 40px); z-index: 10000;
+    background: var(--surface2); border: 1px solid var(--border-hover);
+    border-radius: 14px; padding: 18px 18px 16px; box-shadow: 0 18px 50px rgba(0,0,0,0.45);
+    transform: translateX(calc(100% + 30px)); opacity: 0;
+    transition: transform 0.42s cubic-bezier(0.16,1,0.3,1), opacity 0.42s ease;
+    pointer-events: auto; font-family: 'DM Sans', sans-serif;
+  }
+  .stripe-toast.show { transform: translateX(0); opacity: 1; }
+  .stripe-toast-close {
+    position: absolute; top: 12px; right: 12px; width: 26px; height: 26px;
+    display: flex; align-items: center; justify-content: center; padding: 0;
+    background: none; border: none; color: var(--muted); cursor: pointer;
+    border-radius: 6px; transition: color 0.15s, background 0.15s;
+  }
+  .stripe-toast-close:hover { color: var(--text); background: rgba(255,255,255,0.06); }
+  .stripe-toast-title { font-size: 15px; font-weight: 600; color: var(--text); margin: 0 26px 6px 0; line-height: 1.3; }
+  .stripe-toast-sub { font-size: 12.5px; color: var(--muted); margin: 0 0 14px; line-height: 1.45; }
+  .stripe-toast-connect {
+    display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+    padding: 9px 20px; background: var(--accent); color: #fff; border: none;
+    border-radius: 9px; font-size: 13px; font-weight: 600; font-family: 'DM Sans', sans-serif;
+    cursor: pointer; box-shadow: 0 0 20px var(--accent-glow); transition: filter 0.15s;
+  }
+  .stripe-toast-connect:hover { filter: brightness(1.08); }
   .dash-toast-success { border-left: 3px solid #4ade80; }
   .dash-toast-error { border-left: 3px solid #f87171; }
   .dash-toast-leaving { opacity: 0; transform: translateX(-50%) translateY(8px); }
@@ -7139,16 +7170,16 @@
           </button>
         </div>
 
-        <!-- Stripe connect nudge (dynamic: hidden once Stripe is connected, toggled by loadStripeConnectStatus) -->
-        <div id="dash-stripe-nudge" style="display:none;position:relative;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin:0 auto 24px;padding:10px 14px;max-width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#facc15" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          <span style="font-size:13px;color:var(--text);font-family:DM Sans,sans-serif;">Connect Stripe to start earning</span>
-          <button data-dash-action="go-connect-stripe" class="dash-nudge-icon-btn" aria-label="Connect Stripe" title="Connect Stripe" style="color:var(--text);">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        <!-- Stripe connect toast (NVIDIA-style slide-out, right side). Dashboard
+             only. Shown/hidden by loadStripeConnectStatus (reuses the existing
+             connected/dismissed detection). Dismiss X persists via localStorage. -->
+        <div id="dash-stripe-nudge" class="stripe-toast" role="status" aria-live="polite">
+          <button data-dash-action="dismiss-stripe-nudge" class="stripe-toast-close" aria-label="Dismiss" title="Dismiss">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
-          <button data-dash-action="dismiss-stripe-nudge" class="dash-nudge-trash" aria-label="Dismiss forever" title="Dismiss forever">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
-          </button>
+          <p class="stripe-toast-title">Connect Stripe to start earning</p>
+          <p class="stripe-toast-sub">Ryxa integrates with Stripe to make your business transactions seamless.</p>
+          <button data-dash-action="go-connect-stripe" class="stripe-toast-connect">Connect</button>
         </div>
 
         <!-- Time Range Controls -->
