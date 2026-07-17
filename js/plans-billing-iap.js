@@ -303,9 +303,14 @@ async function iapHandlePurchase(detail) {
       }
       setTimeout(function () { window.location.href = '/dashboard.html?payment=success'; }, 1200);
     } else {
+      // Verify ran but did not return ok: surface the reason for debugging.
+      console.error('verify-apple-purchase not ok:', resp && (resp.error || (resp.data && resp.data.error)) || resp);
       alert('We could not confirm your purchase yet. It will retry automatically when you reopen the app.');
     }
   } catch (e) {
+    // The invoke itself failed (auth/session/network) - never reached the
+    // function, which is why the server logs are empty. Log it so we can see.
+    console.error('verify-apple-purchase invoke threw:', e && (e.message || e));
     alert('We could not confirm your purchase yet. It will retry automatically when you reopen the app.');
   } finally {
     iapBusy = false;
