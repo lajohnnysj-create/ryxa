@@ -2775,6 +2775,10 @@ async function mintPricingTicketThenOpen(query) {
       // goToPricing), not out to Safari, so they must NOT carry the external
       // glyph or the "taken to our website" disclosure - that wrongly implied a
       // Stripe link-out. Strip any stale decoration a previous pass added.
+      // EXCEPTION: the Settings "Change Plan" button (open-pricing) is a genuine
+      // link-out via goToPricingDirect, so it keeps its external affordance -
+      // skip it here and (re)decorate it below.
+      if (el.getAttribute('data-settings-action') === 'open-pricing') return;
       var glyph = el.querySelector('.ryxa-ext-ico');
       if (glyph) glyph.remove();
       var maybeNote = el.nextElementSibling;
@@ -2782,8 +2786,11 @@ async function mintPricingTicketThenOpen(query) {
         maybeNote.remove();
       }
     });
-    // Only the genuine link-out (Manage Billing opens the browser) keeps the
-    // external affordance.
+    // Genuine link-outs keep the external affordance: Settings "Change Plan"
+    // (opens pricing in Safari) and Manage Billing (opens the browser).
+    document.querySelectorAll('[data-settings-action="open-pricing"]').forEach(function (el) {
+      decorateExternalCta(el, 'By clicking this button you\'ll be taken to our website.');
+    });
     document.querySelectorAll('[data-settings-action="manage-billing"]').forEach(function (el) {
       decorateExternalCta(el, 'By clicking this button you\'ll be taken to your browser.');
     });
