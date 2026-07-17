@@ -3,15 +3,6 @@
 // Layers onto plans-billing.js. Listens for native 'ryxa-iap' events (bridge in
 // DashboardScreen), renders the "Prefer to pay with Apple?" option under the
 // plan cards, and runs purchase -> server verify -> finishTransaction.
-// IAP-BUILD-MARKER: v-drain-2 (repeated queue drain). Visible one-time alert on
-// first load so we can confirm on-device that the CURRENT web JS is running
-// (not a cached old one). Remove after confirming.
-try {
-  if (!window.__ryxaMarkerShown) {
-    window.__ryxaMarkerShown = true;
-    setTimeout(function () { alert('Ryxa IAP web build: v-drain-2'); }, 500);
-  }
-} catch (e) {}
 // Storefront: US shows link-out (existing) + this Apple option; non-US will
 // show Apple only (link-out hiding wired at global launch using iapStorefront).
 // ============================================================================
@@ -277,8 +268,6 @@ function iapRenderSection() {
       iapBusyBtn = btn;
       iapBusyLabel = span ? span.textContent : '';
       if (span) span.textContent = 'Opening App Store...';
-      // TEMP DIAGNOSTIC: confirm what we're sending to native.
-      alert('Sending purchase -> sku: ' + (btn.dataset.sku || 'MISSING') + ' | user: ' + uid.slice(0, 8));
       iapPost({ type: 'iapPurchase', sku: btn.dataset.sku, appAccountToken: uid });
       // Safety timeout: if no result/error/cancel event arrives (e.g. the user
       // backgrounds the app at the sheet), un-stick the button.
@@ -658,10 +647,6 @@ function _ryxaDispatchIap(ev) {
         iapLastErrAt = now;
         alert('Purchase failed [' + (ev.code || 'no-code') + ']: ' + (ev.message || 'no message'));
       }
-    } else {
-      // TEMP DIAGNOSTIC: a cancel-type code can also mean the sheet failed to
-      // present. Surface it so a silent "nothing happened" isn't invisible.
-      alert('Purchase closed [' + (ev.code || 'cancel') + ']: ' + (ev.message || 'sheet dismissed or did not present'));
     }
   }
 }
