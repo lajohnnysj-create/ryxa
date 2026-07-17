@@ -206,8 +206,10 @@ function iapRenderSection() {
               ? ('7-day free trial, then ' + price + ' / ' + cycleWord + '. Cancel anytime in Apple Settings.')
               : ('Billed ' + price + ' / ' + cycleWord + '. Cancel anytime in Apple Settings.');
           }
+          // Headline already shows the full annual price + "/ year", so the
+          // "$X billed annually" subline would be redundant. Clear it.
           var subl = card.querySelector('.pb-price-sub');
-          if (subl) subl.textContent = (cycle === 'annual') ? (price + ' billed annually') : '';
+          if (subl) subl.textContent = '';
         }
       } else {
         // IAP-only market (or forced non-US) but Apple's price hasn't loaded
