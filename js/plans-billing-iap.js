@@ -317,9 +317,9 @@ async function iapHandlePurchase(detail) {
       var hitPerm = permReasons.some(function (r) { return bodyText.indexOf(r) !== -1; });
       if (hitPerm) {
         iapPost({ type: 'iapForceFinish', transactionId: detail.transactionId });
-        alert('This purchase could not be applied and was cleared. If you were charged, contact support@ryxa.io.');
+        alert('This purchase could not be applied and was cleared. If you were charged, contact hello@ryxa.io.');
       } else {
-        alert('We could not confirm your purchase. Please try again in a moment, or contact support@ryxa.io if you were charged.');
+        alert('We could not confirm your purchase. Please try again in a moment, or contact hello@ryxa.io if you were charged.');
       }
       return;
     }
@@ -345,9 +345,9 @@ async function iapHandlePurchase(detail) {
       var reasonStr = (typeof reason === 'string') ? reason : (reason && reason.error) || '';
       if (permanent.indexOf(reasonStr) !== -1) {
         iapPost({ type: 'iapForceFinish', transactionId: detail.transactionId });
-        alert('This purchase could not be applied and was cleared. If you were charged, contact support@ryxa.io.');
+        alert('This purchase could not be applied and was cleared. If you were charged, contact hello@ryxa.io.');
       } else {
-        alert('We could not confirm your purchase. Please try again in a moment, or contact support@ryxa.io if you were charged.');
+        alert('We could not confirm your purchase. Please try again in a moment, or contact hello@ryxa.io if you were charged.');
       }
     }
   } catch (e) {
@@ -592,7 +592,7 @@ function _ryxaDispatchIap(ev) {
       if (!(sig === iapLastErrSig && now - iapLastErrAt < 3000)) {
         iapLastErrSig = sig;
         iapLastErrAt = now;
-        alert('The purchase did not go through. Please try again, or contact support@ryxa.io if the problem continues.');
+        alert('The purchase did not go through. Please try again, or contact hello@ryxa.io if the problem continues.');
       }
     }
   }
