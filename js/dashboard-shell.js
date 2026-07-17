@@ -2087,6 +2087,11 @@ async function fetchTier(userId) {
   // after 5s so the UI doesn't get stuck with hidden pills forever.
   const safety = setTimeout(function() {
     document.body.classList.remove('tier-loading');
+    // Failsafe: if tier resolution never finished (e.g. network error threw
+    // before updateTierUI ran), reveal the Plans button anyway so it can't get
+    // stuck invisible. It will show the default "Plans" label.
+    var _pb = document.getElementById('bnav-plans');
+    if (_pb) _pb.classList.remove('tier-resolving');
   }, 5000);
   try {
     const { data } = await sb.from('subscriptions').select('tier, status, trial_end, max_trial_used, pre_max_tier, billing_cycle').eq('user_id', userId).limit(1);
@@ -2102,6 +2107,11 @@ async function fetchTier(userId) {
     // Pre-load AI usage so the sidebar menu opens instantly with no layout shift.
     // Runs for ALL tiers - Free shows a locked state with upgrade CTA.
     fetchAiUsage();
+  } catch (e) {
+    // Fetch failed (e.g. network). Still resolve the UI to the default (free)
+    // state so the Plans button fades in promptly instead of waiting on the
+    // failsafe timeout.
+    try { updateTierUI(); } catch (e2) {}
   } finally {
     clearTimeout(safety);
   }
@@ -2205,6 +2215,8 @@ function updateTierUI() {
         planNavIcon.innerHTML = '<path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91 0z"/><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>';
       }
     }
+    // Tier is now known and the correct label/icon are set: fade them in.
+    planNavBtn.classList.remove('tier-resolving');
   }
   // Free users: hide the Settings Subscription section (Plans page is their
   // single upgrade surface). Paid users keep it.
