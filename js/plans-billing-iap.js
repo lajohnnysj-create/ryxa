@@ -291,6 +291,20 @@ function iapResetBusy() {
 // Purchase result from native: verify with the server, then finish.
 async function iapHandlePurchase(detail) {
   try {
+    // A transaction can redeliver at app launch (StoreKit re-sends unfinished
+    // ones) BEFORE the user has signed in. Verify requires an auth session, so
+    // calling it now would 401 and show a scary "could not confirm" error on
+    // the login screen. Instead, hold: leave the transaction unfinished (do NOT
+    // finish it) so StoreKit redelivers it again after the user signs in, when
+    // verify can succeed. Silent, no user-facing error.
+    var signedIn = false;
+    try {
+      var sess = await sb.auth.getSession();
+      signedIn = !!(sess && sess.data && sess.data.session);
+    } catch (e) { signedIn = false; }
+    if (!signedIn) {
+      return; // wait for a session; the transaction stays pending for retry
+    }
     var resp = await sb.functions.invoke('verify-apple-purchase', {
       body: { transactionId: detail.transactionId }
     });
