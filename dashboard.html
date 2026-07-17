@@ -4236,39 +4236,6 @@
      can appear over a confirmation dialog if needed. Pointer-events:none
      so it never blocks clicks underneath. */
   .dash-toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); background: var(--surface2); border: 1px solid var(--border-hover); color: var(--text); padding: 12px 20px; border-radius: 10px; font-size: 13px; z-index: 10001; animation: dashToastIn 0.25s ease; max-width: 90vw; pointer-events: none; opacity: 1; transition: opacity 0.25s ease, transform 0.25s ease; }
-
-  /* Stripe connect toast: matches the shared GeForce-style slide-in
-     (showDashToast) - right-edge anchored, tab radius, accent border-left,
-     same slide transform/easing. Unlike showDashToast this one is a persistent
-     card (title + subtext + Connect + X), so it lives in markup and reuses the
-     visual language rather than the transient text-only helper. Dashboard only;
-     shown by loadStripeConnectStatus. Dismiss X persists via localStorage. */
-  .stripe-toast {
-    position: fixed; right: 0; top: calc(140px + env(safe-area-inset-top, 0px));
-    z-index: 10000; width: min(340px, 86vw);
-    background: #1b1b26; color: #fff; border-left: 3px solid var(--accent);
-    border-radius: 12px 0 0 12px; padding: 16px 18px 16px 16px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.45); font-family: 'DM Sans', sans-serif;
-    transform: translateX(110%); transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
-    pointer-events: auto;
-  }
-  .stripe-toast.show { transform: translateX(0); }
-  .stripe-toast-close {
-    position: absolute; top: 10px; right: 12px; width: 24px; height: 24px;
-    display: flex; align-items: center; justify-content: center; padding: 0;
-    background: none; border: none; color: rgba(255,255,255,0.55); cursor: pointer;
-    border-radius: 6px; transition: color 0.15s, background 0.15s;
-  }
-  .stripe-toast-close:hover { color: #fff; background: rgba(255,255,255,0.08); }
-  .stripe-toast-title { font-size: 14px; font-weight: 600; color: #fff; margin: 0 24px 5px 0; line-height: 1.3; }
-  .stripe-toast-sub { font-size: 12.5px; color: rgba(255,255,255,0.62); margin: 0 0 13px; line-height: 1.45; }
-  .stripe-toast-connect {
-    display: inline-flex; align-items: center; justify-content: center;
-    padding: 8px 20px; background: var(--accent); color: #fff; border: none;
-    border-radius: 8px; font-size: 13px; font-weight: 600; font-family: 'DM Sans', sans-serif;
-    cursor: pointer; box-shadow: 0 0 20px var(--accent-glow); transition: filter 0.15s;
-  }
-  .stripe-toast-connect:hover { filter: brightness(1.08); }
   .dash-toast-success { border-left: 3px solid #4ade80; }
   .dash-toast-error { border-left: 3px solid #f87171; }
   .dash-toast-leaving { opacity: 0; transform: translateX(-50%) translateY(8px); }
@@ -7172,18 +7139,10 @@
           </button>
         </div>
 
-        <!-- Stripe connect toast: matches the shared GeForce-style slide-in
-             (right-edge tab). Dashboard only. Shown/hidden by
-             loadStripeConnectStatus (reuses the existing connected/dismissed
-             detection). Dismiss X persists via localStorage. -->
-        <div id="dash-stripe-nudge" class="stripe-toast" role="status" aria-live="polite">
-          <button data-dash-action="dismiss-stripe-nudge" class="stripe-toast-close" aria-label="Dismiss" title="Dismiss">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          </button>
-          <p class="stripe-toast-title">Connect Stripe to start earning</p>
-          <p class="stripe-toast-sub">Ryxa integrates with Stripe to make your business transactions seamless.</p>
-          <button data-dash-action="go-connect-stripe" class="stripe-toast-connect">Connect</button>
-        </div>
+        <!-- Stripe connect toast is built dynamically by showStripeConnectToast()
+             (mirrors showDashToast: appended to body, slides in from the right
+             edge). Dashboard only; shown by loadStripeConnectStatus. -->
+
 
         <!-- Time Range Controls -->
         <div class="dash-range-bar" id="dash-range-bar">
