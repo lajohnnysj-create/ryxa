@@ -2130,7 +2130,7 @@ function showStripeConnectToast() {
   // Subtext.
   const sub = document.createElement('p');
   sub.style.cssText = 'font-size:12.5px;color:rgba(255,255,255,0.62);margin:0 0 13px;line-height:1.45;';
-  sub.textContent = 'Set up payments once and start getting paid on Ryxa.';
+  sub.textContent = 'Set up payments once and get paid for everything you sell on Ryxa.';
 
   // Button row: Connect takes most of the width, Dismiss is the smaller one.
   const btnRow = document.createElement('div');
