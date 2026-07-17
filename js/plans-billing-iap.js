@@ -180,10 +180,12 @@ function iapRenderSection() {
         'text-align:center;cursor:pointer;">' +
         toggleLabel + '</button>' +
         '<div class="pb-iap-reveal' + openClass + '">' + buyBtn + '</div>';
-      // If this card was rebuilt by renderPlansBilling, its stash is gone and
-      // the price is back to Stripe. Re-apply the Apple rail if it's open.
+      // Re-apply the Apple rail if it's open. Do NOT reset the stash here: the
+      // stash must hold the Stripe original, and this render may run while the
+      // Apple price is already displayed (e.g. when prices load), so wiping it
+      // would capture the Apple price as the "original" and break revert.
       var _card = slot.closest('.pb-card');
-      if (_card) { _card._stripeStash = undefined; iapApplyCardRail(_card, plan, iapRevealOpen[plan]); }
+      if (_card) { iapApplyCardRail(_card, plan, iapRevealOpen[plan]); }
     } else {
       // IAP-only: Apple button is the primary buy action, shown directly.
       slot.innerHTML = buyBtn;
