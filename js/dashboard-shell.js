@@ -2254,8 +2254,15 @@ function updateTierUI() {
   // order, and fetchTier() can resolve before all <script> tags have
   // finished parsing (especially with a cached Supabase session).
   if (typeof updateSettingsCancelBtn === 'function') updateSettingsCancelBtn();
-
-  // Sync Max upgrade CTA labels (trial vs no-trial) based on userMaxTrialUsed
+  // Also toggle the Settings free/paid subscription sections here, not just when
+  // Settings is opened. After a purchase (or reload) the tier can resolve while
+  // Settings is already open, and without this the "You are on the Free plan"
+  // section would stay visible even though the tier is now paid.
+  var _subFree = document.getElementById('settings-sub-free');
+  var _subPro = document.getElementById('settings-sub-pro');
+  if (_subFree) _subFree.style.display = pro ? 'none' : 'block';
+  if (_subPro) _subPro.style.display = pro ? 'block' : 'none';
+  if (pro && typeof iapApplySettingsManagement === 'function') iapApplySettingsManagement();
   applyMaxTrialButtonLabels();
 
   // Tier is now resolved - reveal the appropriate pills.
