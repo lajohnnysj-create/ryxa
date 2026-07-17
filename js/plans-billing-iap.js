@@ -18,17 +18,6 @@ var iapLastErrSig = '';             // dedupe: last purchase-error signature
 var iapLastErrAt = 0;               // dedupe: timestamp of last error alert
 var iapLastLoadAt = 0;              // throttle: last iapLoadProducts request time
 
-// TESTING DEBUG helper (remove before public launch): update the panel text.
-function iapDebugRefresh() {
-  var panel = document.getElementById('pb-iap-debug-panel');
-  if (!panel) return;
-  var forced = window.__iapForceStorefront !== undefined;
-  panel.textContent = (forced ? 'FORCED (tap to cycle)' : 'tap to force') +
-    ' | storefront: ' + (iapStorefront === null ? 'null' : iapStorefront) +
-    ' | mode: ' + (iapUsStorefront() ? 'US dual-rail' : 'IAP-only') +
-    ' | prices: ' + Object.keys(iapPrices).length;
-}
-
 var IAP_SKUS = {
   pro: { monthly: 'io.ryxa.pro.monthly', annual: 'io.ryxa.pro.annual' },
   max: { monthly: 'io.ryxa.max.monthly', annual: 'io.ryxa.max.annual' }
@@ -388,54 +377,6 @@ function iapApplyStorefrontGate() {
   var iapOnly = iapStorefrontResolved && !iapUsStorefront();
   document.body.classList.toggle('iap-only', iapOnly);
 
-  // --- TESTING DEBUG READOUT (remove before public launch) ---
-  // A small dot fixed in the lower-right corner. Tap it to expand a panel that
-  // shows the storefront/mode/prices and lets you force-cycle the storefront
-  // (USA -> CAN -> null) to preview each layout, since iOS 18+ sandbox wrongly
-  // reports USA. Forcing wins over the real value until reload. Delete this
-  // whole block (and iapDebugRefresh calls) to remove.
-  (function () {
-    var host = document.getElementById('plans-billing-view');
-    if (!host) return;
-    var body = host.querySelector('.pb-body');
-    if (!body) return;
-    var dot = document.getElementById('pb-iap-debug-dot');
-    if (!dot) {
-      var wrap = document.createElement('div');
-      wrap.style.cssText = 'display:flex;justify-content:flex-end;margin-top:20px;';
-      dot = document.createElement('div');
-      dot.id = 'pb-iap-debug-dot';
-      dot.style.cssText = 'width:14px;height:14px;border-radius:50%;background:#7c3aed;' +
-        'opacity:0.35;cursor:pointer;';
-      var panel = document.createElement('div');
-      panel.id = 'pb-iap-debug-panel';
-      panel.style.cssText = 'display:none;margin-top:8px;padding:10px 12px;border-radius:8px;' +
-        'background:#1a1a2e;border:1px dashed #7c3aed;color:#c4b5fd;' +
-        'font:600 12px \'DM Sans\',sans-serif;text-align:center;cursor:pointer;';
-      wrap.appendChild(dot);
-      body.appendChild(wrap);
-      body.appendChild(panel);
-      // Tapping the dot shows/hides the panel.
-      dot.addEventListener('click', function () {
-        panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
-        iapDebugRefresh();
-      });
-      // Tapping the panel cycles the forced storefront and re-renders.
-      panel.addEventListener('click', function () {
-        var cur = window.__iapForceStorefront === undefined ? iapStorefront : window.__iapForceStorefront;
-        var next = cur === 'USA' ? 'CAN' : (cur === 'CAN' ? null : 'USA');
-        window.__iapForceStorefront = next;
-        iapStorefront = next;
-        // Full re-render so the cards rebuild with correct prices for the new
-        // storefront (US restores Stripe prices; non-US re-applies deferral).
-        if (typeof renderPlansBilling === 'function') renderPlansBilling();
-        iapApplyStorefrontGate();
-        iapDebugRefresh();
-      });
-    }
-    iapDebugRefresh();
-  })();
-  // --- END TESTING DEBUG ---
 
   if (!document.getElementById('pb-iap-gate-css')) {
     var st = document.createElement('style');
@@ -623,11 +564,7 @@ document.addEventListener('ryxa-iap', function (e) {
 
 function _ryxaDispatchIap(ev) {
   if (ev.type === 'iapReady') {
-    // Testing override: if the debug readout forced a storefront, keep it
-    // instead of the real (sandbox-buggy) value. Remove with the debug block.
-    iapStorefront = (window.__iapForceStorefront !== undefined)
-      ? window.__iapForceStorefront
-      : (ev.storefront || null);
+    iapStorefront = ev.storefront || null;
     iapStorefrontResolved = true;
     // Full re-render so cards rebuild for the resolved storefront (US shows
     // Stripe prices; non-US applies the IAP deferral / Apple price).
