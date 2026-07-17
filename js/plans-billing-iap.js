@@ -8,6 +8,7 @@
 // ============================================================================
 
 var iapStorefront = null;           // e.g. 'USA'; null until iapReady
+var iapStorefrontResolved = false;  // true once iapReady has reported (even if null)
 var iapPrices = {};                 // productId -> localized display price
 var iapBusy = false;
 var iapBusyBtn = null;              // the buy button currently mid-purchase
@@ -130,10 +131,10 @@ function iapRenderSection() {
     var sku = IAP_SKUS[plan][cycle];
     var price = iapPrices[sku] || '';
     var cycleWord = cycle === 'annual' ? 'year' : 'month';
-    // When the storefront is unknown (null) we can't trust any displayed price,
-    // so defer to the App Store rather than risk showing a wrong number. Apple's
-    // payment sheet will show the user's real localized price at purchase.
-    var storefrontUnknown = (iapStorefront === null);
+    // "Unknown" means the storefront has RESOLVED but came back null - only
+    // then do we defer pricing. Before resolution we're just still loading, so
+    // don't show the deferral (it would flash "See App Store" then swap).
+    var storefrontUnknown = (iapStorefrontResolved && iapStorefront === null);
     var priceLabel;
     if (price) {
       priceLabel = ' - ' + price + ' / ' + cycleWord;
@@ -315,7 +316,11 @@ function iapUsStorefront() { return iapStorefront === 'USA'; }
 var _origPlansCheckout = null;
 function iapApplyStorefrontGate() {
   if (!iapInApp()) return;
-  var iapOnly = !iapUsStorefront();
+  // Until the storefront actually resolves, hold the dual-rail (Stripe) layout
+  // rather than flashing IAP-only: every card already has valid Stripe prices,
+  // so this shows something correct immediately, then only flips to IAP-only if
+  // the resolved storefront is confirmed non-US. Avoids the load-time flash.
+  var iapOnly = iapStorefrontResolved && !iapUsStorefront();
   document.body.classList.toggle('iap-only', iapOnly);
 
   // --- TESTING DEBUG READOUT (remove before public launch) ---
@@ -511,6 +516,7 @@ document.addEventListener('ryxa-iap', function (e) {
     iapStorefront = (window.__iapForceStorefront !== undefined)
       ? window.__iapForceStorefront
       : (ev.storefront || null);
+    iapStorefrontResolved = true;
     iapRenderSection();
     iapApplyStorefrontGate();
   } else if (ev.type === 'iapProducts') {
