@@ -2618,6 +2618,13 @@ function goToPricing(highlightPlan) {
   } else if (typeof plansBillingRouteCheck === 'function') {
     plansBillingRouteCheck();
   }
+  // Highlight the Plans tab (this page sits outside the tool system, so clear
+  // any tool-driven bnav highlight, then light the Plans button).
+  document.querySelectorAll('.mobile-bottom-nav-item.active')
+    .forEach(function (b) { b.classList.remove('active'); });
+  var _pb = document.getElementById('bnav-plans');
+  if (_pb) _pb.classList.add('active');
+  if (typeof positionBnavPill === 'function') positionBnavPill();
 }
 
 // The original pricing-page hand-off (in-app: Safari link-out with a signed

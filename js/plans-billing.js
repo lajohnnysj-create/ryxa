@@ -329,7 +329,17 @@ function renderPlansBilling() {
   }
 
   var cyc = plansBillingCycle;
-  ensureShell('').innerHTML =
+  var freeBody = ensureShell('');
+  // Signature of what the free-card view depends on. The multiple re-renders
+  // per open (initial, after source fetch, after tier load) would otherwise
+  // rewrite this body each time, re-fetching the card logos and causing a
+  // visible 3x flicker. Skip the rewrite when nothing that affects the cards
+  // changed.
+  var freeSig = [cyc, (typeof userTier !== 'undefined' ? userTier : ''),
+    (typeof userBillingCycle !== 'undefined' ? userBillingCycle : '')].join('|');
+  if (freeBody.getAttribute('data-pb-sig') === freeSig) return;
+  freeBody.setAttribute('data-pb-sig', freeSig);
+  freeBody.innerHTML =
     '<h1 class="pb-title">Get more out of your creator business with Ryxa Pro or Max.</h1>'
     + '<div class="pb-section-head">'
     + '<h2>Available plans</h2>'
