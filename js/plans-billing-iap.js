@@ -260,7 +260,7 @@ function iapRenderSection() {
       var btn = e.target.closest('.pb-iap-buy');
       if (!btn || iapBusy) return;
       var uid = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.id : null;
-      if (!uid) return;
+      if (!uid) { alert('Cannot purchase: not signed in (no user id). Sign out and back in.'); return; }
       iapBusy = true;
       var span = btn.querySelector('span');
       // Remember this button + its label so any end path (result, error, cancel,
@@ -268,6 +268,8 @@ function iapRenderSection() {
       iapBusyBtn = btn;
       iapBusyLabel = span ? span.textContent : '';
       if (span) span.textContent = 'Opening App Store...';
+      // TEMP DIAGNOSTIC: confirm what we're sending to native.
+      alert('Sending purchase -> sku: ' + (btn.dataset.sku || 'MISSING') + ' | user: ' + uid.slice(0, 8));
       iapPost({ type: 'iapPurchase', sku: btn.dataset.sku, appAccountToken: uid });
       // Safety timeout: if no result/error/cancel event arrives (e.g. the user
       // backgrounds the app at the sheet), un-stick the button.
@@ -558,8 +560,12 @@ document.addEventListener('ryxa-iap', function (e) {
       if (!(sig === iapLastErrSig && now - iapLastErrAt < 3000)) {
         iapLastErrSig = sig;
         iapLastErrAt = now;
-        alert(ev.message || 'Purchase failed.');
+        alert('Purchase failed [' + (ev.code || 'no-code') + ']: ' + (ev.message || 'no message'));
       }
+    } else {
+      // TEMP DIAGNOSTIC: a cancel-type code can also mean the sheet failed to
+      // present. Surface it so a silent "nothing happened" isn't invisible.
+      alert('Purchase closed [' + (ev.code || 'cancel') + ']: ' + (ev.message || 'sheet dismissed or did not present'));
     }
   }
 });
