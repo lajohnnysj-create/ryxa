@@ -313,6 +313,14 @@ async function iapHandlePurchase(detail) {
         }
       } catch (x) { bodyText = '(could not read body)'; }
       console.error('verify-apple-purchase HTTP error', status, bodyText);
+      // A cancelled or never-completed purchase has no valid transaction in
+      // Apple's system, so verify returns transaction_not_found (404). The user
+      // cancelled - there's nothing to apply and nothing to warn about. Clear it
+      // silently so it stops redelivering, with no alarming message.
+      if (bodyText.indexOf('transaction_not_found') !== -1) {
+        iapPost({ type: 'iapForceFinish', transactionId: detail.transactionId });
+        return;
+      }
       var permReasons = ['account_mismatch', 'wrong_bundle', 'unknown_product', 'expired'];
       var hitPerm = permReasons.some(function (r) { return bodyText.indexOf(r) !== -1; });
       if (hitPerm) {
@@ -341,8 +349,13 @@ async function iapHandlePurchase(detail) {
       // purchases of the same product. Force-finish it to clear the block.
       // Transient failures (network, 500) are NOT force-finished - they should
       // retry on the next redelivery.
-      var permanent = ['account_mismatch', 'wrong_bundle', 'unknown_product', 'expired'];
       var reasonStr = (typeof reason === 'string') ? reason : (reason && reason.error) || '';
+      // Cancelled/never-completed purchase: clear silently, no message.
+      if (reasonStr === 'transaction_not_found') {
+        iapPost({ type: 'iapForceFinish', transactionId: detail.transactionId });
+        return;
+      }
+      var permanent = ['account_mismatch', 'wrong_bundle', 'unknown_product', 'expired'];
       if (permanent.indexOf(reasonStr) !== -1) {
         iapPost({ type: 'iapForceFinish', transactionId: detail.transactionId });
         alert('This purchase could not be applied and was cleared. If you were charged, contact hello@ryxa.io.');
