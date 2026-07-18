@@ -93,6 +93,7 @@ let scriptsLoaded = false;
 let currentScript = null;
 let scriptsDirty = false;
 let scriptsAutoSaveTimer = null;
+let scriptsSaving = false; // single-flight guard: only one save in flight at a time
 let scriptItemIdCounter = 0;
 let currentScriptView = 'script';
 let hookEditing = false;
@@ -1004,7 +1005,18 @@ function updateSaveStatus(msg, kind) {
 
 async function saveScriptNow(silent) {
   if (!currentScript || !currentUser) return;
+  // Single-flight: never let two saves overlap. A second save started before the
+  // first returns would still carry the OLD updated_at token (the first save
+  // hasn't refreshed it yet), so it would falsely fail the optimistic-concurrency
+  // check and show the "changed on another device" error. If a save is already
+  // running, just leave the script marked dirty; the in-flight save reschedules
+  // a follow-up when it finishes so the latest edits still get persisted.
+  if (scriptsSaving) {
+    scriptsDirty = true;
+    return;
+  }
   if (scriptsAutoSaveTimer) { clearTimeout(scriptsAutoSaveTimer); scriptsAutoSaveTimer = null; }
+  scriptsSaving = true;
   try {
     const payload = {
       title: (currentScript.title || 'Untitled script').slice(0, 80),
@@ -1024,6 +1036,10 @@ async function saveScriptNow(silent) {
     const { data, error } = await q.select().maybeSingle();
     if (error) throw error;
     if (!data) {
+      // Genuine version conflict (a real newer version exists). Clear dirty so
+      // the finally block doesn't reschedule a doomed retry loop; the user needs
+      // to reload to get the latest version.
+      scriptsDirty = false;
       if (typeof showDashToast === 'function') showDashToast('error', 'This script was changed in another tab or on another device, so this save was blocked to avoid overwriting the newer version. Reload the page to get the latest version.');
       return;
     }
@@ -1046,6 +1062,14 @@ async function saveScriptNow(silent) {
   } catch (e) {
     console.error(e);
     if (typeof showDashToast === 'function') showDashToast('error', 'Could not save your script. Please check your connection and try again.');
+  } finally {
+    scriptsSaving = false;
+    // If edits came in while this save was in flight, persist them now with the
+    // freshly-updated token. Silent so it doesn't toast over a manual save.
+    if (scriptsDirty && currentScript) {
+      if (scriptsAutoSaveTimer) clearTimeout(scriptsAutoSaveTimer);
+      scriptsAutoSaveTimer = setTimeout(() => { saveScriptNow(true); }, 400);
+    }
   }
 }
 
