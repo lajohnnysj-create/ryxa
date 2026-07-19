@@ -606,6 +606,11 @@ function updateInvSendUI() {
 
 async function sendInvoice() {
   if (!currentInvoiceRow || !currentInvoiceRow.id || currentInvoiceRow.sent_at) return;
+  // A paid invoice can't be sent - there's nothing to request payment for.
+  if (currentInvoiceRow.status === 'paid') {
+    if (typeof showDashToast === 'function') showDashToast('error', 'This invoice is already paid and cannot be sent.');
+    return;
+  }
   const toEmail = (document.getElementById('inv-to-email') || {}).value || currentInvoiceRow.to_email || '';
   if (!toEmail.trim()) {
     if (typeof showDashToast === 'function') showDashToast('error', 'Add the recipient email in Bill To, then Save, before sending.');
@@ -615,6 +620,11 @@ async function sendInvoice() {
     const btn = document.getElementById('inv-send-btn');
     if (btn) { btn.disabled = true; btn.textContent = 'Sending...'; }
     try {
+      // Sending an invoice means requesting payment, so it must be pending -
+      // never save it as paid just because the status toggle was left there.
+      // (A paid invoice can't be sent anyway.)
+      if (invStatus === 'paid') invStatus = 'pending';
+      updateInvStatusUI();
       // Save first so the email reflects exactly what is on screen. Use the
       // direct save (send happens on pending invoices, not the paid transition).
       await doSaveInvoice();
