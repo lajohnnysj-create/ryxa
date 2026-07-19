@@ -81,6 +81,61 @@ function isValidEmail(e) {
   return typeof e === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e) && e.length <= 254;
 }
 
+const crypto = require('crypto');
+const SEND_RL_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+const SEND_RL_MAX = 30;                   // sends per user per hour
+
+function getClientIp(req) {
+  var xff = req.headers['x-forwarded-for'];
+  if (xff) { var first = xff.split(',')[0].trim(); if (first) return first; }
+  return req.headers['x-real-ip'] || 'unknown';
+}
+function hashKey(v) {
+  return crypto.createHash('sha256').update(String(v)).digest('hex');
+}
+
+// Raw-fetch rate-limit helper (the module's sbFetch throws on non-2xx and
+// auto-parses, which we don't want for best-effort throttle bookkeeping).
+async function rlFetch(path, method, body) {
+  var key = getServiceKey();
+  return fetch(SUPABASE_URL + '/rest/v1/' + path, {
+    method: method || 'GET',
+    headers: { apikey: key, Authorization: 'Bearer ' + key, 'Content-Type': 'application/json', Prefer: 'return=representation' },
+    body: body ? JSON.stringify(body) : undefined
+  });
+}
+
+// Per-user throttle on sending. Fails OPEN on infra errors.
+async function checkSendRateLimit(userId) {
+  var ipHash = hashKey('user:' + userId); // key by user, stored in the ip_hash column
+  var q = 'invoice_rate_limits?ip_hash=eq.' + encodeURIComponent(ipHash)
+    + '&scope=eq.send&bucket_key=eq.' + encodeURIComponent(userId);
+  try {
+    var selRes = await rlFetch(q + '&select=attempt_count,window_started_at&limit=1');
+    if (!selRes.ok) return { allowed: true };
+    var rows = await selRes.json();
+    var now = Date.now();
+    if (!rows || rows.length === 0) {
+      await rlFetch('invoice_rate_limits', 'POST', { ip_hash: ipHash, scope: 'send', bucket_key: userId, attempt_count: 1, window_started_at: new Date(now).toISOString() });
+      return { allowed: true };
+    }
+    var row = rows[0];
+    var age = now - new Date(row.window_started_at).getTime();
+    if (age > SEND_RL_WINDOW_MS) {
+      await rlFetch(q, 'PATCH', { attempt_count: 1, window_started_at: new Date(now).toISOString() });
+      return { allowed: true };
+    }
+    if (row.attempt_count >= SEND_RL_MAX) {
+      return { allowed: false, retryAfterSeconds: Math.ceil((SEND_RL_WINDOW_MS - age) / 1000) };
+    }
+    await rlFetch(q, 'PATCH', { attempt_count: row.attempt_count + 1 });
+    return { allowed: true };
+  } catch (e) {
+    console.error('invoice send rate-limit error (failing open):', e.message);
+    return { allowed: true };
+  }
+}
+
 function buildEmailHtml(inv, username, url) {
   var fromLabel = inv.from_name || ('@' + username);
   var rows = '';
@@ -126,6 +181,13 @@ module.exports = async (req, res) => {
     var token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
     var user = await verifySupabaseUser(token);
     if (!user) return res.status(401).json({ error: 'Not signed in' });
+
+    // Throttle sends per user.
+    var rl = await checkSendRateLimit(user.id);
+    if (!rl.allowed) {
+      if (rl.retryAfterSeconds) res.setHeader('Retry-After', String(rl.retryAfterSeconds));
+      return res.status(429).json({ error: 'Too many invoices sent recently. Please try again in a bit.' });
+    }
 
     var invoiceId = (req.body && req.body.invoice_id || '').toString();
     if (!invoiceId) return res.status(400).json({ error: 'Missing invoice_id' });
