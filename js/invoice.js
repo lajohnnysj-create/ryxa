@@ -736,17 +736,21 @@ function positionInvSlider(segId, sliderId, activeBtn, isPaid) {
   const slider = document.getElementById(sliderId);
   if (!seg || !slider || !activeBtn) return;
   // If the control has wrapped onto multiple rows, a single-row slider can't
-  // track it; fall back to a flat fill on the active button instead.
-  const segTop = seg.getBoundingClientRect().top;
-  const btnTop = activeBtn.getBoundingClientRect().top;
-  if (Math.abs(btnTop - segTop) > 6) {
+  // track it; hide the slider (CSS) and fall back to a flat fill on the active
+  // button instead. Detect wrap by comparing the active button's vertical
+  // offset within the control against the first button's.
+  const firstBtn = seg.querySelector('.inv-seg-btn');
+  const wrapped = firstBtn && Math.abs(activeBtn.offsetTop - firstBtn.offsetTop) > 2;
+  if (wrapped) {
     seg.classList.add('no-slider');
     slider.style.width = '0';
     return;
   }
   seg.classList.remove('no-slider');
   slider.style.left = activeBtn.offsetLeft + 'px';
+  slider.style.top = activeBtn.offsetTop + 'px';
   slider.style.width = activeBtn.offsetWidth + 'px';
+  slider.style.height = activeBtn.offsetHeight + 'px';
   slider.classList.toggle('paid', !!isPaid);
 }
 
