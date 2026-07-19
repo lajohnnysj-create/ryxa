@@ -90,6 +90,16 @@
     background: var(--surface2); color: var(--text); border: 1px solid var(--border);
   }
   .inv-btn-download:hover { background: rgba(255,255,255,0.08); }
+  .inv-btn-pay {
+    background: var(--accent); color: #fff; margin-bottom: 10px;
+    box-shadow: 0 0 22px rgba(124,58,237,0.4);
+  }
+  .inv-btn-pay:hover { filter: brightness(1.08); }
+  .inv-paid-note {
+    background: rgba(52,211,153,0.1); border: 1px solid rgba(52,211,153,0.35);
+    border-radius: 12px; padding: 12px 16px; margin-bottom: 14px;
+    font-size: 13.5px; color: var(--green); text-align: center;
+  }
   .inv-loading, .inv-error { text-align: center; color: var(--muted); font-size: 14px; padding: 60px 0; }
   .inv-spin {
     width: 28px; height: 28px; margin: 0 auto 14px; border-radius: 50%;
@@ -149,6 +159,13 @@
         <div id="pv-pay-method" class="inv-pay-method"></div>
         <div id="pv-pay-details" class="inv-pay-details"></div>
       </div>
+
+      <div id="pv-paid-note" class="inv-paid-note" style="display:none;">Payment received. Thank you! It may take a moment to reflect above.</div>
+
+      <button id="pv-pay" class="inv-btn inv-btn-pay" style="display:none;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        <span id="pv-pay-label">Pay</span>
+      </button>
 
       <button id="pv-download" class="inv-btn inv-btn-download">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -262,13 +279,24 @@
       show('pv-notes');
     }
 
-    // Payment section (manual methods; card checkout arrives in a later update)
+    // Payment section (manual methods show instructions; Stripe shows a card
+    // checkout button that creates a session for the invoice amount)
     var method = data.payment_method || 'none';
     if ((method === 'zelle' || method === 'venmo' || method === 'other') && data.payment_details) {
       var label = method === 'zelle' ? 'Pay via Zelle' : method === 'venmo' ? 'Pay via Venmo' : 'Payment instructions';
       document.getElementById('pv-pay-method').textContent = label;
       document.getElementById('pv-pay-details').textContent = data.payment_details;
       show('pv-pay-card');
+    }
+    if (method === 'stripe' && status !== 'paid') {
+      document.getElementById('pv-pay-label').textContent = 'Pay ' + money(data.total_cents);
+      show('pv-pay');
+    }
+    // Back from a completed checkout: the webhook marks it paid server-side,
+    // which can lag the redirect by a moment.
+    if (new URLSearchParams(window.location.search).get('paid') === '1' && status !== 'paid') {
+      show('pv-paid-note');
+      hide('pv-pay');
     }
 
     hide('inv-loading');
@@ -339,6 +367,33 @@
   }
 
   document.getElementById('pv-download').addEventListener('click', downloadInvoice);
+
+  document.getElementById('pv-pay').addEventListener('click', function () {
+    if (!inv) return;
+    var btn = document.getElementById('pv-pay');
+    btn.disabled = true;
+    document.getElementById('pv-pay-label').textContent = 'Starting checkout...';
+    var base = window.location.origin + window.location.pathname;
+    fetch('/api/invoice-checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        public_id: inv.public_id,
+        success_url: base + '?paid=1',
+        cancel_url: base
+      })
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (j) {
+      if (j && j.checkout_url) { window.location.href = j.checkout_url; return; }
+      throw new Error((j && j.error) || 'checkout failed');
+    })
+    .catch(function (e) {
+      btn.disabled = false;
+      document.getElementById('pv-pay-label').textContent = 'Pay ' + money(inv.total_cents);
+      alert(e && e.message ? e.message : 'Could not start checkout. Please try again.');
+    });
+  });
 
   // Fetch and render
   var pid = publicIdFromPath();

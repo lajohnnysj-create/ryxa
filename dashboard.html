@@ -6449,6 +6449,7 @@
   .inv-save-btn:hover { filter: brightness(1.08); }
   .inv-save-btn:disabled { opacity: 0.6; cursor: default; }
   .inv-url-bar { margin-bottom: 16px; }
+  .inv-gap-top { margin-top: 20px; }
   .inv-pay-options { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 8px; }
   .inv-pay-opt { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text); cursor: pointer; font-family: 'DM Sans', sans-serif; }
   .inv-pay-opt input { accent-color: var(--accent); }
@@ -10166,6 +10167,7 @@
             </button>
             <div class="inv-editor-actions">
               <button data-invoice-action="download-pdf" class="deal-s-2601f0">Download PDF</button>
+              <button data-invoice-action="send-invoice" id="inv-send-btn" class="deal-s-2601f0" style="display:none;">Send Invoice</button>
               <button data-invoice-action="save-invoice" id="inv-save-btn" class="inv-save-btn">Save</button>
             </div>
           </div>
@@ -10275,7 +10277,7 @@
         </div>
 
         <!-- PAYMENT COLLECTION -->
-        <div class="invoice-s-8c48da">
+        <div class="invoice-s-8c48da inv-gap-top">
           <div class="invoice-s-1d6580">Payment collection</div>
           <div class="inv-pay-options" id="inv-pay-options">
             <label class="inv-pay-opt"><input type="radio" name="inv-pay-method" value="none" checked data-invoice-action="pay-method-change" data-invoice-event="change"> None</label>
@@ -10289,7 +10291,7 @@
         </div>
 
         <!-- STATUS -->
-        <div class="invoice-s-8c48da">
+        <div class="invoice-s-8c48da inv-gap-top">
           <div class="invoice-s-1d6580">Status</div>
           <div class="inv-status-seg" id="inv-status-seg">
             <button type="button" data-invoice-action="set-status" data-invoice-status="draft" class="inv-status-btn active">Draft</button>
