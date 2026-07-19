@@ -1963,7 +1963,7 @@ function showModalConfirm(title, message, onConfirm, confirmText, cancelText, op
     + '<div class="ds-s-85e627">' + (title || 'Confirm') + '</div>'
     + '<div class="mk-s-e4ad4a">' + msgHtml + '</div>'
     + '<div class="course-s-b9bbe5">'
-    + '<button id="modal-confirm-yes" class="ds-s-6e0dd5"' + (opts.danger ? ' style="color:#ffffff;"' : '') + '>' + (confirmText || 'Delete') + '</button>'
+    + '<button id="modal-confirm-yes" class="ds-s-6e0dd5"' + (opts.success ? ' style="background:rgba(34,197,94,0.15);border-color:rgba(34,197,94,0.4);color:#ffffff;"' : (opts.danger ? ' style="color:#ffffff;"' : '')) + '>' + (confirmText || 'Delete') + '</button>'
     + '<button id="modal-confirm-no" class="ds-s-dea7b5">' + (cancelText || 'Cancel') + '</button>'
     + '</div>'
     + '</div>';

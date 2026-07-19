@@ -532,10 +532,13 @@ function repositionInvSliders() {
 // Once an invoice has been emailed, the Bill To email is locked for good.
 function updateInvEmailLock() {
   const emailEl = document.getElementById('inv-to-email');
+  const lockEl = document.getElementById('inv-email-lock');
   if (!emailEl) return;
   const locked = !!(currentInvoiceRow && currentInvoiceRow.email_locked);
   emailEl.disabled = locked;
   emailEl.title = locked ? 'This email is locked because the invoice was already sent.' : '';
+  emailEl.style.paddingRight = locked ? '38px' : '';
+  if (lockEl) lockEl.style.display = locked ? 'flex' : 'none';
 }
 
 // Send Invoice: visible once the invoice is saved. Enabled until it has been
@@ -597,7 +600,7 @@ async function sendInvoice() {
   if (typeof showModalConfirm === 'function') {
     showModalConfirm('Send this invoice?',
       'It will be emailed to ' + toEmail.trim() + ' with a link to the public invoice page. Invoices can only be emailed once, and the recipient email locks after sending.',
-      doSend, 'Send Invoice', 'Cancel', { danger: false });
+      doSend, 'Send Invoice', 'Cancel', { danger: false, success: true });
   } else if (confirm('Email this invoice to ' + toEmail.trim() + '? Invoices can only be emailed once.')) {
     doSend();
   }
