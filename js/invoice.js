@@ -516,6 +516,17 @@ function openInvoiceEditor(row) {
   updateInvEmailLock();
   updateInvSendUI();
   refreshInvStripeOption();
+  // Sliders need a settled layout to measure button positions; nudge them once
+  // the editor is painted (and again shortly after, for font/reflow).
+  requestAnimationFrame(repositionInvSliders);
+  setTimeout(repositionInvSliders, 120);
+}
+
+function repositionInvSliders() {
+  const payActive = document.querySelector('#inv-pay-options .inv-seg-btn.active');
+  positionInvSlider('inv-pay-options', 'inv-pay-slider', payActive, false);
+  const stActive = document.querySelector('#inv-status-seg .inv-seg-btn.active');
+  positionInvSlider('inv-status-seg', 'inv-status-slider', stActive, invStatus === 'paid');
 }
 
 // Once an invoice has been emailed, the Bill To email is locked for good.
@@ -604,10 +615,36 @@ function updateInvUrlBar() {
   }
 }
 
+// Move a segmented control's sliding highlight under its active button.
+// isPaid tints the slider green (used for the Paid status).
+function positionInvSlider(segId, sliderId, activeBtn, isPaid) {
+  const seg = document.getElementById(segId);
+  const slider = document.getElementById(sliderId);
+  if (!seg || !slider || !activeBtn) return;
+  // If the control has wrapped onto multiple rows, a single-row slider can't
+  // track it; fall back to a flat fill on the active button instead.
+  const segTop = seg.getBoundingClientRect().top;
+  const btnTop = activeBtn.getBoundingClientRect().top;
+  if (Math.abs(btnTop - segTop) > 6) {
+    seg.classList.add('no-slider');
+    slider.style.width = '0';
+    return;
+  }
+  seg.classList.remove('no-slider');
+  slider.style.left = activeBtn.offsetLeft + 'px';
+  slider.style.width = activeBtn.offsetWidth + 'px';
+  slider.classList.toggle('paid', !!isPaid);
+}
+
 function updateInvStatusUI() {
+  let active = null;
   document.querySelectorAll('#inv-status-seg .inv-seg-btn').forEach(function (b) {
-    b.classList.toggle('active', b.getAttribute('data-invoice-status') === invStatus);
+    const on = b.getAttribute('data-invoice-status') === invStatus;
+    b.classList.toggle('active', on);
+    b.classList.toggle('paid-active', on && invStatus === 'paid');
+    if (on) active = b;
   });
+  positionInvSlider('inv-status-seg', 'inv-status-slider', active, invStatus === 'paid');
 }
 
 function setInvPayMethodUI(method, details) {
@@ -623,9 +660,13 @@ function setInvPayMethodUI(method, details) {
 function setInvPayMethod(method) {
   const hidden = document.getElementById('inv-pay-method-value');
   if (hidden) hidden.value = method;
+  let active = null;
   document.querySelectorAll('#inv-pay-options .inv-seg-btn').forEach(function (b) {
-    b.classList.toggle('active', b.getAttribute('data-invoice-method') === method);
+    const on = b.getAttribute('data-invoice-method') === method;
+    b.classList.toggle('active', on);
+    if (on) active = b;
   });
+  positionInvSlider('inv-pay-options', 'inv-pay-slider', active, false);
   applyInvPayDetailsVisibility();
 }
 
@@ -668,9 +709,14 @@ async function refreshInvStripeOption() {
       : 'Connect Stripe to collect invoice payments';
     note.style.display = '';
   }
-  // If the saved invoice uses Stripe, reflect it now that the button is enabled.
-  if (invStripeConnected && currentInvoiceRow && currentInvoiceRow.payment_method === 'stripe') {
-    setInvPayMethod('stripe');
+  if (invStripeConnected) {
+    if (currentInvoiceRow && currentInvoiceRow.payment_method === 'stripe') {
+      // saved Stripe invoice: reflect it now that the button is enabled
+      setInvPayMethod('stripe');
+    } else if (!currentInvoiceRow && currentInvPayMethod() === 'none') {
+      // brand-new invoice with Stripe connected: default to Stripe
+      setInvPayMethod('stripe');
+    }
   }
 }
 
@@ -804,6 +850,14 @@ invoiceRegisterAction('pay-method-set', function (e, el) {
 invoiceRegisterAction('set-status', function (e, el) {
   invStatus = el.getAttribute('data-invoice-status') || 'draft';
   updateInvStatusUI();
+});
+// Keep the sliding highlights aligned if the viewport / layout changes.
+window.addEventListener('resize', function () {
+  if (typeof repositionInvSliders === 'function'
+      && document.getElementById('invoice-editor-view')
+      && document.getElementById('invoice-editor-view').style.display !== 'none') {
+    repositionInvSliders();
+  }
 });
 
 // =============================================================================
