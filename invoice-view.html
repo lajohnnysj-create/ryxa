@@ -100,6 +100,11 @@
     border-radius: 12px; padding: 12px 16px; margin-bottom: 14px;
     font-size: 13.5px; color: var(--green); text-align: center;
   }
+  .inv-draft-note {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px 16px; margin-bottom: 14px;
+    font-size: 13.5px; color: var(--muted); text-align: center;
+  }
   .inv-loading, .inv-error { text-align: center; color: var(--muted); font-size: 14px; padding: 60px 0; }
   .inv-spin {
     width: 28px; height: 28px; margin: 0 auto 14px; border-radius: 50%;
@@ -167,7 +172,9 @@
         <span id="pv-pay-label">Pay</span>
       </button>
 
-      <button id="pv-download" class="inv-btn inv-btn-download">
+      <div id="pv-draft-note" class="inv-draft-note" style="display:none;">This invoice is still a draft. It isn't ready for viewing or payment yet.</div>
+
+      <button id="pv-download" class="inv-btn inv-btn-download" style="display:none;">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         Download Invoice
       </button>
@@ -297,6 +304,14 @@
     if (new URLSearchParams(window.location.search).get('paid') === '1' && status !== 'paid') {
       show('pv-paid-note');
       hide('pv-pay');
+    }
+
+    // Draft invoices aren't finished documents: no download, just a status
+    // message. Pending/paid invoices get the normal Download button.
+    if (status === 'draft') {
+      show('pv-draft-note');
+    } else {
+      show('pv-download');
     }
 
     hide('inv-loading');
