@@ -671,6 +671,7 @@ async function loadDashStats() {
     if (bs.coaching) sources.push(`<span class="dash-stat-pill">1:1 Bookings: ${formatDashUSD(bs.coaching)}</span>`);
     if (bs.digital_product) sources.push(`<span class="dash-stat-pill">Digital Products: ${formatDashUSD(bs.digital_product)}</span>`);
     if (bs.tip) sources.push(`<span class="dash-stat-pill">Coffee Tips: ${formatDashUSD(bs.tip)}</span>`);
+    if (bs.invoice) sources.push(`<span class="dash-stat-pill">Invoices: ${formatDashUSD(bs.invoice)}</span>`);
     if (bs.other) sources.push(`<span class="dash-stat-pill">Other: ${formatDashUSD(bs.other)}</span>`);
     rBreak.innerHTML = sources.join('');
     if (r.total_cents > 0) {
