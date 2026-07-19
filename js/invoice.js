@@ -392,3 +392,314 @@ invoiceRegisterAction('update-item-desc', (e, el) => updateItem(parseInt(el.data
 invoiceRegisterAction('update-item-qty', (e, el) => updateItem(parseInt(el.dataset.invoiceItemId, 10), 'qty', el.value));
 invoiceRegisterAction('update-item-rate', (e, el) => updateItem(parseInt(el.dataset.invoiceItemId, 10), 'rate', el.value));
 invoiceRegisterAction('remove-item', (e, el) => removeInvoiceItem(parseInt(el.dataset.invoiceItemId, 10)));
+
+// =============================================================================
+// INVOICE DASHBOARD (Phase 1): list view, save to DB, public URL, status,
+// payment collection, delete. The editor above is unchanged; this layer wraps
+// it with persistence. Public page: /invoice/<public_id> (invoice-view.html),
+// which reads via the get_public_invoice RPC.
+// =============================================================================
+
+let invoiceList = [];
+let currentInvoiceRow = null;   // the DB row being edited (null = new, unsaved)
+let invStatus = 'draft';        // editor's selected status (saved on Save)
+let invStripeConnected = null;  // null = unknown, then true/false
+
+function initInvoiceTool() {
+  showInvoiceListView();
+  loadInvoiceList();
+}
+
+function showInvoiceListView() {
+  const list = document.getElementById('invoice-list-view');
+  const editor = document.getElementById('invoice-editor-view');
+  if (list) list.style.display = 'block';
+  if (editor) editor.style.display = 'none';
+}
+
+function showInvoiceEditorView() {
+  const list = document.getElementById('invoice-list-view');
+  const editor = document.getElementById('invoice-editor-view');
+  if (list) list.style.display = 'none';
+  if (editor) editor.style.display = 'block';
+}
+
+async function loadInvoiceList() {
+  if (!currentUser) return;
+  try {
+    const { data, error } = await sb
+      .from('invoices')
+      .select('id, public_id, status, to_name, invoice_number, total_cents, updated_at')
+      .eq('user_id', currentUser.id)
+      .order('updated_at', { ascending: false });
+    if (error) throw error;
+    invoiceList = data || [];
+  } catch (e) {
+    console.error('Load invoices failed:', e);
+    invoiceList = [];
+  }
+  renderInvoiceList();
+}
+
+function renderInvoiceList() {
+  const listEl = document.getElementById('invoice-list');
+  const emptyEl = document.getElementById('invoice-empty');
+  if (!listEl) return;
+  if (!invoiceList.length) {
+    listEl.innerHTML = '';
+    if (emptyEl) emptyEl.style.display = 'block';
+    return;
+  }
+  if (emptyEl) emptyEl.style.display = 'none';
+  listEl.innerHTML = invoiceList.map(function (inv) {
+    const title = escapeHtml(inv.to_name || 'Untitled invoice');
+    const num = inv.invoice_number ? escapeHtml(inv.invoice_number) + ' \u00b7 ' : '';
+    const dt = inv.updated_at ? new Date(inv.updated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
+    const amt = formatMoney(inv.total_cents || 0, { alwaysShowCents: true });
+    const badge = inv.status === 'paid' ? '<span class="inv-badge paid">Paid</span>'
+      : inv.status === 'pending' ? '<span class="inv-badge pending">Pending</span>'
+      : '<span class="inv-badge">Draft</span>';
+    return '<div class="inv-row" data-invoice-action="open-invoice" data-invoice-id="' + inv.id + '">' +
+      '<div class="inv-row-main">' +
+        '<div class="inv-row-title">' + title + '</div>' +
+        '<div class="inv-row-sub">' + num + dt + '</div>' +
+      '</div>' +
+      '<div class="inv-row-side">' +
+        '<span class="inv-row-amt">' + amt + '</span>' + badge +
+        '<button class="inv-del-btn" data-invoice-action="delete-invoice" data-invoice-id="' + inv.id + '" title="Delete invoice" aria-label="Delete invoice">' +
+          '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>' +
+        '</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function genInvPublicId() {
+  const bytes = new Uint8Array(10);
+  crypto.getRandomValues(bytes);
+  let s = '';
+  for (let i = 0; i < bytes.length; i++) s += bytes[i].toString(36).slice(-1) + ((bytes[i] % 36).toString(36));
+  return s.slice(0, 14);
+}
+
+function openInvoiceEditor(row) {
+  currentInvoiceRow = row || null;
+  showInvoiceEditorView();
+  // Base init (dates, default number, first empty item)
+  invItems = [];
+  initInvoiceGenerator();
+  loadSavedLogo();
+
+  const setVal = function (id, v) { const el = document.getElementById(id); if (el) el.value = v == null ? '' : v; };
+
+  if (row) {
+    setVal('inv-from-name', row.from_name); setVal('inv-from-email', row.from_email); setVal('inv-from-address', row.from_address);
+    setVal('inv-to-name', row.to_name); setVal('inv-to-email', row.to_email); setVal('inv-to-address', row.to_address);
+    setVal('inv-number', row.invoice_number); setVal('inv-date', row.issue_date || ''); setVal('inv-due', row.due_date || '');
+    setVal('inv-tax', row.tax_pct || 0); setVal('inv-notes', row.notes);
+    invItems = (Array.isArray(row.items) ? row.items : []).map(function (it, i) {
+      return { id: Date.now() + i, desc: it.desc || '', qty: Number(it.qty) || 0, rate: Number(it.rate) || 0 };
+    });
+    if (!invItems.length) addInvoiceItem(); else { renderInvoiceItems(); calcTotals(); }
+    invStatus = row.status || 'draft';
+    setInvPayMethodUI(row.payment_method || 'none', row.payment_details || '');
+  } else {
+    setVal('inv-from-name', ''); setVal('inv-from-email', ''); setVal('inv-from-address', '');
+    setVal('inv-to-name', ''); setVal('inv-to-email', ''); setVal('inv-to-address', '');
+    setVal('inv-notes', ''); setVal('inv-tax', 0);
+    invStatus = 'draft';
+    setInvPayMethodUI('none', '');
+    calcTotals();
+  }
+  updateInvStatusUI();
+  updateInvUrlBar();
+  refreshInvStripeOption();
+}
+
+function updateInvUrlBar() {
+  const bar = document.getElementById('inv-url-bar');
+  const txt = document.getElementById('inv-url-text');
+  if (!bar || !txt) return;
+  if (currentInvoiceRow && currentInvoiceRow.public_id) {
+    txt.textContent = 'https://www.ryxa.io/invoice/' + currentInvoiceRow.public_id;
+    bar.style.display = 'block';
+  } else {
+    bar.style.display = 'none';
+  }
+}
+
+function updateInvStatusUI() {
+  document.querySelectorAll('#inv-status-seg .inv-status-btn').forEach(function (b) {
+    b.classList.toggle('active', b.getAttribute('data-invoice-status') === invStatus);
+  });
+}
+
+function setInvPayMethodUI(method, details) {
+  const radio = document.querySelector('input[name="inv-pay-method"][value="' + method + '"]');
+  if (radio && !radio.disabled) radio.checked = true;
+  else {
+    const none = document.querySelector('input[name="inv-pay-method"][value="none"]');
+    if (none) none.checked = true;
+  }
+  const detailsEl = document.getElementById('inv-pay-details');
+  if (detailsEl) detailsEl.value = details || '';
+  applyInvPayDetailsVisibility();
+}
+
+function applyInvPayDetailsVisibility() {
+  const checked = document.querySelector('input[name="inv-pay-method"]:checked');
+  const method = checked ? checked.value : 'none';
+  const detailsEl = document.getElementById('inv-pay-details');
+  if (!detailsEl) return;
+  if (method === 'zelle' || method === 'venmo' || method === 'other') {
+    detailsEl.style.display = 'block';
+    detailsEl.placeholder = method === 'zelle' ? 'Your Zelle email or phone number'
+      : method === 'venmo' ? 'Your Venmo @handle'
+      : 'Payment instructions shown to the recipient';
+  } else {
+    detailsEl.style.display = 'none';
+  }
+}
+
+// Phase 1: the Stripe option stays disabled. Not connected -> nudge to connect.
+// Connected -> honest note that card checkout arrives with the next update.
+async function refreshInvStripeOption() {
+  const note = document.getElementById('inv-pay-stripe-note');
+  const stripeRadio = document.querySelector('input[name="inv-pay-method"][value="stripe"]');
+  if (stripeRadio) stripeRadio.disabled = true;
+  if (invStripeConnected === null) {
+    try {
+      const headers = (typeof Auth !== 'undefined' && Auth.headers) ? Auth.headers() : {};
+      const r = await fetch('/api/stripe-status', { headers: headers });
+      const j = await r.json();
+      invStripeConnected = !!(j && j.connected);
+    } catch (e) { invStripeConnected = false; }
+  }
+  if (note) {
+    note.textContent = invStripeConnected
+      ? 'Card checkout for invoices is coming in the next update.'
+      : 'Connect Stripe to collect invoice payments';
+  }
+}
+
+function collectInvoicePayload() {
+  const val = function (id) { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
+  const items = invItems.map(function (i) { return { desc: i.desc || '', qty: Number(i.qty) || 0, rate: Number(i.rate) || 0 }; });
+  const subtotal = items.reduce(function (s, i) { return s + i.qty * i.rate; }, 0);
+  const taxPct = parseFloat(val('inv-tax')) || 0;
+  const total = subtotal + subtotal * taxPct / 100;
+  const checked = document.querySelector('input[name="inv-pay-method"]:checked');
+  return {
+    from_name: val('inv-from-name').slice(0, 200),
+    from_email: val('inv-from-email').slice(0, 254),
+    from_address: val('inv-from-address').slice(0, 300),
+    to_name: val('inv-to-name').slice(0, 200),
+    to_email: val('inv-to-email').slice(0, 254),
+    to_address: val('inv-to-address').slice(0, 300),
+    invoice_number: val('inv-number').slice(0, 50),
+    issue_date: val('inv-date') || null,
+    due_date: val('inv-due') || null,
+    items: items,
+    tax_pct: taxPct,
+    subtotal_cents: Math.round(subtotal * 100),
+    total_cents: Math.round(total * 100),
+    notes: val('inv-notes').slice(0, 2000),
+    payment_method: checked ? checked.value : 'none',
+    payment_details: val('inv-pay-details').slice(0, 300),
+    status: invStatus
+  };
+}
+
+async function saveInvoice() {
+  if (!currentUser) return;
+  const btn = document.getElementById('inv-save-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+  try {
+    const payload = collectInvoicePayload();
+    if (currentInvoiceRow && currentInvoiceRow.id) {
+      const { data, error } = await sb.from('invoices')
+        .update(payload)
+        .eq('id', currentInvoiceRow.id)
+        .eq('user_id', currentUser.id)
+        .select().single();
+      if (error) throw error;
+      currentInvoiceRow = data;
+    } else {
+      payload.user_id = currentUser.id;
+      payload.public_id = genInvPublicId();
+      const { data, error } = await sb.from('invoices').insert(payload).select().single();
+      if (error) throw error;
+      currentInvoiceRow = data;
+    }
+    updateInvUrlBar();
+    if (typeof showDashToast === 'function') showDashToast('success', 'Invoice saved');
+  } catch (e) {
+    console.error('Save invoice failed:', e);
+    if (typeof showDashToast === 'function') showDashToast('error', 'Could not save the invoice. Please try again.');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Save'; }
+  }
+}
+
+function copyInvoiceUrl() {
+  if (!currentInvoiceRow || !currentInvoiceRow.public_id) return;
+  const url = 'https://www.ryxa.io/invoice/' + currentInvoiceRow.public_id;
+  const done = function () { if (typeof showDashToast === 'function') showDashToast('success', 'Invoice URL copied'); };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(done).catch(function () {});
+  } else {
+    const ta = document.createElement('textarea');
+    ta.value = url; document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); done(); } catch (e) {}
+    ta.remove();
+  }
+}
+
+function deleteInvoiceById(id) {
+  const doDelete = async function () {
+    try {
+      const { error } = await sb.from('invoices').delete().eq('id', id).eq('user_id', currentUser.id);
+      if (error) throw error;
+      // Revenue cleanup happens in the DB trigger (paid invoices remove their
+      // revenue_events row on delete), so analytics stay consistent.
+      if (typeof showDashToast === 'function') showDashToast('success', 'Invoice deleted');
+    } catch (e) {
+      console.error('Delete invoice failed:', e);
+      if (typeof showDashToast === 'function') showDashToast('error', 'Could not delete the invoice.');
+    }
+    loadInvoiceList();
+  };
+  if (typeof showModalConfirm === 'function') {
+    showModalConfirm('Delete this invoice?', 'This removes the invoice and its public page. If it was marked Paid, it is also removed from your revenue analytics. This cannot be undone.', doDelete);
+  } else if (confirm('Delete this invoice? This cannot be undone.')) {
+    doDelete();
+  }
+}
+
+// ---- Action registrations (dashboard DOM only) ------------------------------
+invoiceRegisterAction('create-new', function () { openInvoiceEditor(null); });
+invoiceRegisterAction('open-invoice', function (e, el) {
+  const id = el.getAttribute('data-invoice-id');
+  const row = invoiceList.find(function (r) { return r.id === id; });
+  if (row) {
+    // fetch the full row (list query is a slim projection)
+    sb.from('invoices').select('*').eq('id', id).single().then(function (res) {
+      if (res.data) openInvoiceEditor(res.data);
+    });
+  }
+});
+invoiceRegisterAction('delete-invoice', function (e, el) {
+  e.stopPropagation();
+  deleteInvoiceById(el.getAttribute('data-invoice-id'));
+});
+invoiceRegisterAction('back-to-list', function () {
+  showInvoiceListView();
+  loadInvoiceList();
+});
+invoiceRegisterAction('save-invoice', function () { saveInvoice(); });
+invoiceRegisterAction('copy-url', function () { copyInvoiceUrl(); });
+invoiceRegisterAction('pay-method-change', function () { applyInvPayDetailsVisibility(); });
+invoiceRegisterAction('set-status', function (e, el) {
+  invStatus = el.getAttribute('data-invoice-status') || 'draft';
+  updateInvStatusUI();
+});

@@ -2709,7 +2709,7 @@ function showTool(tool) {
   // Init tools on first open
   if (tool === 'image') initImageConverter();
   if (tool === 'qr') { initQRGenerator(); loadQRLibrary(null); }
-  if (tool === 'invoice') { initInvoiceGenerator(); loadSavedLogo(); }
+  if (tool === 'invoice') { if (typeof initInvoiceTool === 'function') initInvoiceTool(); else { initInvoiceGenerator(); loadSavedLogo(); } }
   if (tool === 'deals') initDealsCrm();
   if (tool === 'bio') initBioTool();
   if (tool === 'courses') initCoursesTool();
