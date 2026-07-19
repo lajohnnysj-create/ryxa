@@ -6422,11 +6422,11 @@
   .inv-row-side { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
   .inv-row-amt { font-size: 14px; font-weight: 600; color: var(--text); white-space: nowrap; }
   .inv-badge {
-    font-size: 10.5px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;
-    padding: 3px 9px; border-radius: 999px; border: 1px solid var(--border); color: var(--muted);
+    font-size: 10.5px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+    color: var(--muted);
   }
-  .inv-badge.pending { color: #fbbf24; border-color: rgba(251,191,36,0.35); }
-  .inv-badge.paid { color: #34d399; border-color: rgba(52,211,153,0.35); }
+  .inv-badge.pending { color: #fbbf24; }
+  .inv-badge.paid { color: #34d399; }
   .inv-del-btn {
     display: flex; align-items: center; justify-content: center; width: 30px; height: 30px;
     background: none; border: none; border-radius: 8px; color: var(--muted); cursor: pointer;
@@ -6471,15 +6471,29 @@
   .inv-sent-disabled {
     opacity: 0.55; cursor: default !important; filter: grayscale(0.3);
   }
-  .inv-seg { display: inline-flex; gap: 3px; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 3px; max-width: 100%; }
+  .inv-seg { position: relative; display: inline-flex; gap: 3px; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 3px; max-width: 100%; }
   .inv-seg-wrap { flex-wrap: wrap; }
-  .inv-seg-btn {
-    padding: 8px 18px; border-radius: 7px; border: none; background: transparent; color: var(--muted);
-    font-family: 'DM Sans', sans-serif; font-size: 12.5px; font-weight: 600; cursor: pointer; transition: all 0.15s;
+  /* Sliding highlight: absolutely positioned pill that animates between buttons.
+     JS sets its left/width to match the active button. */
+  .inv-seg-slider {
+    position: absolute; top: 3px; bottom: 3px; left: 3px; width: 0;
+    background: var(--accent); border-radius: 7px; z-index: 0;
+    transition: left 0.28s cubic-bezier(0.4,0,0.2,1), width 0.28s cubic-bezier(0.4,0,0.2,1), background 0.2s ease;
+    pointer-events: none;
   }
-  .inv-seg-btn:hover:not(.active):not(:disabled) { color: var(--text); background: rgba(255,255,255,0.05); }
-  .inv-seg-btn.active { background: var(--accent); color: #fff; }
+  .inv-seg-slider.paid { background: #22c55e; }
+  .inv-seg-btn {
+    position: relative; z-index: 1;
+    padding: 8px 18px; border-radius: 7px; border: none; background: transparent; color: var(--muted);
+    font-family: 'DM Sans', sans-serif; font-size: 12.5px; font-weight: 600; cursor: pointer;
+    transition: color 0.2s ease;
+  }
+  .inv-seg-btn:hover:not(.active):not(:disabled) { color: var(--text); }
+  .inv-seg-btn.active { color: #fff; }
   .inv-seg-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  /* No-slider fallback while widths are measured (wrap case): keep a flat fill */
+  .inv-seg.no-slider .inv-seg-btn.active { background: var(--accent); }
+  .inv-seg.no-slider .inv-seg-btn.active.paid-active { background: #22c55e; }
   .inv-pay-note { font-size: 12px; color: var(--muted); margin-top: 8px; }
   .inv-pay-details-input { margin-top: 8px; }
   .invoice-s-44aa9d { display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px; }
@@ -10306,6 +10320,7 @@
         <div class="invoice-s-8c48da inv-gap-top">
           <div class="invoice-s-1d6580">Payment collection</div>
           <div class="inv-seg inv-seg-wrap" id="inv-pay-options">
+            <div class="inv-seg-slider" id="inv-pay-slider"></div>
             <button type="button" data-invoice-action="pay-method-set" data-invoice-method="none" class="inv-seg-btn active">None</button>
             <button type="button" data-invoice-action="pay-method-set" data-invoice-method="stripe" id="inv-pay-stripe-btn" class="inv-seg-btn" disabled>Stripe</button>
             <button type="button" data-invoice-action="pay-method-set" data-invoice-method="zelle" class="inv-seg-btn">Zelle</button>
@@ -10321,6 +10336,7 @@
         <div class="invoice-s-8c48da inv-gap-top">
           <div class="invoice-s-1d6580">Status</div>
           <div class="inv-seg" id="inv-status-seg">
+            <div class="inv-seg-slider" id="inv-status-slider"></div>
             <button type="button" data-invoice-action="set-status" data-invoice-status="draft" class="inv-seg-btn active">Draft</button>
             <button type="button" data-invoice-action="set-status" data-invoice-status="pending" class="inv-seg-btn">Pending</button>
             <button type="button" data-invoice-action="set-status" data-invoice-status="paid" class="inv-seg-btn">Paid</button>
