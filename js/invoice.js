@@ -605,26 +605,37 @@ function updateInvUrlBar() {
 }
 
 function updateInvStatusUI() {
-  document.querySelectorAll('#inv-status-seg .inv-status-btn').forEach(function (b) {
+  document.querySelectorAll('#inv-status-seg .inv-seg-btn').forEach(function (b) {
     b.classList.toggle('active', b.getAttribute('data-invoice-status') === invStatus);
   });
 }
 
 function setInvPayMethodUI(method, details) {
-  const radio = document.querySelector('input[name="inv-pay-method"][value="' + method + '"]');
-  if (radio && !radio.disabled) radio.checked = true;
-  else {
-    const none = document.querySelector('input[name="inv-pay-method"][value="none"]');
-    if (none) none.checked = true;
-  }
+  // Stripe can only be selected when connected; fall back to None otherwise.
+  const stripeBtn = document.getElementById('inv-pay-stripe-btn');
+  if (method === 'stripe' && stripeBtn && stripeBtn.disabled) method = 'none';
+  setInvPayMethod(method);
   const detailsEl = document.getElementById('inv-pay-details');
   if (detailsEl) detailsEl.value = details || '';
   applyInvPayDetailsVisibility();
 }
 
+function setInvPayMethod(method) {
+  const hidden = document.getElementById('inv-pay-method-value');
+  if (hidden) hidden.value = method;
+  document.querySelectorAll('#inv-pay-options .inv-seg-btn').forEach(function (b) {
+    b.classList.toggle('active', b.getAttribute('data-invoice-method') === method);
+  });
+  applyInvPayDetailsVisibility();
+}
+
+function currentInvPayMethod() {
+  const hidden = document.getElementById('inv-pay-method-value');
+  return hidden ? hidden.value : 'none';
+}
+
 function applyInvPayDetailsVisibility() {
-  const checked = document.querySelector('input[name="inv-pay-method"]:checked');
-  const method = checked ? checked.value : 'none';
+  const method = currentInvPayMethod();
   const detailsEl = document.getElementById('inv-pay-details');
   if (!detailsEl) return;
   if (method === 'zelle' || method === 'venmo' || method === 'other') {
@@ -641,7 +652,7 @@ function applyInvPayDetailsVisibility() {
 // public page then shows a card checkout). Not connected -> disabled + nudge.
 async function refreshInvStripeOption() {
   const note = document.getElementById('inv-pay-stripe-note');
-  const stripeRadio = document.querySelector('input[name="inv-pay-method"][value="stripe"]');
+  const stripeBtn = document.getElementById('inv-pay-stripe-btn');
   if (invStripeConnected === null) {
     try {
       const headers = (typeof Auth !== 'undefined' && Auth.headers) ? Auth.headers() : {};
@@ -650,17 +661,16 @@ async function refreshInvStripeOption() {
       invStripeConnected = !!(j && j.connected);
     } catch (e) { invStripeConnected = false; }
   }
-  if (stripeRadio) stripeRadio.disabled = !invStripeConnected;
+  if (stripeBtn) stripeBtn.disabled = !invStripeConnected;
   if (note) {
     note.textContent = invStripeConnected
       ? 'Recipients can pay this invoice by card on its public page.'
       : 'Connect Stripe to collect invoice payments';
     note.style.display = '';
   }
-  // If the saved invoice uses Stripe, reflect it now that the radio is enabled.
-  if (invStripeConnected && currentInvoiceRow && currentInvoiceRow.payment_method === 'stripe' && stripeRadio) {
-    stripeRadio.checked = true;
-    applyInvPayDetailsVisibility();
+  // If the saved invoice uses Stripe, reflect it now that the button is enabled.
+  if (invStripeConnected && currentInvoiceRow && currentInvoiceRow.payment_method === 'stripe') {
+    setInvPayMethod('stripe');
   }
 }
 
@@ -670,7 +680,7 @@ function collectInvoicePayload() {
   const subtotal = items.reduce(function (s, i) { return s + i.qty * i.rate; }, 0);
   const taxPct = parseFloat(val('inv-tax')) || 0;
   const total = subtotal + subtotal * taxPct / 100;
-  const checked = document.querySelector('input[name="inv-pay-method"]:checked');
+  const checked = currentInvPayMethod();
   return {
     from_name: val('inv-from-name').slice(0, 200),
     from_email: val('inv-from-email').slice(0, 254),
@@ -686,7 +696,7 @@ function collectInvoicePayload() {
     subtotal_cents: Math.round(subtotal * 100),
     total_cents: Math.round(total * 100),
     notes: val('inv-notes').slice(0, 2000),
-    payment_method: checked ? checked.value : 'none',
+    payment_method: checked || 'none',
     payment_details: val('inv-pay-details').slice(0, 300),
     status: invStatus
   };
@@ -786,7 +796,11 @@ invoiceRegisterAction('back-to-list', function () {
 invoiceRegisterAction('save-invoice', function () { saveInvoice(); });
 invoiceRegisterAction('send-invoice', function () { sendInvoice(); });
 invoiceRegisterAction('copy-url', function () { copyInvoiceUrl(); });
-invoiceRegisterAction('pay-method-change', function () { applyInvPayDetailsVisibility(); });
+invoiceRegisterAction('pay-method-set', function (e, el) {
+  const m = el.getAttribute('data-invoice-method') || 'none';
+  if (el.disabled) return;
+  setInvPayMethod(m);
+});
 invoiceRegisterAction('set-status', function (e, el) {
   invStatus = el.getAttribute('data-invoice-status') || 'draft';
   updateInvStatusUI();
