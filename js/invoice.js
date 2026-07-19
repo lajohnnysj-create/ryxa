@@ -828,10 +828,17 @@ async function saveInvoice() {
   // the invoice from further edits. Confirm before saving that transition.
   const enteringPaid = invStatus === 'paid' && !(currentInvoiceRow && currentInvoiceRow.status === 'paid');
   if (enteringPaid && typeof showModalConfirm === 'function') {
+    // Revert the toggle to its saved value up front, so that if the user
+    // cancels (the shared modal has no cancel callback), no stale 'paid' is
+    // left in memory to leak into a later Save or Send. We only re-commit
+    // 'paid' inside the confirm handler.
+    const savedStatus = (currentInvoiceRow && currentInvoiceRow.status) || 'pending';
+    invStatus = savedStatus;
+    updateInvStatusUI();
     showModalConfirm(
       'Mark as paid?',
       'This invoice will be marked paid, recorded in your revenue, and locked from further edits. You will not be able to change it afterward.',
-      function () { doSaveInvoice(); },
+      function () { invStatus = 'paid'; updateInvStatusUI(); doSaveInvoice(); },
       'Mark as Paid', 'Cancel', { danger: false, success: true }
     );
     return;
