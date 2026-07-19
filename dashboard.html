@@ -6448,19 +6448,7 @@
   }
   .inv-save-btn:hover { filter: brightness(1.08); }
   .inv-save-btn:disabled { opacity: 0.6; cursor: default; }
-  .inv-url-bar {
-    background: var(--surface); border: 1px solid rgba(124,58,237,0.35); border-radius: 12px;
-    padding: 12px 14px; margin-bottom: 16px;
-  }
-  .inv-url-label { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); font-weight: 600; margin-bottom: 6px; }
-  .inv-url-row { display: flex; align-items: center; gap: 8px; }
-  .inv-url-text { flex: 1; min-width: 0; font-size: 13px; color: #c4b5fd; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .inv-url-copy {
-    display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; flex-shrink: 0;
-    background: none; border: 1px solid var(--border); border-radius: 8px; color: var(--muted); cursor: pointer;
-    transition: color 0.15s, border-color 0.15s;
-  }
-  .inv-url-copy:hover { color: var(--text); border-color: var(--border-hover); }
+  .inv-url-bar { margin-bottom: 16px; }
   .inv-pay-options { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 8px; }
   .inv-pay-opt { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text); cursor: pointer; font-family: 'DM Sans', sans-serif; }
   .inv-pay-opt input { accent-color: var(--accent); }
@@ -10184,11 +10172,13 @@
 
           <!-- Public URL (appears after first save) -->
           <div id="inv-url-bar" class="inv-url-bar" style="display:none;">
-            <div class="inv-url-label">Invoice public URL</div>
-            <div class="inv-url-row">
-              <span id="inv-url-text" class="inv-url-text"></span>
-              <button data-invoice-action="copy-url" class="inv-url-copy" title="Copy URL" aria-label="Copy invoice URL">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            <label for="inv-url-input" class="course-s-60c543">Invoice public URL</label>
+            <div class="course-s-d77ebb">
+              <span class="course-s-bd1255">ryxa.io/invoice/</span>
+              <input type="text" id="inv-url-input" readonly aria-label="Invoice public URL" class="course-s-77eff5">
+              <button data-invoice-action="copy-url" class="course-s-fb22c6" title="Copy invoice URL">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
               </button>
             </div>
           </div>
