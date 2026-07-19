@@ -2272,7 +2272,15 @@
          doesn't drift with content during momentum scroll / viewport shifts. */
       transform: translateZ(0); will-change: transform;
       -webkit-backface-visibility: hidden; backface-visibility: hidden;
+      /* Coordinated reveal: the whole nav stays invisible until the tier-
+         dependent button (Plans<->Media Kit) is resolved, then the entire bar
+         fades in as one unit. This avoids the other buttons rendering first and
+         the Media Kit button popping in a beat later on slow devices. The
+         'nav-ready' class (added by updateTierUI, or by a failsafe timeout)
+         triggers the fade-in. */
+      opacity: 0; transition: opacity 0.28s ease;
     }
+    .mobile-bottom-nav.nav-ready { opacity: 1; }
     /* Sliding active indicator: translucent purple pill that animates between tabs. */
     .bnav-pill {
       position: absolute; top: 6px; bottom: calc(6px + env(safe-area-inset-bottom, 0px));
