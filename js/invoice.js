@@ -683,7 +683,10 @@ function positionInvSlider(segId, sliderId, activeBtn, isPaid) {
 
 function updateInvStatusUI() {
   const sent = !!(currentInvoiceRow && currentInvoiceRow.sent_at);
-  const paid = invStatus === 'paid' || !!(currentInvoiceRow && currentInvoiceRow.status === 'paid');
+  // The hard lock applies only when the invoice is ALREADY saved as paid (or was
+  // paid via Stripe). The in-editor selector value (invStatus) does not lock
+  // anything, so you can freely toggle Pending <-> Paid before saving.
+  const savedPaid = !!(currentInvoiceRow && currentInvoiceRow.status === 'paid');
   let active = null;
   document.querySelectorAll('#inv-status-seg .inv-seg-btn').forEach(function (b) {
     const val = b.getAttribute('data-invoice-status');
@@ -691,11 +694,12 @@ function updateInvStatusUI() {
     b.classList.toggle('active', on);
     b.classList.toggle('paid-active', on && invStatus === 'paid');
     if (on) active = b;
-    // Draft is unavailable once the invoice has been sent (it moved to pending
-    // and can't go back). When the invoice is paid, the whole control locks.
     let disabled = false;
+    // Draft is unavailable once the invoice has been sent (it moved to pending
+    // and can't go back to draft).
     if (val === 'draft' && sent) disabled = true;
-    if (paid) disabled = (val !== 'paid'); // paid is locked in; others disabled
+    // Once genuinely paid, the status is locked in.
+    if (savedPaid) disabled = (val !== 'paid');
     b.disabled = disabled;
   });
   positionInvSlider('inv-status-seg', 'inv-status-slider', active, invStatus === 'paid');
