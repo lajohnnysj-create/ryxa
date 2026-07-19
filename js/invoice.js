@@ -615,8 +615,9 @@ async function sendInvoice() {
     const btn = document.getElementById('inv-send-btn');
     if (btn) { btn.disabled = true; btn.textContent = 'Sending...'; }
     try {
-      // Save first so the email reflects exactly what is on screen.
-      await saveInvoice();
+      // Save first so the email reflects exactly what is on screen. Use the
+      // direct save (send happens on pending invoices, not the paid transition).
+      await doSaveInvoice();
       if (!currentInvoiceRow || !currentInvoiceRow.id) throw new Error('not saved');
       const headers = Object.assign({ 'Content-Type': 'application/json' },
         (typeof Auth !== 'undefined' && Auth.headers) ? Auth.headers() : {});
@@ -813,6 +814,23 @@ async function saveInvoice() {
     if (typeof showDashToast === 'function') showDashToast('error', 'This invoice is paid and locked. It cannot be changed.');
     return;
   }
+  // Marking an invoice paid is a one-way action: it records revenue and locks
+  // the invoice from further edits. Confirm before saving that transition.
+  const enteringPaid = invStatus === 'paid' && !(currentInvoiceRow && currentInvoiceRow.status === 'paid');
+  if (enteringPaid && typeof showModalConfirm === 'function') {
+    showModalConfirm(
+      'Mark as paid?',
+      'This invoice will be marked paid, recorded in your revenue, and locked from further edits. You will not be able to change it afterward.',
+      function () { doSaveInvoice(); },
+      'Mark as Paid', 'Cancel', { danger: false, success: true }
+    );
+    return;
+  }
+  doSaveInvoice();
+}
+
+async function doSaveInvoice() {
+  if (!currentUser) return;
   const btn = document.getElementById('inv-save-btn');
   if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
   try {
@@ -838,6 +856,12 @@ async function saveInvoice() {
     }
     updateInvUrlBar();
     updateInvSendUI();
+    // If this save just made the invoice paid, lock the editor immediately
+    // (no need to reopen it) so its now-locked state is reflected at once.
+    if (currentInvoiceRow && currentInvoiceRow.status === 'paid') {
+      updateInvStatusUI();
+      applyInvPaidLock();
+    }
     if (typeof showDashToast === 'function') showDashToast('success', 'Invoice saved');
   } catch (e) {
     console.error('Save invoice failed:', e, '| message:', e && e.message, '| details:', e && e.details, '| hint:', e && e.hint, '| code:', e && e.code);
