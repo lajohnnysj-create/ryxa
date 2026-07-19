@@ -539,10 +539,12 @@ function updateInvSendUI() {
   btn.style.display = '';
   if (currentInvoiceRow.sent_at) {
     btn.disabled = true;
-    btn.textContent = 'Sent';
+    btn.textContent = 'Invoice Sent';
+    btn.classList.add('inv-sent-disabled');
   } else {
     btn.disabled = false;
     btn.textContent = 'Send Invoice';
+    btn.classList.remove('inv-sent-disabled');
   }
 }
 
@@ -584,7 +586,7 @@ async function sendInvoice() {
   if (typeof showModalConfirm === 'function') {
     showModalConfirm('Send this invoice?',
       'It will be emailed to ' + toEmail.trim() + ' with a link to the public invoice page. Invoices can only be emailed once, and the recipient email locks after sending.',
-      doSend);
+      doSend, 'Send Invoice', 'Cancel', { danger: false });
   } else if (confirm('Email this invoice to ' + toEmail.trim() + '? Invoices can only be emailed once.')) {
     doSend();
   }
@@ -788,4 +790,175 @@ invoiceRegisterAction('pay-method-change', function () { applyInvPayDetailsVisib
 invoiceRegisterAction('set-status', function (e, el) {
   invStatus = el.getAttribute('data-invoice-status') || 'draft';
   updateInvStatusUI();
+});
+
+// =============================================================================
+// DIRECT PDF DOWNLOAD (Phase 2 UX): generate a real .pdf with pdf-lib (already
+// loaded globally as window.PDFLib for the pdf-sign tool) and download it
+// straight to the user's device - no new browser tab, no print dialog.
+// =============================================================================
+
+function toggleInvDownloadMenu() {
+  const menu = document.getElementById('inv-download-menu');
+  if (!menu) return;
+  const open = window.getComputedStyle(menu).display !== 'none';
+  menu.style.display = open ? 'none' : 'block';
+}
+function closeInvDownloadMenu() {
+  const menu = document.getElementById('inv-download-menu');
+  if (menu) menu.style.display = 'none';
+}
+
+async function downloadInvoicePDFFile() {
+  closeInvDownloadMenu();
+  if (!window.PDFLib) {
+    // Fallback to the legacy print approach if the library isn't ready.
+    if (typeof downloadInvoicePDF === 'function') downloadInvoicePDF();
+    return;
+  }
+  const val = function (id) { const el = document.getElementById(id); return el ? el.value : ''; };
+  const fromName = val('inv-from-name') || 'Your Name';
+  const fromEmail = val('inv-from-email');
+  const fromAddr = val('inv-from-address');
+  const toName = val('inv-to-name') || 'Client Name';
+  const toEmail = val('inv-to-email');
+  const toAddr = val('inv-to-address');
+  const invNum = val('inv-number') || 'INV-001';
+  const invDate = val('inv-date');
+  const invDue = val('inv-due');
+  const notes = val('inv-notes');
+  const taxPct = parseFloat(val('inv-tax')) || 0;
+  const subtotal = invItems.reduce(function (s, i) { return s + i.qty * i.rate; }, 0);
+  const taxAmt = subtotal * taxPct / 100;
+  const total = subtotal + taxAmt;
+  const fmt = function (n) { return formatMoney(Math.round(n * 100), { alwaysShowCents: true }); };
+
+  try {
+    const { PDFDocument, StandardFonts, rgb } = window.PDFLib;
+    const doc = await PDFDocument.create();
+    let page = doc.addPage([595, 842]); // A4 portrait, points
+    const font = await doc.embedFont(StandardFonts.Helvetica);
+    const bold = await doc.embedFont(StandardFonts.HelveticaBold);
+    const M = 50;                 // margin
+    const W = 595;
+    const dark = rgb(0.07, 0.07, 0.07);
+    const gray = rgb(0.42, 0.42, 0.42);
+    const line = rgb(0.9, 0.9, 0.9);
+    let y = 792;
+
+    const text = function (s, x, yy, opts) {
+      opts = opts || {};
+      page.drawText(String(s == null ? '' : s), {
+        x: x, y: yy, size: opts.size || 10, font: opts.bold ? bold : font,
+        color: opts.color || dark
+      });
+    };
+    const rightText = function (s, xRight, yy, opts) {
+      opts = opts || {};
+      s = String(s == null ? '' : s);
+      const size = opts.size || 10;
+      const w = (opts.bold ? bold : font).widthOfTextAtSize(s, size);
+      text(s, xRight - w, yy, opts);
+    };
+    const ensureRoom = function (needed) {
+      if (y - needed < 60) { page = doc.addPage([595, 842]); y = 792; }
+    };
+
+    // Header
+    text('INVOICE', M, y, { size: 26, bold: true });
+    rightText('#' + invNum, W - M, y + 6, { size: 11, color: gray });
+    y -= 14;
+    if (invDate) { rightText('Issued: ' + invDate, W - M, y, { size: 9, color: gray }); y -= 12; }
+    if (invDue) { rightText('Due: ' + invDue, W - M, y, { size: 9, color: gray }); }
+    y -= 34;
+
+    // Parties
+    const colR = 320;
+    text('FROM', M, y, { size: 8, bold: true, color: gray });
+    text('BILL TO', colR, y, { size: 8, bold: true, color: gray });
+    y -= 15;
+    text(fromName, M, y, { size: 12, bold: true });
+    text(toName, colR, y, { size: 12, bold: true });
+    y -= 14;
+    [fromEmail, fromAddr].filter(Boolean).forEach(function (l, i) { text(l, M, y - i * 12, { size: 9, color: gray }); });
+    [toEmail, toAddr].filter(Boolean).forEach(function (l, i) { text(l, colR, y - i * 12, { size: 9, color: gray }); });
+    y -= 46;
+
+    // Items header
+    page.drawLine({ start: { x: M, y: y }, end: { x: W - M, y: y }, thickness: 1, color: line });
+    y -= 16;
+    text('DESCRIPTION', M, y, { size: 8, bold: true, color: gray });
+    rightText('QTY', 380, y, { size: 8, bold: true, color: gray });
+    rightText('RATE', 470, y, { size: 8, bold: true, color: gray });
+    rightText('AMOUNT', W - M, y, { size: 8, bold: true, color: gray });
+    y -= 8;
+    page.drawLine({ start: { x: M, y: y }, end: { x: W - M, y: y }, thickness: 1, color: line });
+    y -= 18;
+
+    invItems.forEach(function (it) {
+      ensureRoom(18);
+      const desc = (it.desc || 'Service').slice(0, 60);
+      text(desc, M, y, { size: 10 });
+      rightText(String(it.qty), 380, y, { size: 10, color: gray });
+      rightText(fmt(it.rate), 470, y, { size: 10, color: gray });
+      rightText(fmt(it.qty * it.rate), W - M, y, { size: 10 });
+      y -= 10;
+      page.drawLine({ start: { x: M, y: y }, end: { x: W - M, y: y }, thickness: 0.5, color: line });
+      y -= 14;
+    });
+
+    // Totals
+    y -= 6;
+    ensureRoom(60);
+    rightText('Subtotal', W - M - 90, y, { size: 10, color: gray });
+    rightText(fmt(subtotal), W - M, y, { size: 10 });
+    y -= 16;
+    if (taxPct > 0) {
+      rightText('Tax (' + taxPct + '%)', W - M - 90, y, { size: 10, color: gray });
+      rightText(fmt(taxAmt), W - M, y, { size: 10 });
+      y -= 16;
+    }
+    rightText('Total', W - M - 90, y, { size: 13, bold: true });
+    rightText(fmt(total), W - M, y, { size: 13, bold: true });
+    y -= 30;
+
+    // Notes
+    if (notes) {
+      ensureRoom(40);
+      text('NOTES', M, y, { size: 8, bold: true, color: gray });
+      y -= 14;
+      String(notes).split('\n').forEach(function (l) {
+        // simple wrap at ~90 chars
+        const chunks = l.match(/.{1,90}(\s|$)/g) || [l];
+        chunks.forEach(function (c) { ensureRoom(14); text(c.trim(), M, y, { size: 9, color: gray }); y -= 12; });
+      });
+    }
+
+    const bytes = await doc.save();
+    const blob = new Blob([bytes], { type: 'application/pdf' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'Invoice-' + (invNum || '001').replace(/[^\w\-]/g, '') + '.pdf';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+  } catch (e) {
+    console.error('PDF generation failed:', e);
+    if (typeof showDashToast === 'function') showDashToast('error', 'Could not generate the PDF. Please try again.');
+  }
+}
+
+invoiceRegisterAction('toggle-download-menu', function (e) {
+  if (e && e.stopImmediatePropagation) e.stopImmediatePropagation();
+  toggleInvDownloadMenu();
+});
+// Route the menu item to the direct-file generator (overrides the legacy
+// window-opening download-pdf action for this button).
+invoiceRegisterAction('download-pdf', function () { downloadInvoicePDFFile(); });
+// Close the menu on any outside click.
+document.addEventListener('click', function (e) {
+  const wrap = e.target.closest ? e.target.closest('.inv-download-wrap') : null;
+  if (!wrap) closeInvDownloadMenu();
 });
