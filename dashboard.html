@@ -6527,12 +6527,15 @@
   /* Sliding highlight: absolutely positioned pill that animates between buttons.
      JS sets its left/width to match the active button. */
   .inv-seg-slider {
-    position: absolute; top: 3px; bottom: 3px; left: 3px; width: 0;
+    position: absolute; top: 3px; left: 3px; height: 34px; width: 0;
     background: var(--accent); border-radius: 7px; z-index: 0;
     transition: left 0.28s cubic-bezier(0.4,0,0.2,1), width 0.28s cubic-bezier(0.4,0,0.2,1), background 0.2s ease;
     pointer-events: none;
   }
   .inv-seg-slider.paid { background: #22c55e; }
+  /* When the control wraps to multiple rows, the single-row slider can't track
+     it, so it is hidden entirely and each active button gets a flat fill. */
+  .inv-seg.no-slider .inv-seg-slider { display: none; }
   .inv-seg-btn {
     position: relative; z-index: 1;
     padding: 8px 18px; border-radius: 7px; border: none; background: transparent; color: var(--muted);
