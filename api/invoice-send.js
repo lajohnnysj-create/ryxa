@@ -138,6 +138,7 @@ module.exports = async (req, res) => {
 
     // One send per invoice, ever.
     if (inv.sent_at) return res.status(400).json({ error: 'This invoice has already been emailed. Invoices can only be emailed once.' });
+    if (inv.status === 'paid') return res.status(400).json({ error: 'A paid invoice cannot be sent.' });
     if (!isValidEmail(inv.to_email)) return res.status(400).json({ error: 'Add a valid recipient email in Bill To first, then Save.' });
 
     // Creator username for the email header.
@@ -169,11 +170,11 @@ module.exports = async (req, res) => {
       return res.status(502).json({ error: 'The email could not be sent. Please try again.' });
     }
 
-    // Stamp the send: lock the email, record sent_at, and promote draft->pending.
-    var newStatus = inv.status === 'draft' ? 'pending' : inv.status;
+    // Sending always puts the invoice into pending (it is guaranteed not paid
+    // here). Stamp the send, lock the recipient email, and record sent_at.
     var updated = await sbFetch('invoices?id=eq.' + encodeURIComponent(inv.id), {
       method: 'PATCH',
-      body: JSON.stringify({ sent_at: new Date().toISOString(), email_locked: true, status: newStatus })
+      body: JSON.stringify({ sent_at: new Date().toISOString(), email_locked: true, status: 'pending' })
     });
 
     return res.status(200).json({ ok: true, invoice: (updated && updated[0]) || null });
