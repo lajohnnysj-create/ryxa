@@ -513,7 +513,81 @@ function openInvoiceEditor(row) {
   }
   updateInvStatusUI();
   updateInvUrlBar();
+  updateInvEmailLock();
+  updateInvSendUI();
   refreshInvStripeOption();
+}
+
+// Once an invoice has been emailed, the Bill To email is locked for good.
+function updateInvEmailLock() {
+  const emailEl = document.getElementById('inv-to-email');
+  if (!emailEl) return;
+  const locked = !!(currentInvoiceRow && currentInvoiceRow.email_locked);
+  emailEl.disabled = locked;
+  emailEl.title = locked ? 'This email is locked because the invoice was already sent.' : '';
+}
+
+// Send Invoice: visible once the invoice is saved. Enabled until it has been
+// sent (invoices can only be emailed once); after that it reads "Sent".
+function updateInvSendUI() {
+  const btn = document.getElementById('inv-send-btn');
+  if (!btn) return;
+  if (!currentInvoiceRow || !currentInvoiceRow.id) {
+    btn.style.display = 'none';
+    return;
+  }
+  btn.style.display = '';
+  if (currentInvoiceRow.sent_at) {
+    btn.disabled = true;
+    btn.textContent = 'Sent';
+  } else {
+    btn.disabled = false;
+    btn.textContent = 'Send Invoice';
+  }
+}
+
+async function sendInvoice() {
+  if (!currentInvoiceRow || !currentInvoiceRow.id || currentInvoiceRow.sent_at) return;
+  const toEmail = (document.getElementById('inv-to-email') || {}).value || currentInvoiceRow.to_email || '';
+  if (!toEmail.trim()) {
+    if (typeof showDashToast === 'function') showDashToast('error', 'Add the recipient email in Bill To, then Save, before sending.');
+    return;
+  }
+  const doSend = async function () {
+    const btn = document.getElementById('inv-send-btn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Sending...'; }
+    try {
+      // Save first so the email reflects exactly what is on screen.
+      await saveInvoice();
+      if (!currentInvoiceRow || !currentInvoiceRow.id) throw new Error('not saved');
+      const headers = Object.assign({ 'Content-Type': 'application/json' },
+        (typeof Auth !== 'undefined' && Auth.headers) ? Auth.headers() : {});
+      const r = await fetch('/api/invoice-send', {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({ invoice_id: currentInvoiceRow.id })
+      });
+      const j = await r.json();
+      if (!r.ok || !j.ok) throw new Error((j && j.error) || 'send failed');
+      if (j.invoice) currentInvoiceRow = j.invoice;
+      invStatus = currentInvoiceRow.status || invStatus;
+      updateInvStatusUI();
+      updateInvEmailLock();
+      updateInvSendUI();
+      if (typeof showDashToast === 'function') showDashToast('success', 'Invoice emailed to ' + (currentInvoiceRow.to_email || 'the recipient'));
+    } catch (e) {
+      console.error('Send invoice failed:', e);
+      if (typeof showDashToast === 'function') showDashToast('error', e.message && e.message !== 'send failed' ? e.message : 'Could not send the invoice. Please try again.');
+      updateInvSendUI();
+    }
+  };
+  if (typeof showModalConfirm === 'function') {
+    showModalConfirm('Send this invoice?',
+      'It will be emailed to ' + toEmail.trim() + ' with a link to the public invoice page. Invoices can only be emailed once, and the recipient email locks after sending.',
+      doSend);
+  } else if (confirm('Email this invoice to ' + toEmail.trim() + '? Invoices can only be emailed once.')) {
+    doSend();
+  }
 }
 
 function updateInvUrlBar() {
@@ -561,12 +635,11 @@ function applyInvPayDetailsVisibility() {
   }
 }
 
-// Phase 1: the Stripe option stays disabled. Not connected -> nudge to connect.
-// Connected -> honest note that card checkout arrives with the next update.
+// Stripe option: enabled when the creator's Stripe account is connected (the
+// public page then shows a card checkout). Not connected -> disabled + nudge.
 async function refreshInvStripeOption() {
   const note = document.getElementById('inv-pay-stripe-note');
   const stripeRadio = document.querySelector('input[name="inv-pay-method"][value="stripe"]');
-  if (stripeRadio) stripeRadio.disabled = true;
   if (invStripeConnected === null) {
     try {
       const headers = (typeof Auth !== 'undefined' && Auth.headers) ? Auth.headers() : {};
@@ -575,10 +648,17 @@ async function refreshInvStripeOption() {
       invStripeConnected = !!(j && j.connected);
     } catch (e) { invStripeConnected = false; }
   }
+  if (stripeRadio) stripeRadio.disabled = !invStripeConnected;
   if (note) {
     note.textContent = invStripeConnected
-      ? 'Card checkout for invoices is coming in the next update.'
+      ? 'Recipients can pay this invoice by card on its public page.'
       : 'Connect Stripe to collect invoice payments';
+    note.style.display = '';
+  }
+  // If the saved invoice uses Stripe, reflect it now that the radio is enabled.
+  if (invStripeConnected && currentInvoiceRow && currentInvoiceRow.payment_method === 'stripe' && stripeRadio) {
+    stripeRadio.checked = true;
+    applyInvPayDetailsVisibility();
   }
 }
 
@@ -616,6 +696,10 @@ async function saveInvoice() {
   if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
   try {
     const payload = collectInvoicePayload();
+    // A sent invoice's recipient email is locked; never overwrite it.
+    if (currentInvoiceRow && currentInvoiceRow.email_locked) {
+      payload.to_email = currentInvoiceRow.to_email;
+    }
     if (currentInvoiceRow && currentInvoiceRow.id) {
       const { data, error } = await sb.from('invoices')
         .update(payload)
@@ -632,6 +716,7 @@ async function saveInvoice() {
       currentInvoiceRow = data;
     }
     updateInvUrlBar();
+    updateInvSendUI();
     if (typeof showDashToast === 'function') showDashToast('success', 'Invoice saved');
   } catch (e) {
     console.error('Save invoice failed:', e);
@@ -697,6 +782,7 @@ invoiceRegisterAction('back-to-list', function () {
   loadInvoiceList();
 });
 invoiceRegisterAction('save-invoice', function () { saveInvoice(); });
+invoiceRegisterAction('send-invoice', function () { sendInvoice(); });
 invoiceRegisterAction('copy-url', function () { copyInvoiceUrl(); });
 invoiceRegisterAction('pay-method-change', function () { applyInvPayDetailsVisibility(); });
 invoiceRegisterAction('set-status', function (e, el) {
