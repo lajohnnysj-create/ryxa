@@ -516,10 +516,52 @@ function openInvoiceEditor(row) {
   updateInvEmailLock();
   updateInvSendUI();
   refreshInvStripeOption();
+  applyInvPaidLock();
   // Sliders need a settled layout to measure button positions; nudge them once
   // the editor is painted (and again shortly after, for font/reflow).
   requestAnimationFrame(repositionInvSliders);
   setTimeout(repositionInvSliders, 120);
+}
+
+// A paid invoice is locked: its details, amounts, and status can't change
+// (they must stay in sync with the recorded revenue and what the payer paid).
+// The form is made read-only and Save/Send are hidden.
+function applyInvPaidLock() {
+  const paid = !!(currentInvoiceRow && currentInvoiceRow.status === 'paid');
+  const editor = document.getElementById('invoice-editor-view');
+  if (!editor) return;
+  const fields = editor.querySelectorAll('input, textarea');
+  fields.forEach(function (el) {
+    if (el.id === 'inv-url-input') return; // the read-only URL field stays copyable
+    if (el.id === 'inv-to-email') return;  // managed by updateInvEmailLock (sent-lock)
+    el.disabled = paid;
+  });
+  // Re-enable non-paid case handled by updateInvEmailLock / status logic on open,
+  // so only apply disabling here; a fresh open of a non-paid invoice starts clean.
+  const saveBtn = document.getElementById('inv-save-btn');
+  const sendBtn = document.getElementById('inv-send-btn');
+  const addItemBtn = editor.querySelector('[data-invoice-action="add-item"]');
+  if (saveBtn) saveBtn.style.display = paid ? 'none' : '';
+  if (sendBtn && paid) sendBtn.style.display = 'none';
+  if (addItemBtn) addItemBtn.style.display = paid ? 'none' : '';
+  // Lock the payment method control when paid (non-paid state is managed by
+  // refreshInvStripeOption, so we only force-disable here, never re-enable).
+  if (paid) {
+    document.querySelectorAll('#inv-pay-options .inv-seg-btn').forEach(function (b) { b.disabled = true; });
+  }
+  // Show a paid-lock banner
+  let banner = document.getElementById('inv-paid-lock-banner');
+  if (paid && !banner) {
+    banner = document.createElement('div');
+    banner.id = 'inv-paid-lock-banner';
+    banner.className = 'inv-paid-lock-banner';
+    banner.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> This invoice is paid and locked. Its details can no longer be changed.';
+    const topbar = editor.querySelector('.inv-editor-topbar');
+    if (topbar && topbar.nextSibling) editor.insertBefore(banner, topbar.nextSibling);
+    else editor.appendChild(banner);
+  } else if (!paid && banner) {
+    banner.remove();
+  }
 }
 
 function repositionInvSliders() {
@@ -640,12 +682,21 @@ function positionInvSlider(segId, sliderId, activeBtn, isPaid) {
 }
 
 function updateInvStatusUI() {
+  const sent = !!(currentInvoiceRow && currentInvoiceRow.sent_at);
+  const paid = invStatus === 'paid' || !!(currentInvoiceRow && currentInvoiceRow.status === 'paid');
   let active = null;
   document.querySelectorAll('#inv-status-seg .inv-seg-btn').forEach(function (b) {
-    const on = b.getAttribute('data-invoice-status') === invStatus;
+    const val = b.getAttribute('data-invoice-status');
+    const on = val === invStatus;
     b.classList.toggle('active', on);
     b.classList.toggle('paid-active', on && invStatus === 'paid');
     if (on) active = b;
+    // Draft is unavailable once the invoice has been sent (it moved to pending
+    // and can't go back). When the invoice is paid, the whole control locks.
+    let disabled = false;
+    if (val === 'draft' && sent) disabled = true;
+    if (paid) disabled = (val !== 'paid'); // paid is locked in; others disabled
+    b.disabled = disabled;
   });
   positionInvSlider('inv-status-seg', 'inv-status-slider', active, invStatus === 'paid');
 }
@@ -753,6 +804,11 @@ function collectInvoicePayload() {
 
 async function saveInvoice() {
   if (!currentUser) return;
+  // A paid invoice is locked and cannot be re-saved with changes.
+  if (currentInvoiceRow && currentInvoiceRow.status === 'paid') {
+    if (typeof showDashToast === 'function') showDashToast('error', 'This invoice is paid and locked. It cannot be changed.');
+    return;
+  }
   const btn = document.getElementById('inv-save-btn');
   if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
   try {
@@ -851,6 +907,7 @@ invoiceRegisterAction('pay-method-set', function (e, el) {
   setInvPayMethod(m);
 });
 invoiceRegisterAction('set-status', function (e, el) {
+  if (el.disabled) return;
   invStatus = el.getAttribute('data-invoice-status') || 'draft';
   updateInvStatusUI();
 });
