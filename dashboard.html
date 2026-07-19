@@ -6455,6 +6455,12 @@
   }
   .inv-send-btn:hover { filter: brightness(1.08); }
   .inv-url-section { margin-bottom: 16px; }
+  .inv-email-wrap { position: relative; }
+  .inv-email-wrap .invoice-s-0fb30d { width: 100%; }
+  .inv-email-lock {
+    position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+    display: flex; align-items: center; color: var(--muted); pointer-events: none;
+  }
   .inv-gap-top { margin-top: 20px; }
   .inv-download-wrap { position: relative; }
   .inv-download-icon-btn {
@@ -10264,7 +10270,12 @@
           <div class="invoice-s-8c48da">
             <div class="invoice-s-1d6580">Bill To</div>
             <input type="text" maxlength="200" id="inv-to-name" placeholder="Client Name / Brand" class="invoice-s-0fb30d" aria-label="Client name or brand">
-            <input type="email" maxlength="254" id="inv-to-email" placeholder="client@brand.com" class="invoice-s-0fb30d" aria-label="Client email">
+            <div class="inv-email-wrap">
+              <input type="email" maxlength="254" id="inv-to-email" placeholder="client@brand.com" class="invoice-s-0fb30d" aria-label="Client email">
+              <span id="inv-email-lock" class="inv-email-lock" style="display:none;" title="This email is locked because the invoice was already sent" aria-label="Email locked">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              </span>
+            </div>
             <textarea maxlength="300" id="inv-to-address" placeholder="Client address (optional)" rows="2" class="invoice-s-b7b8cd" aria-label="Client address (optional)"></textarea>
           </div>
         </div>
