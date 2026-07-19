@@ -288,7 +288,7 @@
       document.getElementById('pv-pay-details').textContent = data.payment_details;
       show('pv-pay-card');
     }
-    if (method === 'stripe' && status !== 'paid') {
+    if (method === 'stripe' && status === 'pending') {
       document.getElementById('pv-pay-label').textContent = 'Pay ' + money(data.total_cents);
       show('pv-pay');
     }
