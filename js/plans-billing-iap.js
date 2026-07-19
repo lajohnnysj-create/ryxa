@@ -313,15 +313,19 @@ async function iapHandlePurchase(detail) {
         }
       } catch (x) { bodyText = '(could not read body)'; }
       console.error('verify-apple-purchase HTTP error', status, bodyText);
-      // A cancelled or never-completed purchase has no valid transaction in
-      // Apple's system, so verify returns transaction_not_found (404). The user
-      // cancelled - there's nothing to apply and nothing to warn about. Clear it
-      // silently so it stops redelivering, with no alarming message.
-      if (bodyText.indexOf('transaction_not_found') !== -1) {
+      // Reasons that are never actionable for the user on a redelivered/background
+      // transaction get cleared SILENTLY (force-finished, no popup):
+      //  - transaction_not_found (404): a cancelled/never-completed purchase, no
+      //    valid transaction exists in Apple's system.
+      //  - account_mismatch (403): the transaction is bound to a different Ryxa
+      //    account (e.g. multi-account sandbox testing on one Apple ID). Apple
+      //    blocks genuine duplicate purchases before this, so real users don't
+      //    hit it; silently clearing avoids a false alarm on app reload.
+      if (bodyText.indexOf('transaction_not_found') !== -1 || bodyText.indexOf('account_mismatch') !== -1) {
         iapPost({ type: 'iapForceFinish', transactionId: detail.transactionId });
         return;
       }
-      var permReasons = ['account_mismatch', 'wrong_bundle', 'unknown_product', 'expired'];
+      var permReasons = ['wrong_bundle', 'unknown_product', 'expired'];
       var hitPerm = permReasons.some(function (r) { return bodyText.indexOf(r) !== -1; });
       if (hitPerm) {
         iapPost({ type: 'iapForceFinish', transactionId: detail.transactionId });
@@ -350,12 +354,15 @@ async function iapHandlePurchase(detail) {
       // Transient failures (network, 500) are NOT force-finished - they should
       // retry on the next redelivery.
       var reasonStr = (typeof reason === 'string') ? reason : (reason && reason.error) || '';
-      // Cancelled/never-completed purchase: clear silently, no message.
-      if (reasonStr === 'transaction_not_found') {
+      // Silently clear (no popup) the reasons that are never actionable on a
+      // redelivered/background transaction: transaction_not_found (cancelled) and
+      // account_mismatch (bound to a different Ryxa account; sandbox multi-account
+      // artifact, real users don't hit it since Apple blocks duplicates first).
+      if (reasonStr === 'transaction_not_found' || reasonStr === 'account_mismatch') {
         iapPost({ type: 'iapForceFinish', transactionId: detail.transactionId });
         return;
       }
-      var permanent = ['account_mismatch', 'wrong_bundle', 'unknown_product', 'expired'];
+      var permanent = ['wrong_bundle', 'unknown_product', 'expired'];
       if (permanent.indexOf(reasonStr) !== -1) {
         iapPost({ type: 'iapForceFinish', transactionId: detail.transactionId });
         alert('This purchase could not be applied and was cleared. If you were charged, contact hello@ryxa.io.');
