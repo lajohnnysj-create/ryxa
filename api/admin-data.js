@@ -77,7 +77,8 @@ module.exports = async (req, res) => {
       const e = await earningsRes.json();
       const total =
         (e.products_cents || 0) + (e.courses_cents || 0) +
-        (e.bookings_cents || 0) + (e.tips_cents || 0);
+        (e.bookings_cents || 0) + (e.tips_cents || 0) +
+        (e.invoices_cents || 0);
       earnings = { total_cents: total, breakdown: e };
     }
     return res.status(200).json({
