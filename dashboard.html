@@ -6450,6 +6450,27 @@
   .inv-save-btn:disabled { opacity: 0.6; cursor: default; }
   .inv-url-bar { margin-bottom: 16px; }
   .inv-gap-top { margin-top: 20px; }
+  .inv-download-wrap { position: relative; }
+  .inv-download-icon-btn {
+    display: flex; align-items: center; justify-content: center; width: 38px; height: 38px;
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 9px;
+    color: var(--text); cursor: pointer; transition: border-color 0.15s, background 0.15s;
+  }
+  .inv-download-icon-btn:hover { border-color: var(--border-hover); background: rgba(255,255,255,0.05); }
+  .inv-download-menu {
+    position: absolute; top: calc(100% + 6px); right: 0; z-index: 50; min-width: 150px;
+    background: var(--surface2); border: 1px solid var(--border-hover); border-radius: 10px;
+    padding: 6px; box-shadow: 0 12px 30px rgba(0,0,0,0.35);
+  }
+  .inv-download-menu-item {
+    display: block; width: 100%; text-align: left; padding: 9px 12px; background: none; border: none;
+    border-radius: 7px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13px; cursor: pointer;
+    transition: background 0.15s;
+  }
+  .inv-download-menu-item:hover { background: rgba(124,58,237,0.18); }
+  .inv-sent-disabled {
+    opacity: 0.55; cursor: default !important; filter: grayscale(0.3);
+  }
   .inv-pay-options { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 8px; }
   .inv-pay-opt { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text); cursor: pointer; font-family: 'DM Sans', sans-serif; }
   .inv-pay-opt input { accent-color: var(--accent); }
@@ -10166,7 +10187,14 @@
               Invoices
             </button>
             <div class="inv-editor-actions">
-              <button data-invoice-action="download-pdf" class="deal-s-2601f0">Download PDF</button>
+              <div class="inv-download-wrap">
+                <button data-invoice-action="toggle-download-menu" class="inv-download-icon-btn" title="Download" aria-label="Download invoice">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                </button>
+                <div id="inv-download-menu" class="inv-download-menu bio-s-c8be1c">
+                  <button data-invoice-action="download-pdf" class="inv-download-menu-item">Save as PDF</button>
+                </div>
+              </div>
               <button data-invoice-action="send-invoice" id="inv-send-btn" class="deal-s-2601f0" style="display:none;">Send Invoice</button>
               <button data-invoice-action="save-invoice" id="inv-save-btn" class="inv-save-btn">Save</button>
             </div>
