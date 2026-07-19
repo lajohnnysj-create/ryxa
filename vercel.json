@@ -77,7 +77,7 @@
     },
     {
       "source": "/invoice/:pid",
-      "destination": "/invoice-view.html"
+      "destination": "/invoice-view"
     },
     {
       "source": "/:username",
