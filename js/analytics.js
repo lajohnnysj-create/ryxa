@@ -245,6 +245,8 @@ async function loadAnalyticsData() {
   document.getElementById('ana-dp-total').textContent = formatDashUSD(bySource.digital_product || 0);
   document.getElementById('ana-deals-total').textContent = formatDashUSD(bySource.brand_deal || 0);
   document.getElementById('ana-tips-total').textContent = formatDashUSD(bySource.tip || 0);
+  const anaInvoiceTotal = document.getElementById('ana-invoice-total');
+  if (anaInvoiceTotal) anaInvoiceTotal.textContent = formatDashUSD(bySource.invoice || 0);
 
   // Page view totals by source
   const byPage = (viewsRes && !viewsRes.error && viewsRes.data) ? (viewsRes.data.by_page || {}) : {};
@@ -303,6 +305,7 @@ async function loadAnalyticsData() {
     ['ana-dp-chart', revDaily, 'digital_product', '#f0abfc'],
     ['ana-deals-chart', revDaily, 'brand_deal', '#7c3aed'],
     ['ana-tips-chart', revDaily, 'tip', '#f59e0b'],
+    ['ana-invoice-chart', revDaily, 'invoice', '#34d399'],
     ['ana-pv-bio-chart', pvDaily.bio, 'count', '#e879f9'],
     ['ana-pv-courses-chart', pvDaily.course, 'count', '#a78bfa'],
     ['ana-pv-coaching-chart', pvDaily.coaching, 'count', '#c084fc'],
@@ -356,6 +359,7 @@ function renderAnalyticsSalesPage() {
     if (s.type === 'Course') pillStyle = 'background:rgba(167,139,250,0.15);color:#c4b5fd;';
     else if (s.type === 'Booking') pillStyle = 'background:rgba(232,121,249,0.15);color:#e879f9;';
     else if (s.type === 'Tip') pillStyle = 'background:rgba(245,158,11,0.15);color:#fbbf24;';
+    else if (s.type === 'Invoice') pillStyle = 'background:rgba(52,211,153,0.15);color:#34d399;';
     else pillStyle = 'background:rgba(124,58,237,0.15);color:#a78bfa;';
     return '<tr class="ana-s-a56f95">'
       + '<td class="ana-s-14ba36">' + date + '</td>'
@@ -460,6 +464,21 @@ async function loadAnalyticsSales(start, end) {
     if (tips) {
       tips.forEach(function(t) {
         sales.push({ date: t.received_at, buyer: t.counterparty_name || 'Anonymous', product: 'Coffee Tip', type: 'Tip', amount: t.amount_cents || 0 });
+      });
+    }
+
+    // Fetch paid invoices (recorded in revenue_events with source 'invoice')
+    const { data: invoices } = await sb
+      .from('revenue_events')
+      .select('received_at, amount_cents, counterparty_name, source')
+      .eq('user_id', currentUser.id)
+      .eq('source', 'invoice')
+      .gte('received_at', bounds.lo)
+      .lte('received_at', bounds.hi)
+      .order('received_at', { ascending: false });
+    if (invoices) {
+      invoices.forEach(function(inv) {
+        sales.push({ date: inv.received_at, buyer: inv.counterparty_name || '-', product: 'Invoice', type: 'Invoice', amount: inv.amount_cents || 0 });
       });
     }
 
@@ -604,6 +623,21 @@ async function loadProductPerformance(start, end) {
       }
     }
 
+    // Invoices: an aggregate row (paid invoices don't have product pages or
+    // views, so Views/Conv. are not applicable). Orders = count of paid
+    // invoices in range, Revenue = their total.
+    const { data: invRev, count: invCount } = await sb
+      .from('revenue_events')
+      .select('amount_cents', { count: 'exact' })
+      .eq('user_id', currentUser.id)
+      .eq('source', 'invoice')
+      .gte('received_at', bounds.lo)
+      .lte('received_at', bounds.hi);
+    if (invRev && invRev.length > 0) {
+      const invRevenue = invRev.reduce(function (sum, r) { return sum + (r.amount_cents || 0); }, 0);
+      products.push({ title: 'Invoices', type: 'Invoice', views: null, orders: invCount || invRev.length, revenue: invRevenue });
+    }
+
     if (products.length === 0) {
       tbody.innerHTML = '<tr><td colspan="6" class="ana-s-cd4491">No products found</td></tr>';
       return;
@@ -613,13 +647,15 @@ async function loadProductPerformance(start, end) {
     products.sort(function(a, b) { return b.revenue - a.revenue; });
 
     tbody.innerHTML = products.map(function(p) {
-      var convRate = p.views > 0 ? ((p.orders / p.views) * 100).toFixed(1) + '%' : '-';
-      var viewsText = p.views > 0 ? p.views.toLocaleString() : '0';
+      var hasViews = p.views !== null && p.views !== undefined;
+      var convRate = hasViews && p.views > 0 ? ((p.orders / p.views) * 100).toFixed(1) + '%' : '-';
+      var viewsText = hasViews ? (p.views > 0 ? p.views.toLocaleString() : '0') : '-';
       var amount = formatMoney(p.revenue, {alwaysShowCents:true});
       var pillStyle;
       if (p.type === 'Course') pillStyle = 'background:rgba(167,139,250,0.15);color:#c4b5fd;';
       else if (p.type === 'Booking') pillStyle = 'background:rgba(232,121,249,0.15);color:#e879f9;';
       else if (p.type === 'Digital') pillStyle = 'background:rgba(240,171,252,0.15);color:#f0abfc;';
+      else if (p.type === 'Invoice') pillStyle = 'background:rgba(52,211,153,0.15);color:#34d399;';
       else pillStyle = 'background:rgba(124,58,237,0.15);color:#c4b5fd;';
       return '<tr class="ana-s-a56f95">'
         + '<td class="ana-s-695113">' + p.title + '</td>'
@@ -815,7 +851,7 @@ function renderAnaMiniChart(canvasId, dailyData, valKey, color) {
 
   // Per-source revenue keys chart from daily.by_source[key]; 'cents' is the
   // daily total; anything else (page-view 'count') reads d[valKey] directly.
-  const SOURCE_KEYS = ['course', 'coaching', 'digital_product', 'brand_deal', 'tip'];
+  const SOURCE_KEYS = ['course', 'coaching', 'digital_product', 'brand_deal', 'tip', 'invoice'];
   const isSource = SOURCE_KEYS.indexOf(valKey) !== -1;
   const isCurrency = (valKey === 'cents' || isSource);
   (dailyData || []).forEach(d => {

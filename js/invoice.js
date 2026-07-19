@@ -79,6 +79,7 @@ function invoiceDispatchEvent(event) {
 // INVOICE GENERATOR
 // ════════════════════════════════════════════
 let invItems = [];
+let invItemSeq = 1; // monotonic counter for guaranteed-unique line-item IDs
 let invLogoDataUrl = null;
 
 function initInvoiceGenerator() {
@@ -214,7 +215,7 @@ async function deleteLogo() {
 }
 
 function addInvoiceItem() {
-  const id = Date.now();
+  const id = invItemSeq++;
   invItems.push({ id, desc: '', qty: 1, rate: 0 });
   renderInvoiceItems();
 }
@@ -410,6 +411,9 @@ let invStripeConnected = null;  // null = unknown, then true/false
 
 function initInvoiceTool() {
   invoicePage = 0;
+  // Re-check Stripe connection once per tool entry (not per invoice open), so a
+  // user who just connected Stripe in Settings sees the option without a reload.
+  invStripeConnected = null;
   showInvoiceListView();
   loadInvoiceList();
 }
@@ -517,11 +521,16 @@ function renderInvoiceList() {
 }
 
 function genInvPublicId() {
-  const bytes = new Uint8Array(10);
+  // 16 chars of base-36 from cryptographically-random bytes. ~82 bits of
+  // entropy, so collisions against the public_id unique index are astronomically
+  // unlikely. If the unique constraint ever does reject an insert, saveInvoice
+  // surfaces the error and the user can retry (a fresh id is generated).
+  const alphabet = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  const bytes = new Uint8Array(16);
   crypto.getRandomValues(bytes);
   let s = '';
-  for (let i = 0; i < bytes.length; i++) s += bytes[i].toString(36).slice(-1) + ((bytes[i] % 36).toString(36));
-  return s.slice(0, 14);
+  for (let i = 0; i < bytes.length; i++) s += alphabet[bytes[i] % 36];
+  return s;
 }
 
 function openInvoiceEditor(row) {
@@ -539,8 +548,8 @@ function openInvoiceEditor(row) {
     setVal('inv-to-name', row.to_name); setVal('inv-to-email', row.to_email); setVal('inv-to-address', row.to_address);
     setVal('inv-number', row.invoice_number); setVal('inv-date', row.issue_date || ''); setVal('inv-due', row.due_date || '');
     setVal('inv-tax', row.tax_pct || 0); setVal('inv-notes', row.notes);
-    invItems = (Array.isArray(row.items) ? row.items : []).map(function (it, i) {
-      return { id: Date.now() + i, desc: it.desc || '', qty: Number(it.qty) || 0, rate: Number(it.rate) || 0 };
+    invItems = (Array.isArray(row.items) ? row.items : []).map(function (it) {
+      return { id: invItemSeq++, desc: it.desc || '', qty: Number(it.qty) || 0, rate: Number(it.rate) || 0 };
     });
     if (!invItems.length) addInvoiceItem(); else { renderInvoiceItems(); calcTotals(); }
     invStatus = row.status || 'draft';
@@ -575,7 +584,12 @@ function applyInvPaidLock() {
   const fields = editor.querySelectorAll('input, textarea');
   fields.forEach(function (el) {
     if (el.id === 'inv-url-input') return; // the read-only URL field stays copyable
-    if (el.id === 'inv-to-email') return;  // managed by updateInvEmailLock (sent-lock)
+    if (el.id === 'inv-to-email') {
+      // Email locks when paid (all fields lock) OR when sent (handled by
+      // updateInvEmailLock). For a non-paid invoice, defer to updateInvEmailLock.
+      if (paid) el.disabled = true;
+      return;
+    }
     el.disabled = paid;
   });
   // Re-enable non-paid case handled by updateInvEmailLock / status logic on open,
@@ -586,11 +600,13 @@ function applyInvPaidLock() {
   if (saveBtn) saveBtn.style.display = paid ? 'none' : '';
   if (sendBtn && paid) sendBtn.style.display = 'none';
   if (addItemBtn) addItemBtn.style.display = paid ? 'none' : '';
-  // Lock the payment method control when paid (non-paid state is managed by
-  // refreshInvStripeOption, so we only force-disable here, never re-enable).
-  if (paid) {
-    document.querySelectorAll('#inv-pay-options .inv-seg-btn').forEach(function (b) { b.disabled = true; });
-  }
+  // Payment method control: disable all when paid. When NOT paid, re-enable the
+  // non-Stripe buttons here (the Stripe button's enabled state is owned by
+  // refreshInvStripeOption, which runs alongside this on open).
+  document.querySelectorAll('#inv-pay-options .inv-seg-btn').forEach(function (b) {
+    if (b.id === 'inv-pay-stripe-btn') { if (paid) b.disabled = true; return; }
+    b.disabled = paid;
+  });
   // Show a paid-lock banner
   let banner = document.getElementById('inv-paid-lock-banner');
   if (paid && !banner) {
@@ -971,12 +987,22 @@ invoiceRegisterAction('create-new', function () { openInvoiceEditor(null); });
 invoiceRegisterAction('open-invoice', function (e, el) {
   const id = el.getAttribute('data-invoice-id');
   const row = invoiceList.find(function (r) { return r.id === id; });
-  if (row) {
-    // fetch the full row (list query is a slim projection)
-    sb.from('invoices').select('*').eq('id', id).single().then(function (res) {
-      if (res.data) openInvoiceEditor(res.data);
+  if (!row) return;
+  // Fetch the full row (the list query is a slim projection).
+  sb.from('invoices').select('*').eq('id', id).eq('user_id', currentUser.id).single()
+    .then(function (res) {
+      if (res.error || !res.data) {
+        console.error('Open invoice failed:', res.error);
+        if (typeof showDashToast === 'function') showDashToast('error', 'Could not open that invoice. It may have been deleted.');
+        loadInvoiceList();
+        return;
+      }
+      openInvoiceEditor(res.data);
+    })
+    .catch(function (err) {
+      console.error('Open invoice error:', err);
+      if (typeof showDashToast === 'function') showDashToast('error', 'Could not open that invoice. Please try again.');
     });
-  }
 });
 invoiceRegisterAction('delete-invoice', function (e, el) {
   e.stopPropagation();
