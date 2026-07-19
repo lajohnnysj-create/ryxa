@@ -518,10 +518,10 @@ function openInvoiceEditor(row) {
 
 function updateInvUrlBar() {
   const bar = document.getElementById('inv-url-bar');
-  const txt = document.getElementById('inv-url-text');
-  if (!bar || !txt) return;
+  const input = document.getElementById('inv-url-input');
+  if (!bar || !input) return;
   if (currentInvoiceRow && currentInvoiceRow.public_id) {
-    txt.textContent = 'https://www.ryxa.io/invoice/' + currentInvoiceRow.public_id;
+    input.value = currentInvoiceRow.public_id;
     bar.style.display = 'block';
   } else {
     bar.style.display = 'none';
