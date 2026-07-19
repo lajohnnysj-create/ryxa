@@ -76,6 +76,10 @@
       "destination": "/data-deletion-status.html"
     },
     {
+      "source": "/invoice/:pid",
+      "destination": "/invoice-view.html"
+    },
+    {
       "source": "/:username",
       "destination": "/api/bio?u=:username"
     }

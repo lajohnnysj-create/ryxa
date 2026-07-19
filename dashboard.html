@@ -6409,6 +6409,71 @@
      ============================================================ */
   /* Phase 3, Invoice Generator markup style extraction */
   .invoice-s-f40043 { max-width:800px; }
+  /* Invoice dashboard (list view + editor additions) */
+  .inv-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 14px 16px; margin-bottom: 10px; cursor: pointer; transition: border-color 0.15s;
+  }
+  .inv-row:hover { border-color: var(--border-hover); }
+  .inv-row-main { min-width: 0; flex: 1; }
+  .inv-row-title { font-size: 14px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .inv-row-sub { font-size: 12px; color: var(--muted); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .inv-row-side { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  .inv-row-amt { font-size: 14px; font-weight: 600; color: var(--text); white-space: nowrap; }
+  .inv-badge {
+    font-size: 10.5px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;
+    padding: 3px 9px; border-radius: 999px; border: 1px solid var(--border); color: var(--muted);
+  }
+  .inv-badge.pending { color: #fbbf24; border-color: rgba(251,191,36,0.35); }
+  .inv-badge.paid { color: #34d399; border-color: rgba(52,211,153,0.35); }
+  .inv-del-btn {
+    display: flex; align-items: center; justify-content: center; width: 30px; height: 30px;
+    background: none; border: none; border-radius: 8px; color: var(--muted); cursor: pointer;
+    transition: color 0.15s, background 0.15s; flex-shrink: 0;
+  }
+  .inv-del-btn:hover { color: #f87171; background: rgba(248,113,113,0.1); }
+  .inv-editor-topbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+  .inv-back-btn {
+    display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px;
+    background: none; border: 1px solid var(--border); border-radius: 9px; color: var(--muted);
+    font-family: 'DM Sans', sans-serif; font-size: 13px; cursor: pointer; transition: color 0.15s, border-color 0.15s;
+  }
+  .inv-back-btn:hover { color: var(--text); border-color: var(--border-hover); }
+  .inv-editor-actions { display: flex; gap: 8px; }
+  .inv-save-btn {
+    padding: 9px 22px; background: var(--accent); color: #fff; border: none; border-radius: 9px;
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer;
+    box-shadow: 0 0 16px var(--accent-glow); transition: filter 0.15s;
+  }
+  .inv-save-btn:hover { filter: brightness(1.08); }
+  .inv-save-btn:disabled { opacity: 0.6; cursor: default; }
+  .inv-url-bar {
+    background: var(--surface); border: 1px solid rgba(124,58,237,0.35); border-radius: 12px;
+    padding: 12px 14px; margin-bottom: 16px;
+  }
+  .inv-url-label { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); font-weight: 600; margin-bottom: 6px; }
+  .inv-url-row { display: flex; align-items: center; gap: 8px; }
+  .inv-url-text { flex: 1; min-width: 0; font-size: 13px; color: #c4b5fd; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .inv-url-copy {
+    display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; flex-shrink: 0;
+    background: none; border: 1px solid var(--border); border-radius: 8px; color: var(--muted); cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .inv-url-copy:hover { color: var(--text); border-color: var(--border-hover); }
+  .inv-pay-options { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 8px; }
+  .inv-pay-opt { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text); cursor: pointer; font-family: 'DM Sans', sans-serif; }
+  .inv-pay-opt input { accent-color: var(--accent); }
+  .inv-pay-opt:has(input:disabled) { color: var(--muted); cursor: not-allowed; }
+  .inv-pay-note { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .inv-pay-details-input { margin-top: 8px; }
+  .inv-status-seg { display: inline-flex; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .inv-status-btn {
+    padding: 8px 18px; background: none; border: none; color: var(--muted); cursor: pointer;
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; transition: background 0.15s, color 0.15s;
+  }
+  .inv-status-btn + .inv-status-btn { border-left: 1px solid var(--border); }
+  .inv-status-btn.active { background: rgba(124,58,237,0.22); color: var(--text); }
   .invoice-s-44aa9d { display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px; }
   .invoice-s-8c48da { background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:20px; }
   .invoice-s-1d6580 { font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent2);font-weight:600;margin-bottom:12px; }
@@ -10078,12 +10143,55 @@
     <!-- INVOICE GENERATOR -->
     <div id="tool-invoice" class="bio-s-c8be1c">
       <div class="invoice-s-f40043">
-        <div class="inv-download-row course-s-79fe89" >
-          <div>
-            <p class="bio-s-9e2e36">Create professional invoices for your brand deals. Download as PDF.</p>
+
+        <!-- LIST VIEW (dashboard) -->
+        <div id="invoice-list-view">
+          <div class="bio-s-6cffda">
+            <div>
+              <p class="bio-s-9e2e36">Create professional invoices, share a payment link, and track what has been paid.</p>
+            </div>
+            <button data-invoice-action="create-new" id="invoice-new-btn" class="scripts-s-dac4ee">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Create Invoice
+            </button>
           </div>
-          <button data-invoice-action="download-pdf" class="deal-s-2601f0">Download PDF</button>
+
+          <div id="invoice-list" class="mk-s-f67b86">
+            <!-- populated by renderInvoiceList() -->
+          </div>
+
+          <div id="invoice-empty" class="scripts-s-7aedaf">
+            <div class="scripts-s-418ca3">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            </div>
+            <div class="scripts-s-4d118a">No invoices yet</div>
+            <div class="scripts-s-9e6595">Click "Create Invoice" above to make your first one.</div>
+          </div>
         </div>
+
+        <!-- EDITOR VIEW -->
+        <div id="invoice-editor-view" style="display:none;">
+          <div class="inv-editor-topbar">
+            <button data-invoice-action="back-to-list" class="inv-back-btn" aria-label="Back to invoices">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+              Invoices
+            </button>
+            <div class="inv-editor-actions">
+              <button data-invoice-action="download-pdf" class="deal-s-2601f0">Download PDF</button>
+              <button data-invoice-action="save-invoice" id="inv-save-btn" class="inv-save-btn">Save</button>
+            </div>
+          </div>
+
+          <!-- Public URL (appears after first save) -->
+          <div id="inv-url-bar" class="inv-url-bar" style="display:none;">
+            <div class="inv-url-label">Invoice public URL</div>
+            <div class="inv-url-row">
+              <span id="inv-url-text" class="inv-url-text"></span>
+              <button data-invoice-action="copy-url" class="inv-url-copy" title="Copy URL" aria-label="Copy invoice URL">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              </button>
+            </div>
+          </div>
 
         <div class="inv-grid-2 invoice-s-44aa9d" >
           <!-- FROM -->
@@ -10175,6 +10283,33 @@
           <div class="invoice-s-1d6580">Notes (optional)</div>
           <textarea maxlength="2000" id="inv-notes" placeholder="Payment terms, thank you note, bank details..." rows="3" class="invoice-s-91144e" aria-label="Invoice notes (optional)"></textarea>
         </div>
+
+        <!-- PAYMENT COLLECTION -->
+        <div class="invoice-s-8c48da">
+          <div class="invoice-s-1d6580">Payment collection</div>
+          <div class="inv-pay-options" id="inv-pay-options">
+            <label class="inv-pay-opt"><input type="radio" name="inv-pay-method" value="none" checked data-invoice-action="pay-method-change" data-invoice-event="change"> None</label>
+            <label class="inv-pay-opt inv-pay-opt-stripe"><input type="radio" name="inv-pay-method" value="stripe" disabled data-invoice-action="pay-method-change" data-invoice-event="change"> Stripe</label>
+            <label class="inv-pay-opt"><input type="radio" name="inv-pay-method" value="zelle" data-invoice-action="pay-method-change" data-invoice-event="change"> Zelle</label>
+            <label class="inv-pay-opt"><input type="radio" name="inv-pay-method" value="venmo" data-invoice-action="pay-method-change" data-invoice-event="change"> Venmo</label>
+            <label class="inv-pay-opt"><input type="radio" name="inv-pay-method" value="other" data-invoice-action="pay-method-change" data-invoice-event="change"> Other</label>
+          </div>
+          <div id="inv-pay-stripe-note" class="inv-pay-note">Connect Stripe to collect invoice payments</div>
+          <input type="text" maxlength="300" id="inv-pay-details" placeholder="Payment info shown to the recipient (e.g. your Zelle email or Venmo @handle)" class="invoice-s-0fb30d inv-pay-details-input" style="display:none;" aria-label="Payment details">
+        </div>
+
+        <!-- STATUS -->
+        <div class="invoice-s-8c48da">
+          <div class="invoice-s-1d6580">Status</div>
+          <div class="inv-status-seg" id="inv-status-seg">
+            <button type="button" data-invoice-action="set-status" data-invoice-status="draft" class="inv-status-btn active">Draft</button>
+            <button type="button" data-invoice-action="set-status" data-invoice-status="pending" class="inv-status-btn">Pending</button>
+            <button type="button" data-invoice-action="set-status" data-invoice-status="paid" class="inv-status-btn">Paid</button>
+          </div>
+          <div class="inv-pay-note">Marking an invoice Paid counts it toward your revenue analytics. Remember to Save after changing.</div>
+        </div>
+
+        </div><!-- /invoice-editor-view -->
       </div>
     </div>
 
