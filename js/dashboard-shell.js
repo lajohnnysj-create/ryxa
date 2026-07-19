@@ -1164,6 +1164,15 @@ async function setUser(user) {
   if (dashLoader) dashLoader.style.display = 'none';
   var welcomeContent = document.getElementById('welcome-content');
   if (welcomeContent) { welcomeContent.style.display = ''; welcomeContent.classList.add('dash-fade-in'); }
+  // Nav reveal failsafe: normally updateTierUI adds 'nav-ready' once the tier-
+  // dependent button resolves (so the whole bar fades in together). But if that
+  // hasn't happened shortly after the dashboard content is up, reveal the nav
+  // anyway so it can never sit invisible. updateTierUI adding the class earlier
+  // is idempotent with this.
+  setTimeout(function () {
+    var _nav = document.querySelector('.mobile-bottom-nav');
+    if (_nav) _nav.classList.add('nav-ready');
+  }, 2500);
 
   // Cross-file calls below are typeof-guarded: if a sibling script file
   // failed to load (network blip, extension), init degrades gracefully for
@@ -2240,6 +2249,9 @@ async function fetchTier(userId) {
     // stuck invisible. It will show the default "Plans" label.
     var _pb = document.getElementById('bnav-plans');
     if (_pb) _pb.classList.remove('tier-resolving');
+    // Same failsafe for the whole nav: never leave it invisible.
+    var _nav = document.querySelector('.mobile-bottom-nav');
+    if (_nav) _nav.classList.add('nav-ready');
   }, 5000);
   try {
     const { data } = await sb.from('subscriptions').select('tier, status, trial_end, max_trial_used, pre_max_tier, billing_cycle').eq('user_id', userId).limit(1);
@@ -2365,6 +2377,10 @@ function updateTierUI() {
     }
     // Tier is now known and the correct label/icon are set: fade them in.
     planNavBtn.classList.remove('tier-resolving');
+    // Now that the tier-dependent button is finalized, reveal the ENTIRE nav as
+    // one coordinated unit so no button pops in after the others on slow devices.
+    var _navBar = document.querySelector('.mobile-bottom-nav');
+    if (_navBar) _navBar.classList.add('nav-ready');
   }
   // Free users: hide the Settings Subscription section (Plans page is their
   // single upgrade surface). Paid users keep it.
