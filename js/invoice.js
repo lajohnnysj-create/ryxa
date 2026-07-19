@@ -401,11 +401,15 @@ invoiceRegisterAction('remove-item', (e, el) => removeInvoiceItem(parseInt(el.da
 // =============================================================================
 
 let invoiceList = [];
+let invoicePage = 0;              // zero-based page index
+const INVOICE_PAGE_SIZE = 50;     // rows per page (server-side, keeps loads cheap)
+let invoiceHasNextPage = false;   // whether a page after the current one exists
 let currentInvoiceRow = null;   // the DB row being edited (null = new, unsaved)
 let invStatus = 'draft';        // editor's selected status (saved on Save)
 let invStripeConnected = null;  // null = unknown, then true/false
 
 function initInvoiceTool() {
+  invoicePage = 0;
   showInvoiceListView();
   loadInvoiceList();
 }
@@ -427,18 +431,50 @@ function showInvoiceEditorView() {
 async function loadInvoiceList() {
   if (!currentUser) return;
   try {
+    // Server-side pagination: fetch only this page's 50 rows. We request one
+    // extra row (51) to cheaply detect whether a next page exists, then drop it.
+    const from = invoicePage * INVOICE_PAGE_SIZE;
+    const to = from + INVOICE_PAGE_SIZE; // inclusive range -> 51 rows
     const { data, error } = await sb
       .from('invoices')
       .select('id, public_id, status, to_name, invoice_number, total_cents, updated_at')
       .eq('user_id', currentUser.id)
-      .order('updated_at', { ascending: false });
+      .order('updated_at', { ascending: false })
+      .range(from, to);
     if (error) throw error;
-    invoiceList = data || [];
+    const rows = data || [];
+    invoiceHasNextPage = rows.length > INVOICE_PAGE_SIZE;
+    invoiceList = invoiceHasNextPage ? rows.slice(0, INVOICE_PAGE_SIZE) : rows;
+    // If we landed on an empty page beyond the first (e.g. deleted the last row
+    // on this page), step back and reload so the user isn't stranded on a blank page.
+    if (invoiceList.length === 0 && invoicePage > 0) {
+      invoicePage--;
+      return loadInvoiceList();
+    }
   } catch (e) {
     console.error('Load invoices failed:', e);
     invoiceList = [];
+    invoiceHasNextPage = false;
   }
   renderInvoiceList();
+  renderInvoicePager();
+}
+
+function renderInvoicePager() {
+  const pager = document.getElementById('invoice-pager');
+  const info = document.getElementById('invoice-pager-info');
+  const prev = document.getElementById('invoice-prev-btn');
+  const next = document.getElementById('invoice-next-btn');
+  if (!pager) return;
+  // Only show the pager when there's more than one page in play.
+  const show = invoicePage > 0 || invoiceHasNextPage;
+  pager.style.display = show ? 'flex' : 'none';
+  if (!show) return;
+  const start = invoicePage * INVOICE_PAGE_SIZE + 1;
+  const end = invoicePage * INVOICE_PAGE_SIZE + invoiceList.length;
+  if (info) info.textContent = 'Showing ' + start + '\u2013' + end;
+  if (prev) prev.disabled = invoicePage === 0;
+  if (next) next.disabled = !invoiceHasNextPage;
 }
 
 function renderInvoiceList() {
@@ -447,31 +483,37 @@ function renderInvoiceList() {
   if (!listEl) return;
   if (!invoiceList.length) {
     listEl.innerHTML = '';
-    if (emptyEl) emptyEl.style.display = 'block';
+    if (emptyEl) emptyEl.style.display = invoicePage === 0 ? 'block' : 'none';
     return;
   }
   if (emptyEl) emptyEl.style.display = 'none';
-  listEl.innerHTML = invoiceList.map(function (inv) {
-    const title = escapeHtml(inv.to_name || 'Untitled invoice');
-    const num = inv.invoice_number ? escapeHtml(inv.invoice_number) + ' \u00b7 ' : '';
-    const dt = inv.updated_at ? new Date(inv.updated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
+
+  const header = '<div class="inv-row-header">' +
+    '<div>Recipient</div><div>Invoice #</div><div>Amount</div><div>Status</div><div></div>' +
+    '</div>';
+
+  const rows = invoiceList.map(function (inv) {
+    const recipient = escapeHtml(inv.to_name || 'Untitled invoice');
+    const num = inv.invoice_number ? escapeHtml(inv.invoice_number) : '\u2014';
+    const dt = inv.updated_at ? new Date(inv.updated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
     const amt = formatMoney(inv.total_cents || 0, { alwaysShowCents: true });
     const badge = inv.status === 'paid' ? '<span class="inv-badge paid">Paid</span>'
       : inv.status === 'pending' ? '<span class="inv-badge pending">Pending</span>'
       : '<span class="inv-badge">Draft</span>';
     return '<div class="inv-row" data-invoice-action="open-invoice" data-invoice-id="' + inv.id + '">' +
-      '<div class="inv-row-main">' +
-        '<div class="inv-row-title">' + title + '</div>' +
-        '<div class="inv-row-sub">' + num + dt + '</div>' +
-      '</div>' +
-      '<div class="inv-row-side">' +
-        '<span class="inv-row-amt">' + amt + '</span>' + badge +
+      '<div class="inv-row-recipient">' + recipient + (dt ? '<div class="bio-s-5f3468">' + dt + '</div>' : '') + '</div>' +
+      '<div class="inv-row-num">' + num + '</div>' +
+      '<div class="inv-row-amt">' + amt + '</div>' +
+      '<div class="inv-row-status-cell">' + badge + '</div>' +
+      '<div class="inv-row-actions">' +
         '<button class="inv-del-btn" data-invoice-action="delete-invoice" data-invoice-id="' + inv.id + '" title="Delete invoice" aria-label="Delete invoice">' +
           '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>' +
         '</button>' +
       '</div>' +
     '</div>';
   }).join('');
+
+  listEl.innerHTML = '<div class="inv-table">' + header + rows + '</div>';
 }
 
 function genInvPublicId() {
@@ -943,6 +985,12 @@ invoiceRegisterAction('delete-invoice', function (e, el) {
 invoiceRegisterAction('back-to-list', function () {
   showInvoiceListView();
   loadInvoiceList();
+});
+invoiceRegisterAction('page-prev', function () {
+  if (invoicePage > 0) { invoicePage--; loadInvoiceList(); }
+});
+invoiceRegisterAction('page-next', function () {
+  if (invoiceHasNextPage) { invoicePage++; loadInvoiceList(); }
 });
 invoiceRegisterAction('save-invoice', function () { saveInvoice(); });
 invoiceRegisterAction('send-invoice', function () { sendInvoice(); });
