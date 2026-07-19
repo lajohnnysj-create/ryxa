@@ -840,8 +840,9 @@ async function saveInvoice() {
     updateInvSendUI();
     if (typeof showDashToast === 'function') showDashToast('success', 'Invoice saved');
   } catch (e) {
-    console.error('Save invoice failed:', e);
-    if (typeof showDashToast === 'function') showDashToast('error', 'Could not save the invoice. Please try again.');
+    console.error('Save invoice failed:', e, '| message:', e && e.message, '| details:', e && e.details, '| hint:', e && e.hint, '| code:', e && e.code);
+    var msg = (e && (e.message || e.details)) ? (e.message || e.details) : 'Could not save the invoice. Please try again.';
+    if (typeof showDashToast === 'function') showDashToast('error', msg);
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = 'Save'; }
   }
