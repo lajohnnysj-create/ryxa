@@ -299,7 +299,7 @@ const toolTitles = {
   follower: 'Follow-Back Audit',
   image: 'Photo Editor',
   qr: 'QR Generator',
-  invoice: 'Invoice Generator',
+  invoice: 'Invoicing',
   pdfsign: 'Sign PDF',
   scripts: 'Script Builder',
   thumbanalyzer: 'AI Thumbnail Analyzer',
