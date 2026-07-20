@@ -4523,6 +4523,11 @@
   .bio-s-e2b2a1 { font-size:14px;font-weight:500;color:var(--text); }
   .bio-s-e769ff { font-size:12px;color:var(--muted); }
   .bio-s-bcab08 { padding:9px 16px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer; }
+  /* Reusable tinted publish/unpublish buttons (ghost style, green=publish, red=unpublish) */
+  .ryxa-publish-btn { padding:9px 16px;background:rgba(74,222,128,0.12);border:1px solid rgba(74,222,128,0.35);color:#4ade80;border-radius:8px;font-size:13px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all 0.15s;display:inline-flex;align-items:center;gap:6px; }
+  .ryxa-publish-btn:hover { background:rgba(74,222,128,0.2); }
+  .ryxa-unpublish-btn { padding:9px 16px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#fca5a5;border-radius:8px;font-size:13px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all 0.15s;display:inline-flex;align-items:center;gap:6px; }
+  .ryxa-unpublish-btn:hover { background:rgba(239,68,68,0.18); }
   .bio-s-e610db { display:grid;grid-template-columns:1fr 380px;gap:24px;align-items:start; }
   .bio-s-5ae19e { display:flex;flex-direction:column;gap:16px; }
   .bio-s-2a8685 { background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:20px; }
@@ -7524,7 +7529,7 @@
               <div id="bio-status-sub" class="bio-s-e769ff">Your page isn't live yet. Publish to share it.</div>
             </div>
           </div>
-          <button id="bio-publish-btn" data-bio-action="toggle-publish" class="bio-s-bcab08">Publish</button>
+          <button id="bio-publish-btn" data-bio-action="toggle-publish" class="ryxa-publish-btn">Publish</button>
         </div>
 
         <!-- Inline status/error message - shown next to the Save/Publish actions. -->
@@ -7883,7 +7888,7 @@
             <h2 id="courses-editor-title" class="course-s-906b1b">New Course</h2>
             <div class="course-s-8a2215">
               <button id="course-save-btn" data-course-action="save" class="course-s-540779">Save</button>
-              <button id="course-publish-btn" data-course-action="toggle-publish" class="course-s-e360f3">Publish</button>
+              <button id="course-publish-btn" data-course-action="toggle-publish" class="ryxa-publish-btn" style="display:none;">Publish</button>
             </div>
           </div>
           <div id="course-marketplace-toggle" class="course-s-60589e">
@@ -8041,7 +8046,7 @@
             <h2 id="coaching-editor-title" class="course-s-906b1b">New Service</h2>
             <div class="course-s-8a2215">
               <button id="coaching-save-btn" data-coach-action="save" class="course-s-540779">Save</button>
-              <button id="coaching-publish-btn" data-coach-action="toggle-publish" class="course-s-e360f3">Publish</button>
+              <button id="coaching-publish-btn" data-coach-action="toggle-publish" class="ryxa-publish-btn" style="display:none;">Publish</button>
             </div>
           </div>
           <div id="coaching-marketplace-toggle" class="course-s-60589e">
@@ -8898,7 +8903,7 @@
               <div id="mk-status-sub" class="bio-s-e769ff">Your media kit isn't live yet. Publish to share it.</div>
             </div>
           </div>
-          <button id="mk-publish-btn" data-mk-action="toggle-publish" class="bio-s-bcab08">Publish</button>
+          <button id="mk-publish-btn" data-mk-action="toggle-publish" class="ryxa-publish-btn">Publish</button>
         </div>
 
         <!-- Inline status/error message - shown next to the Save/Publish actions. -->
@@ -10645,7 +10650,7 @@
             <h2 id="products-editor-title" class="course-s-906b1b">New Product</h2>
             <div class="course-s-8a2215">
               <button id="products-save-btn" data-prod-action="save" class="course-s-540779">Save</button>
-              <button id="products-publish-btn" data-prod-action="toggle-publish" class="course-s-e360f3">Publish</button>
+              <button id="products-publish-btn" data-prod-action="toggle-publish" class="ryxa-publish-btn" style="display:none;">Publish</button>
             </div>
           </div>
           <div id="products-marketplace-toggle" class="course-s-60589e">
