@@ -57,6 +57,7 @@
     padding: 22px 20px; margin-bottom: 16px;
   }
   .inv-topline { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; gap: 10px; }
+  .inv-heading-block { margin-left: auto; text-align: right; }
   .inv-title { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
   .inv-num { font-size: 12.5px; color: var(--muted); margin-top: 3px; }
   .inv-logo { max-height: 44px; max-width: 120px; object-fit: contain; }
@@ -130,11 +131,11 @@
 
       <div class="inv-card">
         <div class="inv-topline">
-          <div>
+          <img id="pv-logo" class="inv-logo" alt="" style="display:none;">
+          <div class="inv-heading-block">
             <div class="inv-title">Invoice</div>
             <div id="pv-number" class="inv-num"></div>
           </div>
-          <img id="pv-logo" class="inv-logo" alt="" style="display:none;">
         </div>
         <div class="inv-dates">
           <div>Issued <strong id="pv-issued"></strong></div>
