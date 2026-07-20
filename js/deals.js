@@ -248,7 +248,7 @@ function setDealDetailLocked(locked) {
       child.style.opacity = locked ? '0.5' : '';
     });
   }
-  ['deal-save-btn', 'deal-delete-btn', 'deal-share-btn', 'deal-share-btn-bottom'].forEach(function(id) {
+  ['deal-save-btn', 'deal-delete-btn', 'deal-share-btn'].forEach(function(id) {
     var el = document.getElementById(id);
     if (!el) return;
     el.disabled = locked;
@@ -3253,48 +3253,19 @@ async function confirmDeleteDeal() {
 // Show or hide the "Share with brand" button based on whether deal is saved + has brand contact
 function updateShareButtonVisibility() {
   const btn = document.getElementById('deal-share-btn');
-  const btnBottom = document.getElementById('deal-share-btn-bottom');
-  const cancelBtn = document.getElementById('deal-cancel-btn');
+  if (!btn) return;
 
-  // New deal not yet saved - hide top share, disable bottom share, show "Cancel"
-  if (!currentDealId) {
-    if (btn) btn.style.display = 'none';
-    if (btnBottom) {
-      btnBottom.disabled = true;
-      btnBottom.style.opacity = '0.45';
-      btnBottom.style.cursor = 'not-allowed';
-      btnBottom.title = 'Save the deal first to enable sharing';
-    }
-    if (cancelBtn) cancelBtn.textContent = 'Cancel';
-    return;
-  }
-
+  // New/unsaved deal, or deal not found: hide the top share button (sharing
+  // requires a saved deal).
+  if (!currentDealId) { btn.style.display = 'none'; return; }
   const deal = dealsList.find(d => d.id === currentDealId);
-  if (!deal) {
-    if (btn) btn.style.display = 'none';
-    if (btnBottom) { btnBottom.disabled = true; btnBottom.style.opacity = '0.45'; btnBottom.style.cursor = 'not-allowed'; }
-    if (cancelBtn) cancelBtn.textContent = 'Cancel';
-    return;
-  }
+  if (!deal) { btn.style.display = 'none'; return; }
 
-  // Saved deal - switch Cancel to Return
-  if (cancelBtn) cancelBtn.textContent = 'Return';
+  // Cancelled deals can't be shared (sharing is auto-revoked).
+  if (deal.status === 'cancelled') { btn.style.display = 'none'; return; }
 
-  // Hide on cancelled deals (sharing is auto-revoked)
-  if (deal.status === 'cancelled') {
-    if (btn) btn.style.display = 'none';
-    if (btnBottom) { btnBottom.disabled = true; btnBottom.style.opacity = '0.45'; btnBottom.style.cursor = 'not-allowed'; btnBottom.title = 'Cannot share a cancelled deal'; }
-    return;
-  }
-
-  // Show share buttons (both top + bottom enabled)
-  if (btn) btn.style.display = 'inline-flex';
-  if (btnBottom) {
-    btnBottom.disabled = false;
-    btnBottom.style.opacity = '1';
-    btnBottom.style.cursor = 'pointer';
-    btnBottom.title = '';
-  }
+  // Saved, shareable deal: show it.
+  btn.style.display = 'inline-flex';
 }
 
 async function openShareModal() {
