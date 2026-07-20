@@ -213,9 +213,7 @@ async function uploadLogo(input) {
   }
 
   const logoStatus = document.getElementById('logo-status');
-  const logoActions = document.getElementById('logo-actions');
   if (logoStatus) logoStatus.textContent = 'Processing...';
-  if (logoActions) logoActions.style.display = 'flex';
 
   // Compress before upload. If compression fails for any reason, fall back to
   // the original file (still under 5MB).
@@ -287,8 +285,8 @@ function showLogoPreview(url) {
   document.getElementById('logo-placeholder').style.display = 'none';
   const img = document.getElementById('logo-preview');
   img.src = url; img.style.display = 'block';
-  const logoActions = document.getElementById('logo-actions');
-  if (logoActions) logoActions.style.display = 'flex';
+  const trash = document.getElementById('inv-logo-remove');
+  if (trash) trash.style.display = 'flex';
 }
 
 async function deleteLogo() {
@@ -304,8 +302,10 @@ async function deleteLogo() {
   document.getElementById('logo-placeholder').style.display = 'flex';
   const img = document.getElementById('logo-preview');
   img.src = ''; img.style.display = 'none';
-  const logoActions = document.getElementById('logo-actions');
-  if (logoActions) logoActions.style.display = 'none';
+  const trash = document.getElementById('inv-logo-remove');
+  if (trash) trash.style.display = 'none';
+  const logoStatus = document.getElementById('logo-status');
+  if (logoStatus) logoStatus.textContent = '';
 }
 
 function addInvoiceItem() {
