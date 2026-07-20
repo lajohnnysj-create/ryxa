@@ -448,6 +448,30 @@ var isPwaMode = window.matchMedia('(display-mode: standalone)').matches
   window.addEventListener('pageshow', function (e) {
     if (e.persisted) nudgeOnResume();
   });
+  // Cold boot: fire a few nudges after the first paint. When the app is
+  // reopened and restores straight into a tool, the nav + Live Preview pill can
+  // render against stale WKWebView viewport geometry with no resume/pageshow
+  // event to fix it. Nudging a few times as boot geometry settles re-anchors
+  // them. Cheap and idempotent (each nudge is a one-frame transform).
+  function bootNudges() {
+    nudgeBottomNav();
+    setTimeout(nudgeBottomNav, 250);
+    setTimeout(nudgeBottomNav, 700);
+    setTimeout(nudgeBottomNav, 1500);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootNudges);
+  } else {
+    bootNudges();
+  }
+  window.addEventListener('load', bootNudges);
+  // Expose the resume nudge so other boot paths can call it. A cold app-restart
+  // that lands directly in a tool (e.g. reopening into Link in Bio) fires
+  // neither pageshow(persisted) nor a visibilitychange, so the nav + Live
+  // Preview pill can render against stale WKWebView viewport geometry and float
+  // detached with nothing to re-anchor them. showTool() calls this on every
+  // render to cover that case.
+  window.__ryxaNudgeNav = nudgeOnResume;
 })();
 
 // Instant tier paint: the sidebar plan label is hidden by body.tier-loading
@@ -2735,6 +2759,14 @@ function showTool(tool) {
   }
   // Close sidebar on mobile
   closeSidebar();
+  // Re-anchor the floating bottom nav + Live Preview pill. A cold app restart
+  // that lands directly in a tool renders this chrome against stale WKWebView
+  // viewport geometry, leaving it detached mid-content with no resume event to
+  // fix it. Nudging on every tool render (including the initial boot render)
+  // self-heals that case.
+  if (typeof window.__ryxaNudgeNav === 'function') {
+    try { window.__ryxaNudgeNav(); } catch (e) {}
+  }
 }
 
 // Slide the bottom-nav pill to the active tab. The pill is 20% wide (one of five
