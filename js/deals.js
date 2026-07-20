@@ -92,10 +92,6 @@ function initDealsCrm() {
   if (btn) {
     btn.textContent = 'View Pipeline';
     btn.classList.remove('active');
-    btn.style.background = 'var(--accent)';
-    btn.style.border = 'none';
-    btn.style.color = '#fff';
-    btn.style.boxShadow = '0 0 20px var(--accent-glow)';
   }
   showDealsList();
   if (!dealsInited) {
@@ -483,10 +479,6 @@ function togglePipelineView() {
     if (btn) {
       btn.textContent = 'View List';
       btn.classList.add('active');
-      btn.style.background = 'transparent';
-      btn.style.border = '1px solid var(--accent)';
-      btn.style.color = 'var(--accent)';
-      btn.style.boxShadow = 'none';
     }
     renderPipeline();
   } else {
@@ -497,10 +489,6 @@ function togglePipelineView() {
     if (btn) {
       btn.textContent = 'View Pipeline';
       btn.classList.remove('active');
-      btn.style.background = 'var(--accent)';
-      btn.style.border = 'none';
-      btn.style.color = '#fff';
-      btn.style.boxShadow = '0 0 20px var(--accent-glow)';
     }
   }
 }
