@@ -4791,6 +4791,7 @@ function updatePublishUI() {
       ? 'Live at <strong class="bio-s-313aee">ryxa.io/' + bioState.username + '</strong> <button type="button" data-bio-action="copy-bio-link" data-bio-url="https://ryxa.io/' + bioState.username + '" class="bio-s-eaca75">Copy</button>'
       : 'Your page is live.';
     btn.textContent = 'Unpublish';
+    btn.style.display = '';
     btn.classList.remove('ryxa-publish-btn');
     btn.classList.add('ryxa-unpublish-btn');
     btn.style.background = '';
@@ -4828,6 +4829,7 @@ function updatePublishUI() {
     label.textContent = 'Not published';
     sub.textContent = "Your page isn't live yet. Publish to share it.";
     btn.textContent = 'Publish';
+    btn.style.display = '';
     btn.classList.remove('ryxa-unpublish-btn');
     btn.classList.add('ryxa-publish-btn');
     btn.style.background = '';

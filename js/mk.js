@@ -2563,6 +2563,7 @@ function updateMKPublishUI() {
       ? `Live at <strong class="bio-s-313aee">ryxa.io/mediakit/${escapeHtml(uname)}</strong> <button type="button" data-mk-action="copy-mk-link" data-mk-url="https://ryxa.io/mediakit/${escapeHtml(uname)}" class="bio-s-eaca75">Copy</button>`
       : 'Your media kit is live.';
     btn.textContent = 'Unpublish';
+    btn.style.display = '';
     btn.classList.remove('ryxa-publish-btn');
     btn.classList.add('ryxa-unpublish-btn');
     btn.style.background = '';
@@ -2602,6 +2603,7 @@ function updateMKPublishUI() {
     label.textContent = 'Not published';
     sub.textContent = "Your media kit isn't live yet. Publish to share it.";
     btn.textContent = 'Publish';
+    btn.style.display = '';
     btn.classList.remove('ryxa-unpublish-btn');
     btn.classList.add('ryxa-publish-btn');
     btn.style.background = '';
