@@ -2430,18 +2430,24 @@ function openBioMoreModal() {
     const used = bioBlockCount('isSpotifyBlock') >= BIO_BLOCK_CAP_LIGHT;
     spotifyItem.disabled = used;
     spotifyItem.classList.toggle('is-used', used);
+    if (used) spotifyItem.setAttribute('data-tip', `Limit reached (${BIO_BLOCK_CAP_LIGHT})`);
+    else spotifyItem.removeAttribute('data-tip');
   }
   const appleMusicItem = document.getElementById('bio-more-apple-music');
   if (appleMusicItem) {
     const used = bioBlockCount('isAppleMusicBlock') >= BIO_BLOCK_CAP_LIGHT;
     appleMusicItem.disabled = used;
     appleMusicItem.classList.toggle('is-used', used);
+    if (used) appleMusicItem.setAttribute('data-tip', `Limit reached (${BIO_BLOCK_CAP_LIGHT})`);
+    else appleMusicItem.removeAttribute('data-tip');
   }
   const soundcloudItem = document.getElementById('bio-more-soundcloud');
   if (soundcloudItem) {
     const used = bioBlockCount('isSoundCloudBlock') >= BIO_BLOCK_CAP_LIGHT;
     soundcloudItem.disabled = used;
     soundcloudItem.classList.toggle('is-used', used);
+    if (used) soundcloudItem.setAttribute('data-tip', `Limit reached (${BIO_BLOCK_CAP_LIGHT})`);
+    else soundcloudItem.removeAttribute('data-tip');
   }
   const carouselItem = document.getElementById('bio-more-image-carousel');
   if (carouselItem) {
@@ -2478,12 +2484,16 @@ function openBioMoreModal() {
     const used = bioBlockCount('isTwitchBlock') >= BIO_BLOCK_CAP_LIGHT;
     twitchItem.disabled = used;
     twitchItem.classList.toggle('is-used', used);
+    if (used) twitchItem.setAttribute('data-tip', `Limit reached (${BIO_BLOCK_CAP_LIGHT})`);
+    else twitchItem.removeAttribute('data-tip');
   }
   const tweetItem = document.getElementById('bio-more-tweet');
   if (tweetItem) {
     const used = bioBlockCount('isTweetBlock') >= BIO_BLOCK_CAP_LIGHT;
     tweetItem.disabled = used;
     tweetItem.classList.toggle('is-used', used);
+    if (used) tweetItem.setAttribute('data-tip', `Limit reached (${BIO_BLOCK_CAP_LIGHT})`);
+    else tweetItem.removeAttribute('data-tip');
   }
   modal.classList.add('is-open');
 }
