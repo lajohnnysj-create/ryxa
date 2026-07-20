@@ -188,7 +188,7 @@ function renderPortal() {
   document.getElementById('portal-start-date').textContent = formatDate(deal.campaign_start_date);
   document.getElementById('portal-end-date').textContent = formatDate(deal.campaign_end_date);
 
-  const methodLabels = { ach: 'ACH / Bank Transfer', venmo: 'Venmo', paypal: 'PayPal', zelle: 'Zelle', cashapp: 'Cash App', wire: 'Wire Transfer', check: 'Check', crypto: 'Crypto', other: 'Other' };
+  const methodLabels = { ryxa_invoicing: 'Ryxa Invoicing', ach: 'ACH / Bank Transfer', venmo: 'Venmo', paypal: 'PayPal', zelle: 'Zelle', cashapp: 'Cash App', wire: 'Wire Transfer', check: 'Check', crypto: 'Crypto', other: 'Other' };
   document.getElementById('portal-payment-method').textContent = methodLabels[deal.payment_method] || '—';
   document.getElementById('portal-payment-details').textContent = deal.payment_details || '—';
 
