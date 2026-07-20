@@ -1820,7 +1820,7 @@ function bioLimits() {
 // (YouTube, TikTok, Instagram) are the heaviest (each is a full player
 // iframe), so they're capped lower than the lighter audio/tweet embeds.
 // Each block is itself a carousel of up to 10 items, so these are generous.
-const BIO_BLOCK_CAP_VIDEO = 5;   // YouTube, TikTok, Instagram
+const BIO_BLOCK_CAP_VIDEO = 3;   // YouTube, TikTok, Instagram
 const BIO_BLOCK_CAP_LIGHT = 10;  // Spotify, Apple Music, SoundCloud, Twitch, X
 
 // Count how many blocks of a type currently exist (by their marker flag).
