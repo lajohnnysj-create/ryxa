@@ -57,7 +57,9 @@
     padding: 22px 20px; margin-bottom: 16px;
   }
   .inv-topline { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; gap: 10px; }
-  .inv-heading-block { margin-left: auto; text-align: right; }
+  /* Default (no logo): invoice heading sits upper-left. When a logo is present,
+     it moves to the upper-right, balanced against the logo on the left. */
+  .inv-topline.has-logo .inv-heading-block { margin-left: auto; text-align: right; }
   .inv-title { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
   .inv-num { font-size: 12.5px; color: var(--muted); margin-top: 3px; }
   .inv-logo { max-height: 44px; max-width: 120px; object-fit: contain; }
@@ -245,9 +247,14 @@
     document.getElementById('pv-number').textContent = data.invoice_number ? ('#' + data.invoice_number) : '';
     if (data.logo_url) {
       var lg = document.getElementById('pv-logo');
+      var topline = lg.closest('.inv-topline');
       lg.src = data.logo_url;
       lg.style.display = '';
-      lg.onerror = function () { lg.style.display = 'none'; };
+      if (topline) topline.classList.add('has-logo');
+      lg.onerror = function () {
+        lg.style.display = 'none';
+        if (topline) topline.classList.remove('has-logo');
+      };
     }
     document.getElementById('pv-issued').textContent = fmtDate(data.issue_date) || '\u2014';
     if (data.due_date) {
