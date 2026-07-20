@@ -355,9 +355,32 @@ var isPwaMode = window.matchMedia('(display-mode: standalone)').matches
   var _navNudgeT = null;
   function nudgeBottomNav() {
     var nav = document.getElementById('mobile-bottom-nav');
-    if (!nav || getComputedStyle(nav).display === 'none') return;
-    nav.style.transform = 'translateZ(0.01px)';
-    requestAnimationFrame(function () { nav.style.transform = ''; });
+    var navVisible = nav && getComputedStyle(nav).display !== 'none';
+    // The Live Preview pill (.preview-fab) is a separate position:fixed element
+    // that detaches in the same way, so re-anchor it too. There can be more than
+    // one in the DOM (bio + media kit); nudge whichever is visible.
+    var fabs = document.querySelectorAll('.preview-fab');
+    var anyFabVisible = false;
+    for (var i = 0; i < fabs.length; i++) {
+      if (getComputedStyle(fabs[i]).display !== 'none') { anyFabVisible = true; break; }
+    }
+    if (!navVisible && !anyFabVisible) return;
+    // Two-part re-anchor. (1) A transform poke on the nav bumps the compositor so
+    // the fixed layer repaints. (2) A forced layout reflow (reading offsetHeight)
+    // plus a no-op scrollTo makes WKWebView recompute fixed elements against
+    // current viewport geometry instead of the stale geometry it held while
+    // suspended - the widely-used workaround for the long-standing WKWebView
+    // position:fixed drift bug, where the visualViewport offset doesn't reset and
+    // fixed headers/footers detach until a layout is forced. The pill keeps its
+    // own centering transform (translateX(-50%)), so it's re-anchored by the
+    // shared reflow below rather than by overwriting its transform.
+    if (navVisible) { nav.style.transform = 'translateZ(0.01px)'; }
+    /* eslint-disable-next-line no-unused-expressions */
+    document.body.offsetHeight; // force synchronous layout for all fixed elements
+    try { window.scrollTo(0, window.scrollY); } catch (e) {}
+    requestAnimationFrame(function () {
+      if (navVisible) { nav.style.transform = ''; }
+    });
   }
   function scheduleNudge() {
     clearTimeout(_navNudgeT);
