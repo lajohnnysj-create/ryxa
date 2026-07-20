@@ -240,12 +240,13 @@ async function uploadLogo(input) {
     const { error } = await sb.storage.from('logos').upload(path, uploadBlob, { upsert: true, contentType: contentType });
     if (error) throw error;
 
-    // Get public URL and show preview
+    // logos is a public bucket, so use the permanent public URL (works for the
+    // brand viewing the public invoice page without auth). The path is always
+    // {userId}/logo, so append a cache-buster whenever the logo changes,
+    // otherwise a replaced logo would keep showing the old cached image.
     const { data } = sb.storage.from('logos').getPublicUrl(path);
-    // Use signed URL for private bucket
-    const { data: signedData } = await sb.storage.from('logos').createSignedUrl(path, 3600);
-    if (signedData?.signedUrl) {
-      invLogoDataUrl = signedData.signedUrl;
+    if (data?.publicUrl) {
+      invLogoDataUrl = data.publicUrl + '?v=' + Date.now();
       showLogoPreview(invLogoDataUrl);
       if (logoStatus) logoStatus.textContent = 'Logo saved';
     }
@@ -265,17 +266,20 @@ async function loadSavedLogo() {
     const path = `${currentUser.id}/logo`;
     // Check if file exists first to avoid 400 noise in console
     const { data: list } = await sb.storage.from('logos').list(currentUser.id, { limit: 1, search: 'logo' });
-    if (!list || list.length === 0) return; // no logo uploaded yet — silent exit
+    if (!list || list.length === 0) return; // no logo uploaded yet, silent exit
 
-    const { data, error } = await sb.storage.from('logos').createSignedUrl(path, 3600);
-    if (data?.signedUrl) {
-      invLogoDataUrl = data.signedUrl;
+    // Public bucket: use the permanent public URL. Cache-bust with the file's
+    // last-updated time so a replaced logo refreshes instead of showing stale.
+    const { data } = sb.storage.from('logos').getPublicUrl(path);
+    if (data?.publicUrl) {
+      const ver = list[0] && list[0].updated_at ? new Date(list[0].updated_at).getTime() : Date.now();
+      invLogoDataUrl = data.publicUrl + '?v=' + ver;
       showLogoPreview(invLogoDataUrl);
       const logoStatus = document.getElementById('logo-status');
       if (logoStatus) logoStatus.textContent = 'Logo loaded';
     }
   } catch (err) {
-    // No logo saved yet — that's fine
+    // No logo saved yet, that's fine
   }
 }
 
@@ -966,7 +970,11 @@ function collectInvoicePayload() {
     notes: val('inv-notes').slice(0, 2000),
     payment_method: checked || 'none',
     payment_details: val('inv-pay-details').slice(0, 300),
-    status: invStatus
+    status: invStatus,
+    // Persist the logo URL so it renders on the public invoice page. Only store
+    // a real uploaded URL (http/https), never a base64 data: URL, which would
+    // bloat the row. Pro-gated at the UI level.
+    logo_url: (typeof isPro === 'function' && isPro() && invLogoDataUrl && /^https?:\/\//.test(invLogoDataUrl)) ? invLogoDataUrl : ''
   };
 }
 
