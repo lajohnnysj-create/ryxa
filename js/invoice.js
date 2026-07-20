@@ -129,25 +129,115 @@ function previewLogo(input) {
   reader.readAsDataURL(input.files[0]);
 }
 
+// Compress a logo image client-side before upload: cap its dimensions and
+// re-encode so even a large source file ends up small in storage. Logos with
+// transparency stay PNG; opaque ones become JPEG (much smaller). Returns a Blob.
+function compressLogo(file) {
+  return new Promise(function (resolve, reject) {
+    const MAX_DIM = 512;        // plenty for an invoice logo
+    const TARGET_BYTES = 150 * 1024; // aim well under the old 200KB cap
+    const reader = new FileReader();
+    reader.onerror = function () { reject(new Error('Could not read the image.')); };
+    reader.onload = function () {
+      const img = new Image();
+      img.onerror = function () { reject(new Error('That image could not be loaded.')); };
+      img.onload = function () {
+        let w = img.naturalWidth || img.width;
+        let h = img.naturalHeight || img.height;
+        if (!w || !h) { reject(new Error('That image has no dimensions.')); return; }
+        // Scale down so the longest side is at most MAX_DIM (never scale up).
+        const scale = Math.min(1, MAX_DIM / Math.max(w, h));
+        w = Math.round(w * scale);
+        h = Math.round(h * scale);
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+
+        // Detect transparency: if any pixel is not fully opaque, keep PNG so the
+        // logo's transparent background is preserved. Otherwise use JPEG.
+        let hasAlpha = false;
+        try {
+          const data = ctx.getImageData(0, 0, w, h).data;
+          for (let i = 3; i < data.length; i += 4) {
+            if (data[i] < 255) { hasAlpha = true; break; }
+          }
+        } catch (e) {
+          // getImageData can throw on tainted canvases; assume alpha to be safe.
+          hasAlpha = true;
+        }
+
+        if (hasAlpha) {
+          canvas.toBlob(function (blob) {
+            if (!blob) { reject(new Error('Compression failed.')); return; }
+            resolve(blob);
+          }, 'image/png');
+          return;
+        }
+
+        // Opaque: step JPEG quality down until it fits the target (or bottoms out).
+        const qualities = [0.85, 0.72, 0.6, 0.5];
+        let qi = 0;
+        const tryQuality = function () {
+          canvas.toBlob(function (blob) {
+            if (!blob) { reject(new Error('Compression failed.')); return; }
+            if (blob.size <= TARGET_BYTES || qi >= qualities.length - 1) {
+              resolve(blob);
+            } else {
+              qi++;
+              tryQuality();
+            }
+          }, 'image/jpeg', qualities[qi]);
+        };
+        tryQuality();
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 async function uploadLogo(input) {
   if (!input.files[0] || !currentUser) return;
   const file = input.files[0];
 
-  // Check size — 200KB max
-  if (file.size > 200 * 1024) {
-    alert('Logo must be under 200KB. Please resize your image and try again.');
+  // Accept a generous source size (up to 5MB); we compress it down below.
+  if (file.size > 5 * 1024 * 1024) {
+    alert('Logo must be under 5MB. Please choose a smaller image.');
+    return;
+  }
+  if (!/^image\//.test(file.type)) {
+    alert('Please choose an image file for your logo.');
     return;
   }
 
   const logoStatus = document.getElementById('logo-status');
   const logoActions = document.getElementById('logo-actions');
-  if (logoStatus) logoStatus.textContent = 'Uploading...';
+  if (logoStatus) logoStatus.textContent = 'Processing...';
   if (logoActions) logoActions.style.display = 'flex';
+
+  // Compress before upload. If compression fails for any reason, fall back to
+  // the original file (still under 5MB).
+  let uploadBlob = file;
+  let contentType = file.type;
+  try {
+    const compressed = await compressLogo(file);
+    // Only use the compressed version if it actually came out smaller.
+    if (compressed && compressed.size < file.size) {
+      uploadBlob = compressed;
+      contentType = compressed.type || contentType;
+    }
+  } catch (e) {
+    console.warn('Logo compression skipped:', e);
+  }
+
+  if (logoStatus) logoStatus.textContent = 'Uploading...';
 
   try {
     const path = `${currentUser.id}/logo`;
-    // Upload to Supabase storage
-    const { error } = await sb.storage.from('logos').upload(path, file, { upsert: true, contentType: file.type });
+    // Upload the compressed blob to Supabase storage
+    const { error } = await sb.storage.from('logos').upload(path, uploadBlob, { upsert: true, contentType: contentType });
     if (error) throw error;
 
     // Get public URL and show preview
@@ -164,7 +254,7 @@ async function uploadLogo(input) {
     // Fallback to local preview
     const reader = new FileReader();
     reader.onload = e => { invLogoDataUrl = e.target.result; showLogoPreview(invLogoDataUrl); };
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(uploadBlob);
     if (logoStatus) logoStatus.textContent = 'Saved locally';
   }
 }
