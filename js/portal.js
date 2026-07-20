@@ -211,7 +211,8 @@ function renderPortal() {
   var invViewBtn = document.getElementById('portal-invoice-view-btn');
   if (deal.linked_invoice_public_id) {
     invCard.style.display = 'block';
-    document.getElementById('portal-invoice-filename').textContent = 'Invoice';
+    document.getElementById('portal-invoice-filename').textContent =
+      deal.linked_invoice_number ? ('Invoice #' + deal.linked_invoice_number) : 'Invoice';
     if (invDlBtn) invDlBtn.style.display = 'none';
     if (invViewBtn) {
       invViewBtn.style.display = '';
