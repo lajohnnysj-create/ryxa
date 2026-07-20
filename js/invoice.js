@@ -951,7 +951,7 @@ function collectInvoicePayload() {
     to_name: val('inv-to-name').slice(0, 200),
     to_email: val('inv-to-email').slice(0, 254),
     to_address: val('inv-to-address').slice(0, 300),
-    invoice_number: val('inv-number').slice(0, 50),
+    invoice_number: val('inv-number').slice(0, 24),
     issue_date: val('inv-date') || null,
     due_date: val('inv-due') || null,
     items: items,
