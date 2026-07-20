@@ -1190,11 +1190,30 @@ async function downloadInvoicePDFFile() {
     }
 
     const bytes = await doc.save();
+    const fileName = 'Invoice-' + (invNum || '001').replace(/[^\w\-]/g, '') + '.pdf';
     const blob = new Blob([bytes], { type: 'application/pdf' });
+
+    // On iOS, an <a download> click just opens the PDF in the viewer (the
+    // download attribute is ignored). The Web Share API opens the native share
+    // sheet instead, where "Save to Files" (and Photos, Mail, etc.) is offered.
+    // Use it when the browser can share this file; otherwise fall back to the
+    // classic anchor download (desktop, Android).
+    try {
+      const file = new File([blob], fileName, { type: 'application/pdf' });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: fileName });
+        return;
+      }
+    } catch (shareErr) {
+      // User cancelled the share sheet, or share failed: fall through to the
+      // anchor download below. A cancel is not an error worth surfacing.
+      if (shareErr && shareErr.name === 'AbortError') return;
+    }
+
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'Invoice-' + (invNum || '001').replace(/[^\w\-]/g, '') + '.pdf';
+    a.download = fileName;
     document.body.appendChild(a);
     a.click();
     a.remove();
