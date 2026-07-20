@@ -11249,8 +11249,7 @@
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="bio-s-f4cfc5"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
                     </div>
                     <div class="bio-s-a07604">
-                      <div id="deal-invoice-linked-name" class="deal-s-b2ab5d">Ryxa invoice</div>
-                      <div id="deal-invoice-linked-status" class="bio-s-5f3468">Invoice linked</div>
+                      <div id="deal-invoice-linked-name" class="deal-s-b2ab5d">Invoice</div>
                     </div>
                     <div class="deal-s-2a4fbf">
                       <button type="button" id="deal-invoice-linked-view-btn" data-deal-action="view-linked-invoice" class="deal-s-3336e3">View</button>
@@ -11958,6 +11957,14 @@
     <div id="deal-link-invoice-list" style="display:none;overflow-y:auto;flex:1;margin:0 -6px;padding:0 6px;"></div>
 
     <div id="deal-link-invoice-empty" style="display:none;padding:24px;text-align:center;color:var(--muted);font-size:13px;">You don't have any invoices yet. Create one to link it here.</div>
+
+    <div id="deal-link-invoice-pager" style="display:none;align-items:center;justify-content:space-between;gap:12px;padding-top:12px;margin-top:4px;">
+      <span id="deal-link-invoice-pageinfo" style="font-size:12px;color:var(--muted);"></span>
+      <div style="display:flex;gap:8px;">
+        <button data-deal-action="link-invoice-prev" id="deal-link-invoice-prev" style="padding:7px 14px;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;">Previous</button>
+        <button data-deal-action="link-invoice-next" id="deal-link-invoice-next" style="padding:7px 14px;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;font-size:12px;font-family:DM Sans,sans-serif;cursor:pointer;">Next</button>
+      </div>
+    </div>
 
     <div id="deal-link-invoice-error" style="display:none;padding:10px 14px;border-radius:8px;font-size:13px;margin-top:10px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:#fca5a5;"></div>
 
