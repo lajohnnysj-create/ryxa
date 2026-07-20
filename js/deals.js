@@ -2379,10 +2379,23 @@ const DEAL_INVOICE_MAX_BYTES = 10 * 1024 * 1024; // 10 MB
 function renderInvoiceUI(deal) {
   const emptyEl = document.getElementById('deal-invoice-empty');
   const existingEl = document.getElementById('deal-invoice-existing');
+  const linkedEl = document.getElementById('deal-invoice-linked');
   const sendRowEl = document.getElementById('deal-invoice-send-row');
   const fileInput = document.getElementById('deal-invoice-input');
   if (fileInput) fileInput.value = '';
   document.getElementById('deal-invoice-progress').style.display = 'none';
+  if (linkedEl) linkedEl.style.display = 'none';
+
+  // State: a Ryxa invoice is linked (takes precedence; one-or-the-other with an
+  // uploaded PDF). Creator sees it and can view it; no send row (the invoice is
+  // sent from the Invoicing tool itself).
+  if (deal && deal.linked_invoice_id && linkedEl) {
+    emptyEl.style.display = 'none';
+    existingEl.style.display = 'none';
+    sendRowEl.style.display = 'none';
+    linkedEl.style.display = 'flex';
+    return;
+  }
 
   if (deal && deal.invoice_file_path) {
     emptyEl.style.display = 'none';
@@ -2553,6 +2566,149 @@ async function removeInvoice() {
     dealsList[dealIdx].invoice_sent_at = null;
   }
   renderInvoiceUI(dealsList[dealIdx]);
+}
+
+// ---- Link a Ryxa invoice to this deal ----
+
+async function openLinkInvoiceModal() {
+  if (!currentDealId) {
+    showDealModalMsg('error', 'Save the deal first, then link an invoice.');
+    return;
+  }
+  const modal = document.getElementById('deal-link-invoice-modal');
+  const loading = document.getElementById('deal-link-invoice-loading');
+  const listEl = document.getElementById('deal-link-invoice-list');
+  const emptyEl = document.getElementById('deal-link-invoice-empty');
+  const errEl = document.getElementById('deal-link-invoice-error');
+  if (!modal) return;
+  modal.style.display = 'flex';
+  loading.style.display = 'block';
+  listEl.style.display = 'none';
+  emptyEl.style.display = 'none';
+  errEl.style.display = 'none';
+  listEl.innerHTML = '';
+
+  try {
+    const user = (await sb.auth.getUser()).data.user;
+    if (!user) throw new Error('Not signed in');
+    // Most recent 50 invoices, slim projection.
+    const { data, error } = await sb
+      .from('invoices')
+      .select('id, public_id, status, to_name, invoice_number, total_cents, updated_at')
+      .eq('user_id', user.id)
+      .order('updated_at', { ascending: false })
+      .range(0, 49);
+    if (error) throw error;
+    loading.style.display = 'none';
+    if (!data || data.length === 0) {
+      emptyEl.style.display = 'block';
+      return;
+    }
+    listEl.innerHTML = data.map(function (inv) {
+      const name = escapeHtmlDeal(inv.to_name || 'Untitled invoice');
+      const num = inv.invoice_number ? escapeHtmlDeal(inv.invoice_number) : '';
+      const amt = formatMoney(inv.total_cents || 0, { alwaysShowCents: true });
+      const badgeColor = inv.status === 'paid' ? '#4ade80' : inv.status === 'pending' ? '#fbbf24' : '#7a788f';
+      const badgeText = inv.status === 'paid' ? 'Paid' : inv.status === 'pending' ? 'Pending' : 'Draft';
+      return '<button type="button" data-deal-action="pick-invoice" data-invoice-id="' + inv.id
+        + '" data-invoice-public="' + (inv.public_id || '')
+        + '" data-invoice-name="' + name
+        + '" style="width:100%;display:flex;align-items:center;gap:12px;padding:12px 14px;margin-bottom:8px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;cursor:pointer;text-align:left;font-family:DM Sans,sans-serif;">'
+        + '<div style="flex:1;min-width:0;"><div style="color:var(--text);font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + name + '</div>'
+        + '<div style="color:var(--muted);font-size:12px;margin-top:2px;">' + (num ? num + ' &middot; ' : '') + amt + '</div></div>'
+        + '<span style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:' + badgeColor + ';white-space:nowrap;">' + badgeText + '</span>'
+        + '</button>';
+    }).join('');
+    listEl.style.display = 'block';
+  } catch (e) {
+    loading.style.display = 'none';
+    errEl.textContent = 'Could not load your invoices. Please try again.';
+    errEl.style.display = 'block';
+    console.error('Link invoice load failed:', e);
+  }
+}
+
+function closeLinkInvoiceModal() {
+  const modal = document.getElementById('deal-link-invoice-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+// Minimal HTML escaper (deals.js scope) for invoice names in the modal.
+function escapeHtmlDeal(s) {
+  return String(s).replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+
+async function pickInvoiceToLink(el) {
+  if (!currentDealId || !el) return;
+  const invoiceId = el.getAttribute('data-invoice-id');
+  const publicId = el.getAttribute('data-invoice-public');
+  if (!invoiceId) return;
+  try {
+    // Linking replaces any uploaded PDF (one-or-the-other). Clear the PDF fields.
+    const { error } = await sb.from('brand_deals').update({
+      linked_invoice_id: invoiceId,
+      linked_invoice_public_id: publicId || null,
+      invoice_file_path: null,
+      invoice_file_name: null,
+      invoice_sent_at: null
+    }).eq('id', currentDealId);
+    if (error) throw error;
+    const idx = dealsList.findIndex(d => d.id === currentDealId);
+    if (idx >= 0) {
+      dealsList[idx].linked_invoice_id = invoiceId;
+      dealsList[idx].linked_invoice_public_id = publicId || null;
+      dealsList[idx].invoice_file_path = null;
+      dealsList[idx].invoice_file_name = null;
+      dealsList[idx].invoice_sent_at = null;
+    }
+    closeLinkInvoiceModal();
+    renderInvoiceUI(dealsList[idx]);
+    showDealModalMsg('success', 'Invoice linked to this deal.');
+  } catch (e) {
+    const errEl = document.getElementById('deal-link-invoice-error');
+    if (errEl) { errEl.textContent = 'Could not link that invoice. Please try again.'; errEl.style.display = 'block'; }
+    console.error('Link invoice failed:', e);
+  }
+}
+
+async function unlinkInvoice() {
+  if (!currentDealId) return;
+  if (!(await dashConfirm('Unlink this invoice from the deal? The invoice itself is not deleted.'))) return;
+  try {
+    const { error } = await sb.from('brand_deals').update({
+      linked_invoice_id: null,
+      linked_invoice_public_id: null
+    }).eq('id', currentDealId);
+    if (error) throw error;
+    const idx = dealsList.findIndex(d => d.id === currentDealId);
+    if (idx >= 0) {
+      dealsList[idx].linked_invoice_id = null;
+      dealsList[idx].linked_invoice_public_id = null;
+    }
+    renderInvoiceUI(dealsList[idx]);
+  } catch (e) {
+    showDealModalMsg('error', 'Could not unlink: ' + (e.message || 'unknown error'));
+  }
+}
+
+function viewLinkedInvoice() {
+  if (!currentDealId) return;
+  const deal = dealsList.find(d => d.id === currentDealId);
+  if (!deal || !deal.linked_invoice_public_id) return;
+  window.open('/invoice/' + deal.linked_invoice_public_id, '_blank');
+}
+
+function createNewInvoiceFromDeal() {
+  closeLinkInvoiceModal();
+  // Jump to the Invoicing tool, then open a fresh new-invoice editor.
+  if (typeof showTool === 'function') showTool('invoice');
+  else window.location.hash = 'invoice';
+  // openInvoiceEditor(null) puts the tool straight into a blank new invoice.
+  if (typeof openInvoiceEditor === 'function') {
+    setTimeout(function () { openInvoiceEditor(null); }, 60);
+  }
 }
 
 async function sendInvoiceToBrand() {
@@ -3319,6 +3475,12 @@ dealRegisterAction('trigger-invoice-upload', () => document.getElementById('deal
 dealRegisterAction('view-invoice', () => viewInvoice());
 dealRegisterAction('remove-invoice', () => removeInvoice());
 dealRegisterAction('send-invoice-to-brand', () => sendInvoiceToBrand());
+dealRegisterAction('open-link-invoice', () => openLinkInvoiceModal());
+dealRegisterAction('close-link-invoice-modal', () => closeLinkInvoiceModal());
+dealRegisterAction('pick-invoice', (e, el) => pickInvoiceToLink(el));
+dealRegisterAction('unlink-invoice', () => unlinkInvoice());
+dealRegisterAction('view-linked-invoice', () => viewLinkedInvoice());
+dealRegisterAction('create-new-invoice', () => createNewInvoiceFromDeal());
 
 // Messages thread
 dealRegisterAction('refresh-messages', (e, el) => refreshMessagesWithFeedback(el));

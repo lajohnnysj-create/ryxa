@@ -204,12 +204,26 @@ function renderPortal() {
     document.getElementById('portal-contract-card').style.display = 'none';
   }
 
-  // Invoice
-  if (deal.invoice_file_path) {
-    document.getElementById('portal-invoice-card').style.display = 'block';
+  // Invoice: either a linked Ryxa invoice (View opens its public page) or an
+  // uploaded PDF (Download). One or the other.
+  var invCard = document.getElementById('portal-invoice-card');
+  var invDlBtn = document.getElementById('portal-invoice-dl-btn');
+  var invViewBtn = document.getElementById('portal-invoice-view-btn');
+  if (deal.linked_invoice_public_id) {
+    invCard.style.display = 'block';
+    document.getElementById('portal-invoice-filename').textContent = 'Invoice';
+    if (invDlBtn) invDlBtn.style.display = 'none';
+    if (invViewBtn) {
+      invViewBtn.style.display = '';
+      invViewBtn.setAttribute('data-invoice-public', deal.linked_invoice_public_id);
+    }
+  } else if (deal.invoice_file_path) {
+    invCard.style.display = 'block';
     document.getElementById('portal-invoice-filename').textContent = deal.invoice_file_name || 'invoice.pdf';
+    if (invDlBtn) invDlBtn.style.display = '';
+    if (invViewBtn) invViewBtn.style.display = 'none';
   } else {
-    document.getElementById('portal-invoice-card').style.display = 'none';
+    invCard.style.display = 'none';
   }
 
   // Messages
@@ -1320,6 +1334,10 @@ portalRegisterAction('resolve-confirm',   (e, el) => resolvePortalConfirm(el.dat
 // File downloads (invoice button — currently only "invoice" used, but keep it
 // flexible for future file types like contract-signed-final.pdf)
 portalRegisterAction('download-file',     (e, el) => downloadDealFile(el.dataset.portalFile, el));
+portalRegisterAction('view-linked-invoice', (e, el) => {
+  var pub = el.getAttribute('data-invoice-public');
+  if (pub) window.open('https://www.ryxa.io/invoice/' + pub, '_blank');
+});
 
 // Messaging
 portalRegisterAction('refresh-messages',  (e, el) => refreshMessages(el));
