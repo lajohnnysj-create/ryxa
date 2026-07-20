@@ -3286,6 +3286,27 @@
   .bio-more-item:focus-visible { outline:2px solid var(--accent2); outline-offset:2px; }
   .bio-more-item:disabled, .bio-more-item.is-used { opacity:0.5; cursor:default; }
   .bio-more-item.is-used:hover { border-color:var(--border); }
+  /* "Limit reached" tooltip on a capped modal item, same style as the
+     add-button tooltip above. */
+  .bio-more-item[data-tip] { position: relative; }
+  .bio-more-item[data-tip]:hover::after {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #0f0f1e;
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.18);
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+    padding: 6px 10px;
+    border-radius: 6px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.5);
+    z-index: 20;
+    pointer-events: none;
+  }
   .bio-more-item-icon { flex-shrink:0; width:34px; height:34px; display:flex; align-items:center; justify-content:center; }
   .bio-more-item-icon svg { width:28px; height:28px; }
   .bio-more-item-text { display:flex; flex-direction:column; gap:2px; min-width:0; }
@@ -4574,6 +4595,7 @@
   .bio-s-fc58bb { display:flex;align-items:center;gap:10px;flex-wrap:wrap; }
   .bio-s-6abeb9 { display:flex;flex-direction:column;gap:8px;margin-bottom:12px; }
   .bio-s-15e946 { font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;padding-left:2px; }
+  .bio-primary-link-row { display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px; }
   .bio-s-7e3741 { display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:6px;margin-bottom:14px; }
   .bio-s-825ed8 { display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:6px; }
   .bio-s-c5c7cf { display:flex;align-items:flex-start;gap:12px;cursor:pointer;user-select:none; }
@@ -7732,15 +7754,17 @@
 
               <!-- Group 1: Content blocks (structural pieces creators arrange in their bio) -->
               <div class="bio-s-15e946">Content</div>
-              <div class="bio-s-7e3741">
+              <div class="bio-primary-link-row">
                 <button type="button" id="bio-add-link-btn" data-bio-action="add-link" data-bio-featured="false" class="bio-add-btn bio-add-btn-content">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-                  Link
+                  Basic Link
                 </button>
                 <button type="button" id="bio-add-featured-btn" data-bio-action="add-link" data-bio-featured="true" class="bio-add-btn bio-add-btn-content">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                  Featured
+                  Featured Link
                 </button>
+              </div>
+              <div class="bio-s-7e3741">
                 <button type="button" id="bio-add-header-btn" data-bio-action="add-header" class="bio-add-btn bio-add-btn-content">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4v16"/><path d="M18 4v16"/><path d="M6 12h12"/></svg>
                   Header
