@@ -228,15 +228,16 @@ function removeInvoiceItem(id) {
 
 function renderInvoiceItems() {
   const container = document.getElementById('inv-items');
+  const locked = !!(currentInvoiceRow && currentInvoiceRow.status === 'paid');
   container.innerHTML = invItems.map(item => `
     <div class="invoice-s-f31aea">
-      <input type="text" maxlength="200" aria-label="Service description" value="${item.desc}" placeholder="Service description" data-invoice-action-input="update-item-desc" data-invoice-item-id="${item.id}"
+      <input type="text" maxlength="200" aria-label="Service description" value="${item.desc}" placeholder="Service description" data-invoice-action-input="update-item-desc" data-invoice-item-id="${item.id}"${locked ? ' disabled' : ''}
         class="invoice-s-9fd163">
-      <input type="text" inputmode="numeric" maxlength="6" aria-label="Quantity" value="${item.qty}" data-invoice-action-input="update-item-qty" data-invoice-item-id="${item.id}"
+      <input type="text" inputmode="numeric" maxlength="6" aria-label="Quantity" value="${item.qty}" data-invoice-action-input="update-item-qty" data-invoice-item-id="${item.id}"${locked ? ' disabled' : ''}
         class="invoice-s-8e4206">
-      <input type="text" inputmode="decimal" maxlength="12" aria-label="Rate" value="${item.rate}" placeholder="0.00" data-invoice-action-input="update-item-rate" data-invoice-item-id="${item.id}"
+      <input type="text" inputmode="decimal" maxlength="12" aria-label="Rate" value="${item.rate}" placeholder="0.00" data-invoice-action-input="update-item-rate" data-invoice-item-id="${item.id}"${locked ? ' disabled' : ''}
         class="invoice-s-f56476">
-      <button data-invoice-action="remove-item" data-invoice-item-id="${item.id}" class="invoice-s-5de598">&#x2715;</button>
+      ${locked ? '' : `<button data-invoice-action="remove-item" data-invoice-item-id="${item.id}" class="invoice-s-5de598">&#x2715;</button>`}
     </div>
   `).join('');
 }
@@ -939,6 +940,8 @@ async function doSaveInvoice() {
     // (no need to reopen it) so its now-locked state is reflected at once.
     if (currentInvoiceRow && currentInvoiceRow.status === 'paid') {
       updateInvStatusUI();
+      renderInvoiceItems(); // re-render so the remove-item X is removed
+      calcTotals();
       applyInvPaidLock();
     }
     if (typeof showDashToast === 'function') showDashToast('success', 'Invoice saved');
