@@ -1025,9 +1025,6 @@ async function doSaveInvoice() {
   if (!currentUser) return;
   const btn = document.getElementById('inv-save-btn');
   if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
-  const _gen = window.RyxaLoadGen.bump();
-  const _anchor = document.getElementById('invoice-editor-view');
-  window.RyxaLoadBar.start(_anchor);
   try {
     const payload = collectInvoicePayload();
     // A sent invoice's recipient email is locked; never overwrite it.
@@ -1049,10 +1046,6 @@ async function doSaveInvoice() {
       if (error) throw error;
       currentInvoiceRow = data;
     }
-    // User navigated away mid-save: the write still committed, but don't
-    // trickle the bar over a different view.
-    if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(_anchor); return; }
-    window.RyxaLoadBar.finish(_anchor);
     updateInvUrlBar();
     updateInvSendUI();
     // If this save just made the invoice paid, lock the editor immediately
@@ -1065,7 +1058,6 @@ async function doSaveInvoice() {
     }
     if (typeof showDashToast === 'function') showDashToast('success', 'Invoice saved');
   } catch (e) {
-    window.RyxaLoadBar.fail(_anchor);
     console.error('Save invoice failed:', e, '| message:', e && e.message, '| details:', e && e.details, '| hint:', e && e.hint, '| code:', e && e.code);
     var msg = (e && (e.message || e.details)) ? (e.message || e.details) : 'Could not save the invoice. Please try again.';
     if (typeof showDashToast === 'function') showDashToast('error', msg);
@@ -1115,18 +1107,26 @@ invoiceRegisterAction('open-invoice', function (e, el) {
   const id = el.getAttribute('data-invoice-id');
   const row = invoiceList.find(function (r) { return r.id === id; });
   if (!row) return;
+  const _gen = window.RyxaLoadGen.bump();
+  const _anchor = document.getElementById('invoice-editor-view');
+  window.RyxaLoadBar.start(_anchor);
   // Fetch the full row (the list query is a slim projection).
   sb.from('invoices').select('*').eq('id', id).eq('user_id', currentUser.id).single()
     .then(function (res) {
+      if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(_anchor); return; }
       if (res.error || !res.data) {
+        window.RyxaLoadBar.fail(_anchor);
         console.error('Open invoice failed:', res.error);
         if (typeof showDashToast === 'function') showDashToast('error', 'Could not open that invoice. It may have been deleted.');
         loadInvoiceList();
         return;
       }
+      window.RyxaLoadBar.finish(_anchor);
       openInvoiceEditor(res.data);
     })
     .catch(function (err) {
+      if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(_anchor); return; }
+      window.RyxaLoadBar.fail(_anchor);
       console.error('Open invoice error:', err);
       if (typeof showDashToast === 'function') showDashToast('error', 'Could not open that invoice. Please try again.');
     });
