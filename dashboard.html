@@ -5390,6 +5390,7 @@
   .deal-s-5b6aad { margin-bottom:18px; }
   .deal-s-ecbcaf { display:inline-flex;align-items:center;gap:6px;padding:6px 10px;background:transparent;border:none;color:var(--muted);font-size:13px;font-family:DM Sans,sans-serif;cursor:pointer;margin-left:-10px; }
   .deal-s-6cd044 { display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:16px; }
+  .deal-header-actions { display:flex;align-items:center;gap:10px;flex-wrap:wrap; }
   .deal-s-41812e { display:none;padding:10px 16px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 8px 24px rgba(167,139,250,0.25);align-items:center;gap:8px;white-space:nowrap; }
   .deal-s-8715b2 { display:none;padding:14px 18px;background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.2);border-radius:12px;margin-bottom:18px;overflow:hidden; }
   .deal-s-a3e76c { display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap; }
@@ -5461,7 +5462,7 @@
   .deal-s-899209 { resize:vertical;min-height:80px; }
   .deal-s-cc095f { display:none;padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:14px; }
   .deal-s-6793c9 { display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding-top:6px;border-top:1px solid var(--border);margin-top:4px;padding-top:20px; }
-  .deal-s-2601f0 { padding:12px 24px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px var(--accent-glow); }
+  .deal-s-2601f0 { padding:10px 18px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px var(--accent-glow); }
   .deal-s-7f1b49 { padding:12px 20px;background:linear-gradient(135deg,#a78bfa,#e879f9);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:not-allowed;opacity:0.45;display:inline-flex;align-items:center;gap:7px;white-space:nowrap; }
   .deal-s-5f5a09 { padding:12px 20px;background:transparent;border:1px solid var(--border-hover);color:var(--muted);border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer; }
   .deal-s-5cd968 { display:none;padding:12px 16px;background:transparent;border:1px solid rgba(239,68,68,0.3);color:#fca5a5;border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer; }
@@ -11025,10 +11026,13 @@
                 <h2 id="deal-detail-title" class="bio-s-b9b38d">New Brand Deal</h2>
                 <p class="bio-s-9e2e36">Fill in the deal details below. You can share with the brand once saved.</p>
               </div>
-              <button id="deal-share-btn" data-deal-action="open-share" class="deal-s-41812e">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
-                <span>Share with brand</span>
-              </button>
+              <div class="deal-header-actions">
+                <button id="deal-share-btn" data-deal-action="open-share" class="deal-s-41812e">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+                  <span>Share with brand</span>
+                </button>
+                <button id="deal-save-btn" data-deal-action="save" class="deal-s-2601f0">Save deal</button>
+              </div>
             </div>
 
             <!-- Locked banner (shown when deal is Completed or Cancelled) -->
@@ -11320,7 +11324,6 @@
 
               <!-- ACTIONS -->
               <div class="deal-s-6793c9">
-                <button id="deal-save-btn" data-deal-action="save" class="deal-s-2601f0">Save deal</button>
                 <button id="deal-share-btn-bottom" data-deal-action="open-share" disabled class="deal-s-7f1b49" title="Save the deal first to enable sharing">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
                   Share with brand
