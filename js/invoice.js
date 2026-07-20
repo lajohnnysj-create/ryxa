@@ -1025,6 +1025,9 @@ async function doSaveInvoice() {
   if (!currentUser) return;
   const btn = document.getElementById('inv-save-btn');
   if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+  const _gen = window.RyxaLoadGen.bump();
+  const _anchor = document.getElementById('invoice-editor-view');
+  window.RyxaLoadBar.start(_anchor);
   try {
     const payload = collectInvoicePayload();
     // A sent invoice's recipient email is locked; never overwrite it.
@@ -1046,6 +1049,10 @@ async function doSaveInvoice() {
       if (error) throw error;
       currentInvoiceRow = data;
     }
+    // User navigated away mid-save: the write still committed, but don't
+    // trickle the bar over a different view.
+    if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(_anchor); return; }
+    window.RyxaLoadBar.finish(_anchor);
     updateInvUrlBar();
     updateInvSendUI();
     // If this save just made the invoice paid, lock the editor immediately
@@ -1058,6 +1065,7 @@ async function doSaveInvoice() {
     }
     if (typeof showDashToast === 'function') showDashToast('success', 'Invoice saved');
   } catch (e) {
+    window.RyxaLoadBar.fail(_anchor);
     console.error('Save invoice failed:', e, '| message:', e && e.message, '| details:', e && e.details, '| hint:', e && e.hint, '| code:', e && e.code);
     var msg = (e && (e.message || e.details)) ? (e.message || e.details) : 'Could not save the invoice. Please try again.';
     if (typeof showDashToast === 'function') showDashToast('error', msg);
