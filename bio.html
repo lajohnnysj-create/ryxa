@@ -648,12 +648,16 @@
   }
   /* Thumb variant — small square image flush-left, content area centered to the right.
      Whole row stays the same height as a text-only link. */
-  .link-btn.link-btn-thumb {
+  .link-btn.link-btn-thumb:not(.link-half) {
     flex-direction: row;
     padding: 0;
     align-items: stretch;
     overflow: hidden;
     height: 68px;
+  }
+  .link-btn.link-btn-thumb.link-half {
+    padding: 0;
+    overflow: hidden;
   }
   .link-btn.link-btn-thumb .link-thumb-img {
     width: 68px;
