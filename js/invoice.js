@@ -520,34 +520,57 @@ function showInvoiceEditorView() {
 
 async function loadInvoiceList() {
   if (!currentUser) return;
-  try {
-    // Server-side pagination: fetch only this page's 50 rows. We request one
-    // extra row (51) to cheaply detect whether a next page exists, then drop it.
-    const from = invoicePage * INVOICE_PAGE_SIZE;
-    const to = from + INVOICE_PAGE_SIZE; // inclusive range -> 51 rows
-    const { data, error } = await sb
-      .from('invoices')
-      .select('id, public_id, status, to_name, invoice_number, total_cents, updated_at')
-      .eq('user_id', currentUser.id)
-      .order('updated_at', { ascending: false })
-      .range(from, to);
-    if (error) throw error;
-    const rows = data || [];
-    invoiceHasNextPage = rows.length > INVOICE_PAGE_SIZE;
-    invoiceList = invoiceHasNextPage ? rows.slice(0, INVOICE_PAGE_SIZE) : rows;
-    // If we landed on an empty page beyond the first (e.g. deleted the last row
-    // on this page), step back and reload so the user isn't stranded on a blank page.
-    if (invoiceList.length === 0 && invoicePage > 0) {
-      invoicePage--;
-      return loadInvoiceList();
+  const _gen = window.RyxaLoadGen.bump();
+  const _anchor = document.getElementById('invoice-list-view');
+  window.RyxaLoadBar.start(_anchor);
+
+  // Server-side pagination: fetch only this page's 50 rows. We request one
+  // extra row (51) to cheaply detect whether a next page exists, then drop it.
+  const from = invoicePage * INVOICE_PAGE_SIZE;
+  const to = from + INVOICE_PAGE_SIZE; // inclusive range -> 51 rows
+
+  const MAX_LOAD_ATTEMPTS = 3;
+  for (let attempt = 1; attempt <= MAX_LOAD_ATTEMPTS; attempt++) {
+    try {
+      const { data, error } = await sb
+        .from('invoices')
+        .select('id, public_id, status, to_name, invoice_number, total_cents, updated_at')
+        .eq('user_id', currentUser.id)
+        .order('updated_at', { ascending: false })
+        .range(from, to);
+      if (error) throw error;
+      if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(_anchor); return; }
+      const rows = data || [];
+      invoiceHasNextPage = rows.length > INVOICE_PAGE_SIZE;
+      invoiceList = invoiceHasNextPage ? rows.slice(0, INVOICE_PAGE_SIZE) : rows;
+      // If we landed on an empty page beyond the first (e.g. deleted the last row
+      // on this page), step back and reload so the user isn't stranded on a blank page.
+      if (invoiceList.length === 0 && invoicePage > 0) {
+        invoicePage--;
+        return loadInvoiceList();
+      }
+      window.RyxaLoadBar.finish(_anchor);
+      renderInvoiceList();
+      renderInvoicePager();
+      return;
+    } catch (e) {
+      if (attempt < MAX_LOAD_ATTEMPTS) {
+        if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(_anchor); return; }
+        window.RyxaLoadBar.retrying(_anchor, 'Having trouble loading your invoices. Retrying...');
+        await new Promise(function (resolve) { setTimeout(resolve, 400 * attempt); });
+        if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(_anchor); return; }
+        continue;
+      }
+      if (window.RyxaLoadGen.n !== _gen) { window.RyxaLoadBar.stop(_anchor); return; }
+      console.error('Load invoices failed:', e);
+      window.RyxaLoadBar.fail(_anchor);
+      invoiceList = [];
+      invoiceHasNextPage = false;
+      renderInvoiceList();
+      renderInvoicePager();
+      return;
     }
-  } catch (e) {
-    console.error('Load invoices failed:', e);
-    invoiceList = [];
-    invoiceHasNextPage = false;
   }
-  renderInvoiceList();
-  renderInvoicePager();
 }
 
 function renderInvoicePager() {
