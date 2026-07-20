@@ -291,7 +291,6 @@ function showLogoPreview(url) {
 
 async function deleteLogo() {
   if (!currentUser) return;
-  if (!confirm('Delete your saved logo?')) return;
   try {
     await sb.storage.from('logos').remove([`${currentUser.id}/logo`]);
   } catch (err) {
