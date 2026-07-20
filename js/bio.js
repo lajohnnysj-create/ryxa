@@ -1816,6 +1816,18 @@ function bioLimits() {
   };
 }
 
+// How many blocks of a given embed type a page may hold. Video embeds
+// (YouTube, TikTok, Instagram) are the heaviest (each is a full player
+// iframe), so they're capped lower than the lighter audio/tweet embeds.
+// Each block is itself a carousel of up to 10 items, so these are generous.
+const BIO_BLOCK_CAP_VIDEO = 5;   // YouTube, TikTok, Instagram
+const BIO_BLOCK_CAP_LIGHT = 10;  // Spotify, Apple Music, SoundCloud, Twitch, X
+
+// Count how many blocks of a type currently exist (by their marker flag).
+function bioBlockCount(flag) {
+  return bioState.links.filter(function (l) { return l[flag]; }).length;
+}
+
 function addHeader() {
   // Headers are unlimited but capped at 10 to prevent abuse
   const headerCount = bioState.links.filter(l => l.isHeader).length;
@@ -1913,9 +1925,12 @@ function addVideoBlock() {
     showBioStatus('error', `Link limit reached (${maxLinks}).`);
     return;
   }
-  // One YouTube block per page (all plans). The add button is disabled when
-  // one exists; this guard is the backstop.
-  if (bioState.links.some(l => l.isVideoBlock)) return;
+  // Up to 5 YouTube blocks per page (video embeds are heavy). The add button
+  // disables at the cap; this guard is the backstop.
+  if (bioBlockCount('isVideoBlock') >= BIO_BLOCK_CAP_VIDEO) {
+    showBioStatus('error', `YouTube block limit reached (${BIO_BLOCK_CAP_VIDEO}).`);
+    return;
+  }
   const newId = linkIdSeq++;
   bioState.links.push({
     _id: newId,
@@ -1938,9 +1953,12 @@ function addTikTokBlock() {
     showBioStatus('error', `Link limit reached (${maxLinks}).`);
     return;
   }
-  // One TikTok block per page (all plans). The add button is disabled when
-  // one exists; this guard is the backstop.
-  if (bioState.links.some(l => l.isTikTokBlock)) return;
+  // Up to 5 TikTok blocks per page (video embeds are heavy). The add button
+  // disables at the cap; this guard is the backstop.
+  if (bioBlockCount('isTikTokBlock') >= BIO_BLOCK_CAP_VIDEO) {
+    showBioStatus('error', `TikTok block limit reached (${BIO_BLOCK_CAP_VIDEO}).`);
+    return;
+  }
   const newId = linkIdSeq++;
   bioState.links.push({
     _id: newId,
@@ -1962,9 +1980,12 @@ function addInstagramBlock() {
     showBioStatus('error', `Link limit reached (${maxLinks}).`);
     return;
   }
-  // One Instagram block per page (all plans). The add button is disabled when
-  // one exists; this guard is the backstop.
-  if (bioState.links.some(l => l.isInstagramBlock)) return;
+  // Up to 5 Instagram blocks per page (video embeds are heavy). The add button
+  // disables at the cap; this guard is the backstop.
+  if (bioBlockCount('isInstagramBlock') >= BIO_BLOCK_CAP_VIDEO) {
+    showBioStatus('error', `Instagram block limit reached (${BIO_BLOCK_CAP_VIDEO}).`);
+    return;
+  }
   const newId = linkIdSeq++;
   bioState.links.push({
     _id: newId,
@@ -1986,7 +2007,10 @@ function addSpotifyBlock() {
     showBioStatus('error', `Link limit reached (${maxLinks}).`);
     return;
   }
-  if (bioState.links.some(l => l.isSpotifyBlock)) return;
+  if (bioBlockCount('isSpotifyBlock') >= BIO_BLOCK_CAP_LIGHT) {
+    showBioStatus('error', `Spotify block limit reached (${BIO_BLOCK_CAP_LIGHT}).`);
+    return;
+  }
   const newId = linkIdSeq++;
   bioState.links.push({
     _id: newId,
@@ -2008,7 +2032,10 @@ function addAppleMusicBlock() {
     showBioStatus('error', `Link limit reached (${maxLinks}).`);
     return;
   }
-  if (bioState.links.some(l => l.isAppleMusicBlock)) return;
+  if (bioBlockCount('isAppleMusicBlock') >= BIO_BLOCK_CAP_LIGHT) {
+    showBioStatus('error', `Apple Music block limit reached (${BIO_BLOCK_CAP_LIGHT}).`);
+    return;
+  }
   const newId = linkIdSeq++;
   bioState.links.push({
     _id: newId,
@@ -2030,7 +2057,10 @@ function addSoundCloudBlock() {
     showBioStatus('error', `Link limit reached (${maxLinks}).`);
     return;
   }
-  if (bioState.links.some(l => l.isSoundCloudBlock)) return;
+  if (bioBlockCount('isSoundCloudBlock') >= BIO_BLOCK_CAP_LIGHT) {
+    showBioStatus('error', `SoundCloud block limit reached (${BIO_BLOCK_CAP_LIGHT}).`);
+    return;
+  }
   const newId = linkIdSeq++;
   bioState.links.push({
     _id: newId,
@@ -2349,7 +2379,10 @@ function addTwitchBlock() {
     showBioStatus('error', `Link limit reached (${maxLinks}).`);
     return;
   }
-  if (bioState.links.some(l => l.isTwitchBlock)) return;
+  if (bioBlockCount('isTwitchBlock') >= BIO_BLOCK_CAP_LIGHT) {
+    showBioStatus('error', `Twitch block limit reached (${BIO_BLOCK_CAP_LIGHT}).`);
+    return;
+  }
   const newId = linkIdSeq++;
   bioState.links.push({
     _id: newId,
@@ -2370,7 +2403,10 @@ function addTweetBlock() {
     showBioStatus('error', `Link limit reached (${maxLinks}).`);
     return;
   }
-  if (bioState.links.some(l => l.isTweetBlock)) return;
+  if (bioBlockCount('isTweetBlock') >= BIO_BLOCK_CAP_LIGHT) {
+    showBioStatus('error', `X block limit reached (${BIO_BLOCK_CAP_LIGHT}).`);
+    return;
+  }
   const newId = linkIdSeq++;
   bioState.links.push({
     _id: newId,
@@ -2391,19 +2427,19 @@ function openBioMoreModal() {
   if (!modal) return;
   const spotifyItem = document.getElementById('bio-more-spotify');
   if (spotifyItem) {
-    const used = bioState.links.some(l => l.isSpotifyBlock);
+    const used = bioBlockCount('isSpotifyBlock') >= BIO_BLOCK_CAP_LIGHT;
     spotifyItem.disabled = used;
     spotifyItem.classList.toggle('is-used', used);
   }
   const appleMusicItem = document.getElementById('bio-more-apple-music');
   if (appleMusicItem) {
-    const used = bioState.links.some(l => l.isAppleMusicBlock);
+    const used = bioBlockCount('isAppleMusicBlock') >= BIO_BLOCK_CAP_LIGHT;
     appleMusicItem.disabled = used;
     appleMusicItem.classList.toggle('is-used', used);
   }
   const soundcloudItem = document.getElementById('bio-more-soundcloud');
   if (soundcloudItem) {
-    const used = bioState.links.some(l => l.isSoundCloudBlock);
+    const used = bioBlockCount('isSoundCloudBlock') >= BIO_BLOCK_CAP_LIGHT;
     soundcloudItem.disabled = used;
     soundcloudItem.classList.toggle('is-used', used);
   }
@@ -2439,13 +2475,13 @@ function openBioMoreModal() {
   }
   const twitchItem = document.getElementById('bio-more-twitch');
   if (twitchItem) {
-    const used = bioState.links.some(l => l.isTwitchBlock);
+    const used = bioBlockCount('isTwitchBlock') >= BIO_BLOCK_CAP_LIGHT;
     twitchItem.disabled = used;
     twitchItem.classList.toggle('is-used', used);
   }
   const tweetItem = document.getElementById('bio-more-tweet');
   if (tweetItem) {
-    const used = bioState.links.some(l => l.isTweetBlock);
+    const used = bioBlockCount('isTweetBlock') >= BIO_BLOCK_CAP_LIGHT;
     tweetItem.disabled = used;
     tweetItem.classList.toggle('is-used', used);
   }
@@ -3172,21 +3208,21 @@ function renderBioLinks() {
     if (heroAtLimit) heroBtn.setAttribute('data-tip', 'Content already added');
     else heroBtn.removeAttribute('data-tip');
   }
-  // YouTube / TikTok / Instagram: one block per platform (all plans). The add
-  // button is disabled while a block of that type exists and re-enables when
-  // it's removed.
-  const setBlockBtn = (id, exists) => {
+  // YouTube / TikTok / Instagram: up to 5 blocks per platform (video embeds
+  // are heavy). The add button disables once the cap is reached and re-enables
+  // when a block is removed.
+  const setBlockBtn = (id, atCap) => {
     const b = document.getElementById(id);
     if (!b) return;
-    b.disabled = exists;
+    b.disabled = atCap;
     // Let the :disabled CSS own the greyed appearance (no inline opacity).
     b.style.opacity = '';
-    if (exists) b.setAttribute('data-tip', 'Content already added');
+    if (atCap) b.setAttribute('data-tip', `Limit reached (${BIO_BLOCK_CAP_VIDEO})`);
     else b.removeAttribute('data-tip');
   };
-  setBlockBtn('bio-add-video-link', bioState.links.some(l => l.isVideoBlock));
-  setBlockBtn('bio-add-tiktok-link', bioState.links.some(l => l.isTikTokBlock));
-  setBlockBtn('bio-add-instagram-link', bioState.links.some(l => l.isInstagramBlock));
+  setBlockBtn('bio-add-video-link', bioBlockCount('isVideoBlock') >= BIO_BLOCK_CAP_VIDEO);
+  setBlockBtn('bio-add-tiktok-link', bioBlockCount('isTikTokBlock') >= BIO_BLOCK_CAP_VIDEO);
+  setBlockBtn('bio-add-instagram-link', bioBlockCount('isInstagramBlock') >= BIO_BLOCK_CAP_VIDEO);
   // Media Kit button
   const mkBtn = document.getElementById('bio-add-mediakit-link');
   if (mkBtn) mkBtn.style.display = pro || max ? 'flex' : 'none';
