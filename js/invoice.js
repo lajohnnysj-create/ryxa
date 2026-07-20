@@ -212,9 +212,6 @@ async function uploadLogo(input) {
     return;
   }
 
-  const logoStatus = document.getElementById('logo-status');
-  if (logoStatus) logoStatus.textContent = 'Processing...';
-
   // Compress before upload. If compression fails for any reason, fall back to
   // the original file (still under 5MB).
   let uploadBlob = file;
@@ -230,8 +227,6 @@ async function uploadLogo(input) {
     console.warn('Logo compression skipped:', e);
   }
 
-  if (logoStatus) logoStatus.textContent = 'Uploading...';
-
   try {
     const path = `${currentUser.id}/logo`;
     // Upload the compressed blob to Supabase storage
@@ -246,7 +241,7 @@ async function uploadLogo(input) {
     if (data?.publicUrl) {
       invLogoDataUrl = data.publicUrl + '?v=' + Date.now();
       showLogoPreview(invLogoDataUrl);
-      if (logoStatus) logoStatus.textContent = 'Logo saved';
+      if (typeof showDashToast === 'function') showDashToast('success', 'Logo uploaded. Your logo will be used for all invoices.');
     }
   } catch (err) {
     console.error('Logo upload error:', err);
@@ -254,7 +249,7 @@ async function uploadLogo(input) {
     const reader = new FileReader();
     reader.onload = e => { invLogoDataUrl = e.target.result; showLogoPreview(invLogoDataUrl); };
     reader.readAsDataURL(uploadBlob);
-    if (logoStatus) logoStatus.textContent = 'Saved locally';
+    if (typeof showDashToast === 'function') showDashToast('success', 'Logo uploaded. Your logo will be used for all invoices.');
   }
 }
 
@@ -273,8 +268,6 @@ async function loadSavedLogo() {
       const ver = list[0] && list[0].updated_at ? new Date(list[0].updated_at).getTime() : Date.now();
       invLogoDataUrl = data.publicUrl + '?v=' + ver;
       showLogoPreview(invLogoDataUrl);
-      const logoStatus = document.getElementById('logo-status');
-      if (logoStatus) logoStatus.textContent = 'Logo loaded';
     }
   } catch (err) {
     // No logo saved yet, that's fine
@@ -303,8 +296,7 @@ async function deleteLogo() {
   img.src = ''; img.style.display = 'none';
   const trash = document.getElementById('inv-logo-remove');
   if (trash) trash.style.display = 'none';
-  const logoStatus = document.getElementById('logo-status');
-  if (logoStatus) logoStatus.textContent = '';
+  if (typeof showDashToast === 'function') showDashToast('success', 'Logo removed from all invoices.');
 }
 
 function addInvoiceItem() {
