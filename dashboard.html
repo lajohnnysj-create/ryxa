@@ -2455,7 +2455,7 @@
   #deal-messages-thread::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
   #deal-messages-thread::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
   .deal-label { display: block; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 6px; }
-  .deal-input { width: 100%; background: var(--surface2); border: 1px solid var(--border-hover); border-radius: 8px; padding: 10px 12px; font-size: 14px; color: var(--text); font-family: 'DM Sans', sans-serif; outline: none; box-sizing: border-box; transition: border-color 0.15s; }
+  .deal-input { width: 100%; background: var(--surface); border: 1px solid var(--border-hover); border-radius: 8px; padding: 10px 12px; font-size: 14px; color: var(--text); font-family: 'DM Sans', sans-serif; outline: none; box-sizing: border-box; transition: border-color 0.15s; }
   .deal-input:focus { border-color: var(--accent); }
   .deal-input:disabled { opacity: 0.55; cursor: not-allowed; }
   select.deal-input { appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237a788f' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
@@ -5421,6 +5421,7 @@
   .deal-s-4bce1a { padding:20px;background:var(--surface);border:1px dashed var(--border);border-radius:10px;text-align:center; }
   .deal-s-0a1e59 { display:none;font-size:12px;color:var(--muted); }
   .deal-s-b49084 { padding:9px 16px;background:transparent;border:1px solid var(--border-hover);color:var(--text);border-radius:8px;font-size:12px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer; }
+  .deal-invoice-empty-actions { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
   .deal-s-e265df { display:none;padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;display:none; }
   .deal-s-f2f0b3 { display:flex;align-items:center;gap:12px;flex-wrap:wrap; }
   .deal-s-4ec6be { display:flex;align-items:center;justify-content:center;width:36px;height:36px;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);border-radius:8px;flex-shrink:0; }
@@ -11218,9 +11219,10 @@
                 <div class="deal-s-f77ca4">Invoice <span class="deal-s-1baf67">(PDF, max 10MB)</span></div>
                 <!-- Empty state: no invoice -->
                 <div id="deal-invoice-empty" class="deal-s-4bce1a">
-                  <div id="deal-invoice-uploader">
+                  <div id="deal-invoice-uploader" class="deal-invoice-empty-actions">
                     <input type="file" id="deal-invoice-input" accept="application/pdf" aria-label="Upload invoice PDF" class="bio-s-c8be1c" data-deal-action="invoice-selected" data-deal-event="change">
                     <button type="button" id="deal-invoice-choose-btn" data-deal-action="trigger-invoice-upload" class="deal-s-b49084">Upload Invoice PDF</button>
+                    <button type="button" id="deal-invoice-link-btn" data-deal-action="open-link-invoice" class="deal-s-b49084">Link an Invoice</button>
                   </div>
                 </div>
                 <!-- Populated state: invoice exists -->
@@ -11237,6 +11239,22 @@
                       <button type="button" id="deal-invoice-view-btn" data-deal-action="view-invoice" class="deal-s-3336e3" aria-label="Download invoice" title="Download"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
                       <button type="button" id="deal-invoice-replace-btn" data-deal-action="trigger-invoice-upload" class="deal-s-3336e3">Replace</button>
                       <button type="button" id="deal-invoice-remove-btn" data-deal-action="remove-invoice" class="deal-s-3e27d5">Remove</button>
+                    </div>
+                  </div>
+                </div>
+                <!-- Linked Ryxa invoice state -->
+                <div id="deal-invoice-linked" class="deal-s-e265df" style="display:none;">
+                  <div class="deal-s-f2f0b3">
+                    <div class="deal-s-602a88">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="bio-s-f4cfc5"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                    </div>
+                    <div class="bio-s-a07604">
+                      <div id="deal-invoice-linked-name" class="deal-s-b2ab5d">Ryxa invoice</div>
+                      <div id="deal-invoice-linked-status" class="bio-s-5f3468">Invoice linked</div>
+                    </div>
+                    <div class="deal-s-2a4fbf">
+                      <button type="button" id="deal-invoice-linked-view-btn" data-deal-action="view-linked-invoice" class="deal-s-3336e3">View</button>
+                      <button type="button" id="deal-invoice-linked-remove-btn" data-deal-action="unlink-invoice" class="deal-s-3e27d5">Unlink</button>
                     </div>
                   </div>
                 </div>
@@ -11922,6 +11940,33 @@
     </div>
 
     <div id="deal-share-error" style="display:none;padding:10px 14px;border-radius:8px;font-size:13px;margin-top:10px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:#fca5a5;"></div>
+  </div>
+</div>
+
+
+<!-- =============================================== -->
+<!-- BRAND DEAL CRM, Link Invoice Modal             -->
+<!-- =============================================== -->
+<div id="deal-link-invoice-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.8);align-items:center;justify-content:center;pointer-events:all;">
+  <div style="background:#0f0f1a;border:1px solid rgba(124,58,237,0.35);border-radius:16px;padding:28px;position:relative;width:100%;max-width:520px;pointer-events:all;margin:20px;max-height:92vh;display:flex;flex-direction:column;">
+    <button data-deal-action="close-link-invoice-modal" style="position:absolute;top:14px;right:14px;background:none;border:none;color:#7a788f;font-size:18px;cursor:pointer;" aria-label="Close">&#x2715;</button>
+    <h3 style="font-family:Syne,sans-serif;font-size:18px;font-weight:700;margin-bottom:4px;color:var(--text);">Link an invoice</h3>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:18px;line-height:1.5;">Pick an invoice from your Invoicing tool to attach to this deal.</p>
+
+    <div id="deal-link-invoice-loading" style="padding:24px;text-align:center;color:var(--muted);font-size:13px;">Loading your invoices...</div>
+
+    <div id="deal-link-invoice-list" style="display:none;overflow-y:auto;flex:1;margin:0 -6px;padding:0 6px;"></div>
+
+    <div id="deal-link-invoice-empty" style="display:none;padding:24px;text-align:center;color:var(--muted);font-size:13px;">You don't have any invoices yet. Create one to link it here.</div>
+
+    <div id="deal-link-invoice-error" style="display:none;padding:10px 14px;border-radius:8px;font-size:13px;margin-top:10px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:#fca5a5;"></div>
+
+    <div style="padding-top:16px;margin-top:16px;border-top:1px solid var(--border);">
+      <button data-deal-action="create-new-invoice" style="width:100%;padding:12px;background:transparent;border:1px solid var(--border-hover);color:var(--text);border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+        Create new invoice
+      </button>
+    </div>
   </div>
 </div>
 
