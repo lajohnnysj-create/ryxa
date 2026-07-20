@@ -4791,9 +4791,11 @@ function updatePublishUI() {
       ? 'Live at <strong class="bio-s-313aee">ryxa.io/' + bioState.username + '</strong> <button type="button" data-bio-action="copy-bio-link" data-bio-url="https://ryxa.io/' + bioState.username + '" class="bio-s-eaca75">Copy</button>'
       : 'Your page is live.';
     btn.textContent = 'Unpublish';
-    btn.style.background = 'transparent';
-    btn.style.border = '1px solid var(--border-hover)';
-    btn.style.color = 'var(--muted)';
+    btn.classList.remove('ryxa-publish-btn');
+    btn.classList.add('ryxa-unpublish-btn');
+    btn.style.background = '';
+    btn.style.border = '';
+    btn.style.color = '';
     if (viewLink && bioState.username) {
       var bioFullUrl = 'https://www.ryxa.io/' + bioState.username;
       if (isPwaMode) {
@@ -4826,9 +4828,11 @@ function updatePublishUI() {
     label.textContent = 'Not published';
     sub.textContent = "Your page isn't live yet. Publish to share it.";
     btn.textContent = 'Publish';
-    btn.style.background = 'var(--accent)';
-    btn.style.border = 'none';
-    btn.style.color = '#fff';
+    btn.classList.remove('ryxa-unpublish-btn');
+    btn.classList.add('ryxa-publish-btn');
+    btn.style.background = '';
+    btn.style.border = '';
+    btn.style.color = '';
     if (viewLink) viewLink.style.display = 'none';
   }
 }

@@ -357,16 +357,20 @@ async function openCourseEditor(courseId) {
     pubBtn.style.display = 'inline-block';
     if (course.status === 'published') {
       pubBtn.textContent = 'Unpublish';
-      pubBtn.style.borderColor = 'rgba(239,68,68,0.4)';
-      pubBtn.style.color = '#ef4444';
+      pubBtn.classList.remove('ryxa-publish-btn');
+      pubBtn.classList.add('ryxa-unpublish-btn');
+      pubBtn.style.borderColor = '';
+      pubBtn.style.color = '';
       // Show marketplace toggle only when published
       document.getElementById('course-marketplace-toggle').style.display = 'block';
       updateMarketplaceToggleUI('course', !!course.listed_in_marketplace);
       updateMarketplaceCountDisplay();
     } else {
       pubBtn.textContent = 'Publish';
-      pubBtn.style.borderColor = 'rgba(74,222,128,0.4)';
-      pubBtn.style.color = '#4ade80';
+      pubBtn.classList.remove('ryxa-unpublish-btn');
+      pubBtn.classList.add('ryxa-publish-btn');
+      pubBtn.style.borderColor = '';
+      pubBtn.style.color = '';
     }
 
     // Load modules & lessons
@@ -580,8 +584,10 @@ async function saveCourse(opts) {
       const pubBtn = document.getElementById('course-publish-btn');
       pubBtn.style.display = 'inline-block';
       pubBtn.textContent = 'Publish';
-      pubBtn.style.borderColor = 'rgba(74,222,128,0.4)';
-      pubBtn.style.color = '#4ade80';
+      pubBtn.classList.remove('ryxa-unpublish-btn');
+      pubBtn.classList.add('ryxa-publish-btn');
+      pubBtn.style.borderColor = '';
+      pubBtn.style.color = '';
     }
 
     // Save modules & lessons
@@ -668,15 +674,19 @@ async function toggleCoursePublish() {
   const pubBtn = document.getElementById('course-publish-btn');
   if (newStatus === 'published') {
     pubBtn.textContent = 'Unpublish';
-    pubBtn.style.borderColor = 'rgba(239,68,68,0.4)';
-    pubBtn.style.color = '#ef4444';
+    pubBtn.classList.remove('ryxa-publish-btn');
+    pubBtn.classList.add('ryxa-unpublish-btn');
+    pubBtn.style.borderColor = '';
+    pubBtn.style.color = '';
     document.getElementById('course-marketplace-toggle').style.display = 'block';
     updateMarketplaceCountDisplay();
     showCourseMsg('success', 'Course published!');
   } else {
     pubBtn.textContent = 'Publish';
-    pubBtn.style.borderColor = 'rgba(74,222,128,0.4)';
-    pubBtn.style.color = '#4ade80';
+    pubBtn.classList.remove('ryxa-unpublish-btn');
+    pubBtn.classList.add('ryxa-publish-btn');
+    pubBtn.style.borderColor = '';
+    pubBtn.style.color = '';
     // Unpublishing also unlists from marketplace
     if (course && course.listed_in_marketplace) {
       // Was fire-and-forget. A failure here left the course unpublished but

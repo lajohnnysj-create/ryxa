@@ -414,15 +414,19 @@ function coachHydrateEditor(coaching) {
   pubBtn.style.display = 'inline-block';
   if (coaching.status === 'published') {
     pubBtn.textContent = 'Unpublish';
-    pubBtn.style.borderColor = 'rgba(239,68,68,0.4)';
-    pubBtn.style.color = '#ef4444';
+    pubBtn.classList.remove('ryxa-publish-btn');
+    pubBtn.classList.add('ryxa-unpublish-btn');
+    pubBtn.style.borderColor = '';
+    pubBtn.style.color = '';
     document.getElementById('coaching-marketplace-toggle').style.display = 'block';
     updateMarketplaceToggleUI('coaching', !!coaching.listed_in_marketplace);
     updateMarketplaceCountDisplay();
   } else {
     pubBtn.textContent = 'Publish';
-    pubBtn.style.borderColor = 'rgba(74,222,128,0.4)';
-    pubBtn.style.color = '#4ade80';
+    pubBtn.classList.remove('ryxa-unpublish-btn');
+    pubBtn.classList.add('ryxa-publish-btn');
+    pubBtn.style.borderColor = '';
+    pubBtn.style.color = '';
     document.getElementById('coaching-marketplace-toggle').style.display = 'none';
   }
 
@@ -1242,8 +1246,10 @@ async function saveCoaching() {
       const pubBtn = document.getElementById('coaching-publish-btn');
       pubBtn.style.display = 'inline-block';
       pubBtn.textContent = 'Publish';
-      pubBtn.style.borderColor = 'rgba(74,222,128,0.4)';
-      pubBtn.style.color = '#4ade80';
+      pubBtn.classList.remove('ryxa-unpublish-btn');
+      pubBtn.classList.add('ryxa-publish-btn');
+      pubBtn.style.borderColor = '';
+      pubBtn.style.color = '';
     }
 
     coachingCoverFile = null;
@@ -1298,15 +1304,19 @@ async function toggleCoachingPublish() {
   const pubBtn = document.getElementById('coaching-publish-btn');
   if (newStatus === 'published') {
     pubBtn.textContent = 'Unpublish';
-    pubBtn.style.borderColor = 'rgba(239,68,68,0.4)';
-    pubBtn.style.color = '#ef4444';
+    pubBtn.classList.remove('ryxa-publish-btn');
+    pubBtn.classList.add('ryxa-unpublish-btn');
+    pubBtn.style.borderColor = '';
+    pubBtn.style.color = '';
     document.getElementById('coaching-marketplace-toggle').style.display = 'block';
     updateMarketplaceCountDisplay();
     showCoachingMsg('success', 'Published!');
   } else {
     pubBtn.textContent = 'Publish';
-    pubBtn.style.borderColor = 'rgba(74,222,128,0.4)';
-    pubBtn.style.color = '#4ade80';
+    pubBtn.classList.remove('ryxa-unpublish-btn');
+    pubBtn.classList.add('ryxa-publish-btn');
+    pubBtn.style.borderColor = '';
+    pubBtn.style.color = '';
     if (coaching && coaching.listed_in_marketplace) {
       await sb.from('coaching_services').update({ listed_in_marketplace: false }).eq('id', currentCoachingId);
       coaching.listed_in_marketplace = false;

@@ -1544,8 +1544,10 @@ function updateProductPublishButton() {
   btn.style.display = 'inline-block';
   if (productsState.editing.is_active) {
     btn.textContent = 'Unpublish';
-    btn.style.borderColor = 'rgba(239,68,68,0.4)';
-    btn.style.color = '#ef4444';
+    btn.classList.remove('ryxa-publish-btn');
+    btn.classList.add('ryxa-unpublish-btn');
+    btn.style.borderColor = '';
+    btn.style.color = '';
     // Show marketplace toggle only when product is published
     if (marketplaceToggle) {
       marketplaceToggle.style.display = 'block';
@@ -1554,8 +1556,10 @@ function updateProductPublishButton() {
     }
   } else {
     btn.textContent = 'Publish';
-    btn.style.borderColor = 'rgba(74,222,128,0.4)';
-    btn.style.color = '#4ade80';
+    btn.classList.remove('ryxa-unpublish-btn');
+    btn.classList.add('ryxa-publish-btn');
+    btn.style.borderColor = '';
+    btn.style.color = '';
     if (marketplaceToggle) marketplaceToggle.style.display = 'none';
   }
 }
