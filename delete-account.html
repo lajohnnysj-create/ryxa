@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="shortcut icon" href="/favicon.ico">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Delete Your Account. Ryxa</title>
+<meta name="description" content="How to delete your Ryxa account and associated data, what gets removed, and what is retained.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://www.ryxa.io/delete-account.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Ryxa">
+<meta property="og:url" content="https://www.ryxa.io/delete-account.html">
+<meta property="og:title" content="Delete Your Account. Ryxa">
+<meta property="og:description" content="How to delete your Ryxa account and associated data, what gets removed, and what is retained.">
+<meta property="og:image" content="https://www.ryxa.io/og-image.png">
+<meta property="twitter:image" content="https://www.ryxa.io/og-image.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #07070f; --surface: #0f0f1a; --surface2: #161625;
+    --border: rgba(255,255,255,0.07); --border-hover: rgba(255,255,255,0.14);
+    --accent: #7c3aed; --accent2: #a855f7; --accent-glow: rgba(124,58,237,0.3);
+    --text: #f0eef8; --muted: #b4b2c8; --muted2: #c9c7dc;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scrollbar-width: thin; scrollbar-color: rgba(168,85,247,0.4) #0a0a14; }
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: #0a0a14; }
+  ::-webkit-scrollbar-thumb { background: rgba(168,85,247,0.4); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(168,85,247,0.6); }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+
+  .logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 20px; letter-spacing: -0.5px; display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text); }
+  .logo img { width: 38px; height: 38px; object-fit: contain; }
+  .logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); display: inline-block; }
+  .nav-cta { background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: 10px 22px; box-shadow: 0 0 20px var(--accent-glow); font-size: 14px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.2s; text-decoration: none; display: inline-block; }
+  .nav-cta:hover { background: #a855f7; transform: translateY(-1px); }
+
+  .step-list { list-style: none; display: flex; flex-direction: column; gap: 14px; margin: 4px 0 4px; counter-reset: step; }
+  .step-list li { display: flex; align-items: flex-start; gap: 14px; font-size: 15px; line-height: 1.65; color: var(--muted); font-weight: 300; }
+  .step-list li::before { counter-increment: step; content: counter(step); flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%; background: var(--surface2); border: 1px solid var(--border-hover); color: var(--accent2); font-weight: 600; font-size: 13px; display: flex; align-items: center; justify-content: center; font-family: 'DM Sans', sans-serif; }
+  .plain-list { list-style: none; display: flex; flex-direction: column; gap: 10px; margin: 4px 0; }
+  .plain-list li { display: flex; align-items: flex-start; gap: 10px; font-size: 15px; line-height: 1.65; color: var(--muted); font-weight: 300; }
+  .plain-list li::before { content: '→'; color: var(--accent2); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+
+  .callout { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; margin: 4px 0; }
+  .callout p { font-size: 14px; line-height: 1.7; color: var(--muted); margin: 0; font-weight: 300; }
+  .callout strong { color: var(--text); font-weight: 500; }
+
+  a.inline { color: var(--accent2); text-decoration: none; }
+  a.inline:hover { text-decoration: underline; }
+
+  @media (max-width: 768px) {
+    nav { padding: 16px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="site-header"></div>
+
+<div style="max-width:760px;margin:0 auto;padding:80px 48px 100px;">
+  <div style="margin-bottom:48px;">
+    <span style="font-size:12px;text-transform:uppercase;letter-spacing:0.1em;color:var(--accent2);font-weight:600;display:block;margin-bottom:12px;">Account</span>
+    <h1 style="font-family:'Syne',sans-serif;font-size:clamp(32px,5vw,48px);font-weight:800;letter-spacing:-2px;margin-bottom:12px;">Delete Your Account</h1>
+    <p style="color:var(--muted);font-size:14px;">How to permanently delete your Ryxa account and what happens to your data.</p>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:40px;font-size:15px;line-height:1.8;color:var(--muted);">
+
+    <div>
+      <p>Ryxa™ is a product of <strong style="color:var(--text);">MRLA Media LLC</strong>. You can delete your Ryxa account and its associated data at any time, directly from within the app. This page explains how to do it, and exactly what is removed and what is kept.</p>
+    </div>
+
+    <div>
+      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:16px;">Delete your account from the app</h2>
+      <p style="margin-bottom:16px;">If you can sign in, this is the fastest way:</p>
+      <ol class="step-list">
+        <li>Open Ryxa and sign in to your account.</li>
+        <li>Go to <strong style="color:var(--text);">Settings</strong>.</li>
+        <li>Select <strong style="color:var(--text);">Delete Account</strong>.</li>
+        <li>Confirm when prompted. Your account and data are permanently deleted right away.</li>
+      </ol>
+    </div>
+
+    <div>
+      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:16px;">Can't sign in?</h2>
+      <p>If you're unable to access your account, email us at <a class="inline" href="mailto:hello@ryxa.io">hello@ryxa.io</a> from the email address associated with your account and request deletion. We'll verify your identity and process the deletion for you.</p>
+    </div>
+
+    <div>
+      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:16px;">What gets deleted</h2>
+      <p style="margin-bottom:16px;">Deleting your account permanently removes your data from Ryxa. This includes:</p>
+      <ul class="plain-list">
+        <li>Your profile, username, and login credentials</li>
+        <li>Your Link in Bio, Media Kit, and any published pages</li>
+        <li>Courses, digital products, and 1:1 booking setups you created</li>
+        <li>Brand Deal CRM data: deals, brand contacts, contracts, invoices, and messages</li>
+        <li>Invoices, saved logos, tax entries, scripts, grid plans, and audit history</li>
+        <li>Uploaded files and images stored with your account</li>
+        <li>Subscriber lists and analytics tied to your account</li>
+      </ul>
+      <p style="margin-top:16px;">Deletion is permanent and cannot be undone. Once your account is deleted, your public pages stop resolving and your data cannot be recovered.</p>
+    </div>
+
+    <div>
+      <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:16px;">What is kept, and for how long</h2>
+      <div class="callout" style="margin-bottom:16px;">
+        <p><strong>Payment records are held by Stripe, not Ryxa.</strong> Payments you made or received through Ryxa are processed by Stripe. Stripe retains transaction records under its own policies and applicable financial and tax laws, independently of your Ryxa account. Deleting your Ryxa account does not delete records held by Stripe.</p>
+      </div>
+      <p>Ryxa may retain a minimal, non-identifying internal marker to confirm an account was deleted, and may keep limited records where required to comply with legal obligations, resolve disputes, or enforce our agreements. These records are kept only as long as necessary for those purposes and are not used to re-identify you.</p>
+    </div>
+
+    <div>
+      <p>Questions about deletion or your data? Contact us at <a class="inline" href="mailto:hello@ryxa.io">hello@ryxa.io</a>. For more on how we handle your information, see our <a class="inline" href="/privacy.html">Privacy Policy</a>.</p>
+    </div>
+
+  </div>
+</div>
+
+<div id="site-footer"></div>
+
+<script src="/site-nav.js"></script>
+</body>
+</html>
