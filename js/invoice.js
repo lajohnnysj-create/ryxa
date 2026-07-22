@@ -1313,7 +1313,29 @@ async function downloadInvoicePDFFile() {
     const fileName = 'Invoice-' + (invNum || '001').replace(/[^\w\-]/g, '') + '.pdf';
     const blob = new Blob([bytes], { type: 'application/pdf' });
 
-    // On iOS, an <a download> click just opens the PDF in the viewer (the
+    // Inside the native app, hand the bytes to the native save/share sheet.
+    // Neither browser delivery path below works in the Android WebView: the
+    // Web Share API is not exposed there, and Android's WebView ignores the
+    // download attribute on blob URLs, so the anchor click silently did
+    // nothing. The native bridge covers both platforms and matches how the
+    // other tools (contracts, signed PDFs) already save files.
+    if (window.RyxaNative && window.ReactNativeWebView) {
+      const base64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result).split(',')[1] || '');
+        reader.onerror = () => reject(new Error('Could not read PDF'));
+        reader.readAsDataURL(blob);
+      });
+      window.ReactNativeWebView.postMessage(JSON.stringify({
+        type: 'saveFile',
+        filename: fileName,
+        mime: 'application/pdf',
+        base64: base64
+      }));
+      return;
+    }
+
+    // On iOS Safari, an <a download> click just opens the PDF in the viewer (the
     // download attribute is ignored). The Web Share API opens the native share
     // sheet instead, where "Save to Files" (and Photos, Mail, etc.) is offered.
     // Use it when the browser can share this file; otherwise fall back to the
