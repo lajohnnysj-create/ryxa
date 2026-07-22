@@ -560,7 +560,13 @@ function iapApplyStorefrontGate() {
       // Request products at most once every 6s. Without this, while products
       // are failing to load (prices stay empty), every DOM mutation re-fires
       // iapLoadProducts, producing a storm of "couldn't communicate" errors.
-      if (iapNativeSectionVisible() && (!Object.keys(iapPrices).length || iapStorefront === null)) {
+      // Null storefront only means "still resolving" on Apple: getStorefront
+      // does not exist on Android, so there the storefront is null forever and
+      // keying the retry on it produced an endless 6s reload loop (visible as
+      // repeated external-links re-checks in the native logs). On Android the
+      // only reason to re-request is prices genuinely missing.
+      if (iapNativeSectionVisible() &&
+          (!Object.keys(iapPrices).length || (iapAppleAvailable() && iapStorefront === null))) {
         var now = Date.now();
         if (now - iapLastLoadAt > 6000) {
           iapLastLoadAt = now;
