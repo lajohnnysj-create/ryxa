@@ -33,6 +33,23 @@ function iapInApp() {
   return !!(window.RyxaNative && window.ReactNativeWebView);
 }
 
+// Which native platform the shell reports ('ios' | 'android'), set by the app
+// in window.RyxaNative. Everything in this file is the APPLE purchase rail, so
+// it must only ever render on iOS. Android has its own billing path and gets
+// the standard web/Stripe page instead. Without this check Android fell into
+// the non-US branch (getStorefront is iOS only, so the storefront resolves to
+// null there), which showed Apple UI and blocked Stripe checkout.
+function iapNativePlatform() {
+  try {
+    return (window.RyxaNative && window.RyxaNative.platform) || '';
+  } catch (e) {
+    return '';
+  }
+}
+function iapAppleAvailable() {
+  return iapInApp() && iapNativePlatform() === 'ios';
+}
+
 function iapPost(msg) {
   try { window.ReactNativeWebView.postMessage(JSON.stringify(msg)); } catch (e) {}
 }
@@ -107,7 +124,15 @@ function iapApplyCardRail(card, plan, appleOpen) {
 
 function iapRenderSection() {
   var host = document.getElementById('plans-billing-view');
-  if (!host || !iapInApp()) return;
+  if (!host) return;
+  if (!iapAppleAvailable()) {
+    // Not the Apple rail (web, or the Android app): make sure no Apple markup
+    // is left behind from a previous render, then leave the page alone.
+    try {
+      host.querySelectorAll('.pb-iap-slot').forEach(function (s) { s.innerHTML = ''; });
+    } catch (e) {}
+    return;
+  }
   if (!document.body.classList.contains('plans-billing-active')) return;
   var slots = host.querySelectorAll('.pb-iap-slot');
   if (!slots.length) return;
@@ -389,7 +414,12 @@ function iapUsStorefront() { return iapStorefront === 'USA'; }
 
 var _origPlansCheckout = null;
 function iapApplyStorefrontGate() {
-  if (!iapInApp()) return;
+  if (!iapAppleAvailable()) {
+    // Web and the Android app both use the normal Stripe page. Clear the gate
+    // in case a previous render set it, so the Stripe CTA is never hidden here.
+    document.body.classList.remove('iap-only');
+    return;
+  }
   // Until the storefront actually resolves, hold the dual-rail (Stripe) layout
   // rather than flashing IAP-only: every card already has valid Stripe prices,
   // so this shows something correct immediately, then only flips to IAP-only if
@@ -420,7 +450,10 @@ function iapApplyStorefrontGate() {
     _origPlansCheckout = plansBillingCheckout;
     // eslint-disable-next-line no-global-assign
     plansBillingCheckout = function (plan, btn) {
-      if (iapInApp() && !iapUsStorefront()) return; // IAP-only market
+      // Block only on the Apple rail outside the US. Android must keep working:
+      // it has no Apple storefront, so the old iapInApp() check silently
+      // disabled Stripe checkout for every Android user.
+      if (iapAppleAvailable() && !iapUsStorefront()) return; // IAP-only market
       return _origPlansCheckout(plan, btn);
     };
   }
@@ -453,7 +486,7 @@ function iapApplyStorefrontGate() {
       // Request products at most once every 6s. Without this, while products
       // are failing to load (prices stay empty), every DOM mutation re-fires
       // iapLoadProducts, producing a storm of "couldn't communicate" errors.
-      if (iapInApp() && (!Object.keys(iapPrices).length || iapStorefront === null)) {
+      if (iapAppleAvailable() && (!Object.keys(iapPrices).length || iapStorefront === null)) {
         var now = Date.now();
         if (now - iapLastLoadAt > 6000) {
           iapLastLoadAt = now;
@@ -513,7 +546,7 @@ async function iapApplySettingsManagement() {
     // In-app: working deep-link button. Web: hide button, show instructions.
     var btn = document.getElementById('settings-apple-manage-btn');
     var hint = document.getElementById('settings-apple-web-hint');
-    if (iapInApp()) {
+    if (iapAppleAvailable()) {
       if (btn) btn.style.display = 'block';
       if (hint) hint.style.display = 'none';
     } else {
@@ -530,7 +563,7 @@ async function iapApplySettingsManagement() {
 document.addEventListener('click', function (e) {
   var t = e.target;
   if (t && t.getAttribute && t.getAttribute('data-settings-action') === 'manage-apple') {
-    if (iapInApp()) iapPost({ type: 'iapManage' });
+    if (iapAppleAvailable()) iapPost({ type: 'iapManage' });
   }
 });
 
