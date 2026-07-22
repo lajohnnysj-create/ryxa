@@ -481,7 +481,34 @@ async function iapHandlePurchase(detail) {
 function iapUsStorefront() { return iapStorefront === 'USA'; }
 
 var _origPlansCheckout = null;
+// The reveal CSS must exist wherever a store button can render, NOT only in
+// store-only markets. US iOS shows the Apple button behind a "Prefer to pay
+// with Apple?" toggle, and these two rules are what collapse it by default and
+// open it on pb-iap-open. Injecting them after the store-only early return
+// left the US dual rail with no collapsed state: the button rendered open and
+// the toggle did nothing.
+function iapEnsureGateCss() {
+  if (document.getElementById('pb-iap-gate-css')) return;
+  var st = document.createElement('style');
+  st.id = 'pb-iap-gate-css';
+  st.textContent =
+    // Reveal is collapsed by default; open state adds pb-iap-open.
+    '.pb-iap-reveal{display:none;}' +
+    '.pb-iap-reveal.pb-iap-open{display:block;}' +
+    // Hide the Stripe CTA and its link-out disclosure in store-only markets.
+    'body.iap-only .pb-cta[data-plans-action="checkout"],' +
+    'body.iap-only .pb-disclosure-ext{display:none !important;}' +
+    // In store-only mode the per-card toggle is not used (the button shows
+    // directly), so hide any stray toggle and force reveals open.
+    'body.iap-only .pb-iap-toggle{display:none !important;}' +
+    'body.iap-only .pb-iap-reveal{display:block !important;}';
+  document.head.appendChild(st);
+}
+
 function iapApplyStorefrontGate() {
+  // Always, before any early return: the dual rail needs these rules too.
+  if (iapNativeSectionVisible()) iapEnsureGateCss();
+
   if (!iapNativeOnly()) {
     // Stripe is available here (web, US iOS, US Android). Clear the gate in
     // case a previous render set it, so the Stripe CTA is never hidden.
@@ -501,23 +528,6 @@ function iapApplyStorefrontGate() {
     : (iapStorefrontResolved && !iapUsStorefront());
   document.body.classList.toggle('iap-only', iapOnly);
 
-
-  if (!document.getElementById('pb-iap-gate-css')) {
-    var st = document.createElement('style');
-    st.id = 'pb-iap-gate-css';
-    st.textContent =
-      // Reveal is collapsed by default; open state adds pb-iap-open.
-      '.pb-iap-reveal{display:none;}' +
-      '.pb-iap-reveal.pb-iap-open{display:block;}' +
-      // Hide the Stripe CTA and its link-out disclosure in IAP-only markets.
-      'body.iap-only .pb-cta[data-plans-action="checkout"],' +
-      'body.iap-only .pb-disclosure-ext{display:none !important;}' +
-      // In IAP-only mode the per-card Apple toggle is not used (button shows
-      // directly), so hide any stray toggle and force reveals open.
-      'body.iap-only .pb-iap-toggle{display:none !important;}' +
-      'body.iap-only .pb-iap-reveal{display:block !important;}';
-    document.head.appendChild(st);
-  }
   // Hard block: even if a link-out element slips through, the checkout
   // function itself refuses outside the US storefront.
   if (typeof plansBillingCheckout === 'function' && !_origPlansCheckout) {
