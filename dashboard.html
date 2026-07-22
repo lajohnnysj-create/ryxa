@@ -2393,7 +2393,10 @@
     .main { padding-top: calc(var(--topbar-height) + env(safe-area-inset-top, 0px)); }
     html { overscroll-behavior-y: none; }
     .tool-area { padding: 20px 12px; }
-    .welcome-screen { padding-left: 0; padding-right: 0; padding-bottom: 20px; }
+    /* No bottom padding of its own: this sits inside .tool-area (20px) and
+       .main already reserves the fixed bottom nav's height below that, so any
+       padding here stacks on top of both and reads as a gap. */
+    .welcome-screen { padding-left: 0; padding-right: 0; padding-bottom: 0; }
     /* Full-screen chat fills between the fixed topbar and the bottom nav; the
        input bar stays pinned at the bottom of this fixed area, above the nav.
        (position:fixed + right:0 come from the base rule; ID specificity wins.) */
