@@ -217,14 +217,22 @@ function iapRenderSection() {
     // Android an absent price just means products have not loaded yet.
     if (iapGoogleAvailable()) note = iapAppleSubtext(plan, price, cycleWord);
 
+    // Button text. The Play label is longer than Apple's, and the price is
+    // already stated in the disclosure directly above the button and again in
+    // the note directly below it, so repeating it here only pushed the label
+    // onto a second line. Worse in currencies with longer strings. Apple keeps
+    // the price because its label is short enough to stay on one line.
+    var btnLabel = iapGoogleAvailable()
+      ? 'Pay with Google Play'
+      : ('Pay with Apple' + priceLabel);
+
     var buyBtn =
       '<button class="pb-iap-buy" data-sku="' + sku + '" style="display:flex;' +
       'align-items:center;justify-content:center;width:100%;margin-top:10px;padding:12px;' +
       'border-radius:10px;border:1px solid var(--border);background:var(--surface2);' +
       'color:var(--text);font-family:\'DM Sans\',sans-serif;font-size:14px;font-weight:600;' +
       'cursor:pointer;">' + (iapGoogleAvailable() ? PLAY_LOGO : APPLE_LOGO) +
-      '<span>' + (iapGoogleAvailable() ? 'Subscribe with Google Play' : 'Pay with Apple') +
-      priceLabel + '</span></button>' +
+      '<span>' + btnLabel + '</span></button>' +
       '<div class="pb-iap-note" style="margin-top:6px;font-size:11px;color:var(--muted);">' +
       note + '</div>';
 
