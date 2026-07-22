@@ -603,7 +603,18 @@ function _ryxaDispatchIap(ev) {
     iapResetBusy();
     iapHandlePurchase(ev);
   } else if (ev.type === 'iapPurchaseError') {
+    // Capture the busy flag BEFORE resetting it: iapResetBusy() clears it.
+    var wasPurchasing = iapBusy;
     iapResetBusy();
+    // A store error with no purchase underway is not a failed purchase. The
+    // native layer emits these for connection and catalog level problems (for
+    // example Play Billing reporting an unavailable catalog at launch), and
+    // alerting on them showed "The purchase did not go through" to users who
+    // were only sitting on the login screen. Log and ignore.
+    if (!wasPurchasing) {
+      try { console.warn('IAP error with no purchase in progress:', ev.code, ev.message); } catch (e) {}
+      return;
+    }
     if (ev.code !== 'user_cancelled' && ev.code !== 'E_USER_CANCELLED') {
       // Dedupe: suppress an identical error fired within 3s (guards against any
       // double-emit from the native layer producing two alerts).
