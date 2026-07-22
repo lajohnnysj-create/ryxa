@@ -319,9 +319,17 @@ async function iapHandlePurchase(detail) {
     if (!signedIn) {
       return; // wait for a session; the transaction stays pending for retry
     }
-    var resp = await sb.functions.invoke('verify-apple-purchase', {
-      body: { transactionId: detail.transactionId }
-    });
+    // Which store rail this purchase came from decides which verifier runs.
+    // Apple identifies a purchase by transactionId and the server re-fetches
+    // the signed transaction from Apple. Google has no id-only fetch: the
+    // purchaseToken IS the lookup key, so that is what gets sent. Both servers
+    // then treat the STORE's answer as authoritative, never the client's.
+    var isGoogleRail = iapNativePlatform() === 'android';
+    var verifyFn = isGoogleRail ? 'verify-google-purchase' : 'verify-apple-purchase';
+    var verifyBody = isGoogleRail
+      ? { purchaseToken: detail.purchaseToken }
+      : { transactionId: detail.transactionId };
+    var resp = await sb.functions.invoke(verifyFn, { body: verifyBody });
     // supabase-js puts a non-2xx into resp.error as a FunctionsHttpError whose
     // .context is the raw Response. The real reason (account_mismatch,
     // transaction_not_found, etc.) is in that response BODY, not resp.error.message
@@ -337,7 +345,7 @@ async function iapHandlePurchase(detail) {
           bodyText = await resp.error.context.text();
         }
       } catch (x) { bodyText = '(could not read body)'; }
-      console.error('verify-apple-purchase HTTP error', status, bodyText);
+      console.error(verifyFn + ' HTTP error', status, bodyText);
       // Reasons that are never actionable for the user on a redelivered/background
       // transaction get cleared SILENTLY (force-finished, no popup):
       //  - transaction_not_found (404): a cancelled/never-completed purchase, no
@@ -346,11 +354,13 @@ async function iapHandlePurchase(detail) {
       //    account (e.g. multi-account sandbox testing on one Apple ID). Apple
       //    blocks genuine duplicate purchases before this, so real users don't
       //    hit it; silently clearing avoids a false alarm on app reload.
-      if (bodyText.indexOf('transaction_not_found') !== -1 || bodyText.indexOf('account_mismatch') !== -1) {
+      if (bodyText.indexOf('transaction_not_found') !== -1 ||
+          bodyText.indexOf('purchase_not_found') !== -1 ||
+          bodyText.indexOf('account_mismatch') !== -1) {
         iapPost({ type: 'iapForceFinish', transactionId: detail.transactionId });
         return;
       }
-      var permReasons = ['wrong_bundle', 'unknown_product', 'expired'];
+      var permReasons = ['wrong_bundle', 'unknown_product', 'expired', 'not_active'];
       var hitPerm = permReasons.some(function (r) { return bodyText.indexOf(r) !== -1; });
       if (hitPerm) {
         iapPost({ type: 'iapForceFinish', transactionId: detail.transactionId });
@@ -371,7 +381,7 @@ async function iapHandlePurchase(detail) {
     } else {
       // Verify ran but did not return ok: surface the reason for debugging.
       var reason = (resp && (resp.error || (resp.data && resp.data.error))) || 'unknown';
-      console.error('verify-apple-purchase not ok:', reason);
+      console.error(verifyFn + ' not ok:', reason);
       // PERMANENT failures mean this transaction can NEVER be granted to this
       // user (e.g. its embedded appAccountToken belongs to a different/old
       // account). Left unfinished, it redelivers forever and BLOCKS all new
@@ -383,11 +393,12 @@ async function iapHandlePurchase(detail) {
       // redelivered/background transaction: transaction_not_found (cancelled) and
       // account_mismatch (bound to a different Ryxa account; sandbox multi-account
       // artifact, real users don't hit it since Apple blocks duplicates first).
-      if (reasonStr === 'transaction_not_found' || reasonStr === 'account_mismatch') {
+      if (reasonStr === 'transaction_not_found' || reasonStr === 'purchase_not_found' ||
+          reasonStr === 'account_mismatch') {
         iapPost({ type: 'iapForceFinish', transactionId: detail.transactionId });
         return;
       }
-      var permanent = ['wrong_bundle', 'unknown_product', 'expired'];
+      var permanent = ['wrong_bundle', 'unknown_product', 'expired', 'not_active'];
       if (permanent.indexOf(reasonStr) !== -1) {
         iapPost({ type: 'iapForceFinish', transactionId: detail.transactionId });
         alert('This purchase could not be applied and was cleared. If you were charged, contact hello@ryxa.io.');
