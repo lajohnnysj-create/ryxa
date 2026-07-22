@@ -264,9 +264,10 @@ function iapRenderSection() {
           // are wrong in IAP-only markets. Replace them with Apple's price.
           var bill = card.querySelector('.pb-disclosure-bill');
           if (bill) {
+            var cancelWhere = iapGoogleAvailable() ? 'the Play Store' : 'Apple Settings';
             bill.textContent = (plan === 'max')
-              ? ('7-day free trial, then ' + price + ' / ' + cycleWord + '. Cancel anytime in Apple Settings.')
-              : ('Billed ' + price + ' / ' + cycleWord + '. Cancel anytime in Apple Settings.');
+              ? ('7-day free trial, then ' + price + ' / ' + cycleWord + '. Cancel anytime in ' + cancelWhere + '.')
+              : ('Billed ' + price + ' / ' + cycleWord + '. Cancel anytime in ' + cancelWhere + '.');
           }
           // Headline already shows the full annual price + "/ year", so the
           // "$X billed annually" subline would be redundant. Clear it.
@@ -284,12 +285,14 @@ function iapRenderSection() {
           var sufP = cardP.querySelector('.pb-price-suffix');
           var subP = cardP.querySelector('.pb-price-sub');
           var billP = cardP.querySelector('.pb-disclosure-bill');
-          if (bigP) bigP.textContent = 'See App Store';
+          var storeName = iapGoogleAvailable() ? 'Google Play' : 'the App Store';
+          var storeAcct = iapGoogleAvailable() ? 'your Google Play account' : 'your Apple ID';
+          if (bigP) bigP.textContent = iapGoogleAvailable() ? 'See Google Play' : 'See App Store';
           if (sufP) sufP.textContent = '';
           if (subP) subP.textContent = '';
           if (billP) billP.textContent = (plan === 'max')
-            ? '7-day free trial. Pricing shown in the App Store at checkout, billed through your Apple ID.'
-            : 'Pricing shown in the App Store at checkout, billed through your Apple ID.';
+            ? ('7-day free trial. Pricing shown in ' + storeName + ' at checkout, billed through ' + storeAcct + '.')
+            : ('Pricing shown in ' + storeName + ' at checkout, billed through ' + storeAcct + '.');
         }
       }
     }
@@ -327,7 +330,7 @@ function iapRenderSection() {
       // timeout) can restore it instead of leaving "Opening App Store..." stuck.
       iapBusyBtn = btn;
       iapBusyLabel = span ? span.textContent : '';
-      if (span) span.textContent = 'Opening App Store...';
+      if (span) span.textContent = iapGoogleAvailable() ? 'Opening Google Play...' : 'Opening App Store...';
       iapPost({ type: 'iapPurchase', sku: btn.dataset.sku, appAccountToken: uid });
       // Safety timeout: if no result/error/cancel event arrives (e.g. the user
       // backgrounds the app at the sheet), un-stick the button.
@@ -477,11 +480,17 @@ function iapApplyStorefrontGate() {
     document.body.classList.remove('iap-only');
     return;
   }
-  // Until the storefront actually resolves, hold the dual-rail (Stripe) layout
-  // rather than flashing IAP-only: every card already has valid Stripe prices,
-  // so this shows something correct immediately, then only flips to IAP-only if
-  // the resolved storefront is confirmed non-US. Avoids the load-time flash.
-  var iapOnly = iapStorefrontResolved && !iapUsStorefront();
+  // iOS: until the storefront actually resolves, hold the dual-rail (Stripe)
+  // layout rather than flashing IAP-only. Every card already has valid Stripe
+  // prices, so this shows something correct immediately and only flips if the
+  // resolved storefront is confirmed non-US. Avoids the load-time flash.
+  // Android: no such grace. This line is only reached when iapNativeOnly() is
+  // already true, which on Android means Google has not confirmed external
+  // links for this user. Showing the Stripe CTA there, even briefly, would
+  // offer a rail the user may not be permitted to use, so it stays closed.
+  var iapOnly = iapGoogleAvailable()
+    ? true
+    : (iapStorefrontResolved && !iapUsStorefront());
   document.body.classList.toggle('iap-only', iapOnly);
 
 
