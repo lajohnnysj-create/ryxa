@@ -17,6 +17,13 @@ var iapRevealOpen = {};             // plan -> bool, preserves toggle state acro
 var iapLastErrSig = '';             // dedupe: last purchase-error signature
 var iapLastErrAt = 0;               // dedupe: timestamp of last error alert
 var iapLastLoadAt = 0;              // throttle: last iapLoadProducts request time
+// Android only. Whether Google reports the external content links program
+// available for this user, which is simultaneously the enrollment check and
+// the US eligibility check. Defaults false and STAYS false on any error or
+// non-answer: the Stripe link-out is US only, so an unknown region must fall
+// back to Play Billing, never to Stripe.
+var iapExternalLinksAvailable = false;
+var iapExternalLinksResolved = false;
 
 var IAP_SKUS = {
   pro: { monthly: 'io.ryxa.pro.monthly', annual: 'io.ryxa.pro.annual' },
@@ -28,6 +35,11 @@ var IAP_SKUS = {
 var APPLE_LOGO = '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" ' +
   'style="margin-right:8px;flex:0 0 auto;" aria-hidden="true">' +
   '<path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg>';
+
+// Google Play triangle, same sizing treatment as the Apple mark above.
+var PLAY_LOGO = '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" ' +
+  'style="margin-right:8px;flex:0 0 auto;" aria-hidden="true">' +
+  '<path d="M3.6 1.8a1 1 0 0 0-.5.9v18.6a1 1 0 0 0 .5.9l10-10.2-10-10.2zM15 8.9 5.4 1.4l11.1 6.4L15 8.9zm0 6.2 1.5 1.1-11.1 6.4L15 15.1zm2.9-4.6 3 1.7a1 1 0 0 1 0 1.7l-3 1.7-2-1.4-1.1-1.1 1.1-1.1 2-1.5z"/></svg>';
 
 function iapInApp() {
   return !!(window.RyxaNative && window.ReactNativeWebView);
@@ -49,6 +61,29 @@ function iapNativePlatform() {
 function iapAppleAvailable() {
   return iapInApp() && iapNativePlatform() === 'ios';
 }
+function iapGoogleAvailable() {
+  return iapInApp() && iapNativePlatform() === 'android';
+}
+
+// Whether a native store button (Apple IAP or Play Billing) is shown at all.
+// iOS always shows one: in the US as a secondary option beside Stripe, outside
+// it as the only option. Android shows one ONLY when the Stripe link-out is
+// unavailable, because the two are mutually exclusive there: US Android links
+// out under Google's external content links program, everywhere else pays
+// through Play Billing. Fail closed, so an unresolved signal shows Play.
+function iapNativeSectionVisible() {
+  if (!iapInApp()) return false;
+  if (iapGoogleAvailable()) return !iapExternalLinksAvailable;
+  return iapAppleAvailable();
+}
+
+// Whether the native store is the ONLY way to pay, which hides the Stripe CTA
+// and blocks Stripe checkout. Same rule as above, minus the US iOS dual rail.
+function iapNativeOnly() {
+  if (!iapInApp()) return false;
+  if (iapGoogleAvailable()) return !iapExternalLinksAvailable;
+  return iapAppleAvailable() && !iapUsStorefront();
+}
 
 function iapPost(msg) {
   try { window.ReactNativeWebView.postMessage(JSON.stringify(msg)); } catch (e) {}
@@ -63,13 +98,15 @@ function iapPost(msg) {
 // Build the Apple button's own subtext for a card: real billed amount + trial.
 // Max plans carry the 7-day free trial; Pro does not.
 function iapAppleSubtext(plan, price, cycleWord) {
-  if (!price) return 'Billed through your Apple ID. Manage or cancel anytime in Apple Settings.';
+  var acct = iapGoogleAvailable() ? 'Google Play account' : 'Apple ID';
+  var where = iapGoogleAvailable() ? 'the Play Store' : 'Apple Settings';
+  if (!price) return 'Billed through your ' + acct + '. Manage or cancel anytime in ' + where + '.';
   if (plan === 'max') {
     return '7-day free trial, then ' + price + ' / ' + cycleWord +
-      '. Auto-renews through your Apple ID until cancelled. Manage in Apple Settings.';
+      '. Auto-renews through your ' + acct + ' until cancelled. Manage in ' + where + '.';
   }
   return 'Billed ' + price + ' / ' + cycleWord +
-    '. Auto-renews through your Apple ID until cancelled. Manage in Apple Settings.';
+    '. Auto-renews through your ' + acct + ' until cancelled. Manage in ' + where + '.';
 }
 
 // US dual-rail: when the Apple option is opened on a card, swap that card to
@@ -125,9 +162,10 @@ function iapApplyCardRail(card, plan, appleOpen) {
 function iapRenderSection() {
   var host = document.getElementById('plans-billing-view');
   if (!host) return;
-  if (!iapAppleAvailable()) {
-    // Not the Apple rail (web, or the Android app): make sure no Apple markup
-    // is left behind from a previous render, then leave the page alone.
+  if (!iapNativeSectionVisible()) {
+    // No native rail here (web, or US Android where checkout links out to
+    // Stripe): clear any store markup left from a previous render, then leave
+    // the page alone.
     try {
       host.querySelectorAll('.pb-iap-slot').forEach(function (s) { s.innerHTML = ''; });
     } catch (e) {}
@@ -137,7 +175,10 @@ function iapRenderSection() {
   var slots = host.querySelectorAll('.pb-iap-slot');
   if (!slots.length) return;
   var cycle = (typeof plansBillingCycle !== 'undefined' && plansBillingCycle) ? plansBillingCycle : 'annual';
-  var us = iapUsStorefront();
+  // The US dual rail (Stripe primary, store button behind a toggle) exists
+  // only on iOS. On Android the two rails are mutually exclusive, so whenever
+  // the store button renders there it is the only option and shows directly.
+  var us = iapAppleAvailable() && iapUsStorefront();
 
   slots.forEach(function (slot) {
     var plan = slot.getAttribute('data-iap-plan'); // 'pro' | 'max'
@@ -172,13 +213,18 @@ function iapRenderSection() {
     var note = (!price && storefrontUnknown)
       ? 'Pricing shown in the App Store at checkout. Billed through your Apple ID.'
       : iapAppleSubtext(plan, price, cycleWord);
+    // storefrontUnknown is an Apple concept (getStorefront is iOS only), so on
+    // Android an absent price just means products have not loaded yet.
+    if (iapGoogleAvailable()) note = iapAppleSubtext(plan, price, cycleWord);
 
     var buyBtn =
       '<button class="pb-iap-buy" data-sku="' + sku + '" style="display:flex;' +
       'align-items:center;justify-content:center;width:100%;margin-top:10px;padding:12px;' +
       'border-radius:10px;border:1px solid var(--border);background:var(--surface2);' +
       'color:var(--text);font-family:\'DM Sans\',sans-serif;font-size:14px;font-weight:600;' +
-      'cursor:pointer;">' + APPLE_LOGO + '<span>Pay with Apple' + priceLabel + '</span></button>' +
+      'cursor:pointer;">' + (iapGoogleAvailable() ? PLAY_LOGO : APPLE_LOGO) +
+      '<span>' + (iapGoogleAvailable() ? 'Subscribe with Google Play' : 'Pay with Apple') +
+      priceLabel + '</span></button>' +
       '<div class="pb-iap-note" style="margin-top:6px;font-size:11px;color:var(--muted);">' +
       note + '</div>';
 
@@ -425,9 +471,9 @@ function iapUsStorefront() { return iapStorefront === 'USA'; }
 
 var _origPlansCheckout = null;
 function iapApplyStorefrontGate() {
-  if (!iapAppleAvailable()) {
-    // Web and the Android app both use the normal Stripe page. Clear the gate
-    // in case a previous render set it, so the Stripe CTA is never hidden here.
+  if (!iapNativeOnly()) {
+    // Stripe is available here (web, US iOS, US Android). Clear the gate in
+    // case a previous render set it, so the Stripe CTA is never hidden.
     document.body.classList.remove('iap-only');
     return;
   }
@@ -461,10 +507,10 @@ function iapApplyStorefrontGate() {
     _origPlansCheckout = plansBillingCheckout;
     // eslint-disable-next-line no-global-assign
     plansBillingCheckout = function (plan, btn) {
-      // Block only on the Apple rail outside the US. Android must keep working:
-      // it has no Apple storefront, so the old iapInApp() check silently
-      // disabled Stripe checkout for every Android user.
-      if (iapAppleAvailable() && !iapUsStorefront()) return; // IAP-only market
+      // Block wherever the native store is the only permitted rail: iOS
+      // outside the US, and Android wherever Google has not confirmed the
+      // external content links program applies to this user.
+      if (iapNativeOnly()) return; // store-only market
       return _origPlansCheckout(plan, btn);
     };
   }
@@ -497,7 +543,7 @@ function iapApplyStorefrontGate() {
       // Request products at most once every 6s. Without this, while products
       // are failing to load (prices stay empty), every DOM mutation re-fires
       // iapLoadProducts, producing a storm of "couldn't communicate" errors.
-      if (iapAppleAvailable() && (!Object.keys(iapPrices).length || iapStorefront === null)) {
+      if (iapNativeSectionVisible() && (!Object.keys(iapPrices).length || iapStorefront === null)) {
         var now = Date.now();
         if (now - iapLastLoadAt > 6000) {
           iapLastLoadAt = now;
@@ -538,26 +584,38 @@ async function iapApplySettingsManagement() {
   if (!stripeControls || !appleControls) return;
   var uid = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.id : null;
   if (!uid) return;
-  var isApple = false;
+  // A subscription bought through either store is managed by that store, not
+  // by the Stripe portal. Google subscriptions have to be included here or an
+  // Android subscriber would be shown Stripe controls that cannot touch their
+  // plan at all.
+  var isStoreManaged = false;
+  var storeSource = '';
   try {
     var q = await sb.from('subscriptions')
-      .select('source, apple_expires_at')
+      .select('source, apple_expires_at, google_expires_at')
       .eq('user_id', uid)
       .limit(1);
     if (q && q.data && q.data.length) {
-      isApple = q.data[0].source === 'apple' &&
-        q.data[0].apple_expires_at &&
-        new Date(q.data[0].apple_expires_at).getTime() > Date.now();
+      var rowS = q.data[0];
+      var appleLive = rowS.source === 'apple' && rowS.apple_expires_at &&
+        new Date(rowS.apple_expires_at).getTime() > Date.now();
+      var googleLive = rowS.source === 'google' && rowS.google_expires_at &&
+        new Date(rowS.google_expires_at).getTime() > Date.now();
+      isStoreManaged = appleLive || googleLive;
+      storeSource = appleLive ? 'apple' : (googleLive ? 'google' : '');
     }
   } catch (e) { /* on error, leave Stripe controls (safe default) */ }
 
-  if (isApple) {
+  if (isStoreManaged) {
     stripeControls.style.display = 'none';
     appleControls.style.display = 'block';
     // In-app: working deep-link button. Web: hide button, show instructions.
     var btn = document.getElementById('settings-apple-manage-btn');
     var hint = document.getElementById('settings-apple-web-hint');
-    if (iapAppleAvailable()) {
+    var canDeepLink =
+      (storeSource === 'apple' && iapAppleAvailable()) ||
+      (storeSource === 'google' && iapGoogleAvailable());
+    if (canDeepLink) {
       if (btn) btn.style.display = 'block';
       if (hint) hint.style.display = 'none';
     } else {
@@ -574,7 +632,7 @@ async function iapApplySettingsManagement() {
 document.addEventListener('click', function (e) {
   var t = e.target;
   if (t && t.getAttribute && t.getAttribute('data-settings-action') === 'manage-apple') {
-    if (iapAppleAvailable()) iapPost({ type: 'iapManage' });
+    if (iapAppleAvailable() || iapGoogleAvailable()) iapPost({ type: 'iapManage' });
   }
 });
 
@@ -632,6 +690,17 @@ function _ryxaDispatchIap(ev) {
     iapStorefrontResolved = true;
     // Full re-render so cards rebuild for the resolved storefront (US shows
     // Stripe prices; non-US applies the IAP deferral / Apple price).
+    if (typeof renderPlansBilling === 'function' &&
+        document.body.classList.contains('plans-billing-active')) {
+      renderPlansBilling();
+    }
+    iapRenderSection();
+    iapApplyStorefrontGate();
+  } else if (ev.type === 'iapExternalLinks') {
+    // Android only. Decides which rail this user gets, so a full re-render is
+    // needed: the answer can arrive after the plans page has already drawn.
+    iapExternalLinksAvailable = ev.available === true;
+    iapExternalLinksResolved = true;
     if (typeof renderPlansBilling === 'function' &&
         document.body.classList.contains('plans-billing-active')) {
       renderPlansBilling();
