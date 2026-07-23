@@ -1107,16 +1107,11 @@ async function checkUsernameAvailability(username, token) {
 
 function renderUsernameAvailable(cleaned) {
   const hint = document.getElementById('bio-username-hint');
-  const fullUrl = `https://www.ryxa.io/${cleaned}`;
   const isChanged = cleaned !== bioOriginalUsername;
   hint.innerHTML = `
     <div class="bio-s-6b6f9f">
       <span class="bio-s-f4cfc5">✓</span>
       <span>Your page will be at <strong class="bio-s-313aee">ryxa.io/${cleaned}</strong></span>
-      <button type="button" data-bio-action="copy-bio-link" data-bio-url="${fullUrl}"
-        class="bio-s-8911f1">
-        Copy link
-      </button>
     </div>${isChanged ? '<div class="bio-s-19cf92">Press save to update your username.</div>' : ''}`;
   hint.style.color = 'var(--muted)';
 }

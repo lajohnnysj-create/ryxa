@@ -602,17 +602,12 @@ async function checkMKUsernameAvailability(username, token) {
 
 function renderMKUsernameAvailable(cleaned) {
   const hint = document.getElementById('mk-username-hint');
-  const fullUrl = `https://www.ryxa.io/mediakit/${cleaned}`;
   const originalUname = (typeof bioOriginalUsername !== 'undefined') ? bioOriginalUsername : '';
   const isChanged = cleaned !== originalUname;
   hint.innerHTML = `
     <div class="bio-s-6b6f9f">
       <span class="bio-s-f4cfc5">✓</span>
       <span>Media kit URL: <strong class="bio-s-313aee">ryxa.io/mediakit/${escapeHtml(cleaned)}</strong></span>
-      <button type="button" data-mk-action="copy-mk-link" data-mk-url="${fullUrl}"
-        class="bio-s-8911f1">
-        Copy link
-      </button>
     </div>${isChanged ? '<div class="bio-s-19cf92">Press save to update your username.</div>' : ''}`;
   hint.style.color = 'var(--muted)';
 }
