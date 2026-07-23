@@ -3982,11 +3982,67 @@ function applyCurrencySymbols() {
 // LINK IN BIO
 // =====================================================
 const BIO_RESERVED = new Set([
-  'admin','about','api','blog','contact','dashboard','deal','brand-portal','faq','findthesnakes','ryxa',
-  'follower-audit','help','home','index','instructions','login','mail',
-  'pricing','privacy','reset-password','root','settings','signin','signup',
-  'support','terms','user','username','www',
-  'youtube','instagram','tiktok','twitter','facebook','google','snake','snakes'
+  // ---- Real site routes ----------------------------------------------
+  // Vercel serves a real file before the /:username catch-all, so a username
+  // matching any route below gets a bio page that can never load. These are
+  // not optional.
+  'about','admin','api','blog','contact','dashboard','deal','faq','help',
+  'home','index','instructions','learn','login','mail','pricing','privacy',
+  'redirecting','root','settings','signin','signup','support','terms',
+  'testimonials','tools','user','username','www','bio','mediakit','booking',
+  'course','portal','howmuch','findthesnakes','snake','snakes',
+
+  // Routes whose real path is hyphenated. The username cleaner STRIPS
+  // characters outside [a-z0-9_] rather than rejecting them, so a user typing
+  // "brand-portal" ends up with "brandportal". The hyphenated forms below can
+  // never match a username and are kept only for parity with the path list in
+  // api/bio.js; the joined forms are the ones that actually protect anything.
+  'brand-portal','brandportal',
+  'follower-audit','followeraudit',
+  'reset-password','resetpassword',
+  'data-deletion-status','datadeletionstatus',
+  'delete-account','deleteaccount',
+  'do-not-sell','donotsell',
+  'invoice-view','invoiceview',
+  'app-return','appreturn',
+  'purchase-complete','purchasecomplete',
+  'unsubscribed','resubscribed',
+
+  // ---- Tool pages -----------------------------------------------------
+  'toolslinkinbio','toolscoursebuilder','toolscoaching','toolsbranddealcrm',
+  'toolsmediakit','toolsscriptbuilder','toolsdesignstudio','toolsaidesignstudio',
+  'toolsgridplanner','toolsfolloweraudit','toolsphotoeditor','toolsqrgenerator',
+  'toolsinvoicegenerator','toolssignpdf','toolsthumbnailanalyzer',
+  'toolscontractanalyzer','toolsdigitalproducts','toolsimagestudio',
+  'toolssubscribers','toolscalendar','toolschatbox',
+
+  // ---- Brand ----------------------------------------------------------
+  'ryxa','ryxaapp','ryxaio','ryxahq','ryxainc','ryxamedia','ryxateam',
+  'ryxaofficial','ryxasupport','ryxahelp','getryxa','myryxa','teamryxa',
+
+  // ---- Trust and impersonation ----------------------------------------
+  // A page at ryxa.io/<name> reads as official to a visitor, so anything a
+  // support or billing message might plausibly link to is held back.
+  'official','staff','team','moderator','security','verify','verified',
+  'billing','payment','payments','checkout','invoice','invoices','refund',
+  'refunds','account','accounts','auth','oauth','callback','webhook',
+  'webhooks','legal','dmca','abuse','report','status','careers','jobs',
+  'press','partner','partners','affiliate','affiliates','sales','enterprise',
+  'docs','documentation','developer','developers','feedback','notifications',
+
+  // ---- Platform and technical -----------------------------------------
+  'app','apps','ios','android','mobile','cdn','assets','static','files',
+  'upload','uploads','download','downloads','images','media','beta','alpha',
+  'demo','sandbox','staging','null','undefined',
+
+  // ---- Payment brands --------------------------------------------------
+  // A Ryxa-hosted page on one of these paths is a ready-made phishing surface.
+  'stripe','paypal','venmo','cashapp','applepay','googlepay',
+
+  // ---- Social platforms ------------------------------------------------
+  'youtube','instagram','tiktok','twitter','facebook','google','linkedin',
+  'threads','snapchat','pinterest','reddit','discord','twitch','apple',
+  'microsoft','amazon','meta','github','gitlab'
 ]);
 const BIO_SOCIAL_FIELDS = [
   { key:'instagram', label:'Instagram', placeholder:'yourhandle', type:'username', urlBase:'instagram.com/',
