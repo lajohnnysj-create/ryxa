@@ -1033,7 +1033,12 @@
   .app-band-badge img { display: block; height: 47px; width: auto; }
   @media (max-width: 640px) {
     .app-band { padding: 40px 20px; }
-    .app-band-inner { flex-direction: column; align-items: flex-start; padding: 24px; }
+    .app-band-inner { flex-direction: column; align-items: flex-start; gap: 18px; padding: 24px; }
+    /* flex-basis follows the MAIN AXIS. The 320px above is a width in the row
+       layout, but this rule switches the axis to vertical, where the same
+       value becomes a height and flex-grow stretches it further. That inflated
+       the text block and pushed the badge to the bottom of the card. */
+    .app-band-text { flex: 0 1 auto; width: 100%; }
   }
 </style>
 
