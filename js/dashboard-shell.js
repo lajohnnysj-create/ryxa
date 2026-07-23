@@ -379,7 +379,11 @@ var isPwaMode = window.matchMedia('(display-mode: standalone)').matches
     document.body.offsetHeight; // force synchronous layout for all fixed elements
     try { window.scrollTo(0, window.scrollY); } catch (e) {}
     requestAnimationFrame(function () {
-      if (navVisible) { nav.style.transform = ''; }
+      // Restore the compensating offset rather than clearing to empty. This
+      // runs on every scroll, so clearing would wipe a correction that
+      // healNavPosition is holding and the bar would jump back out of place
+      // the first time the user scrolled.
+      if (navVisible) { nav.style.transform = navCompTransform(nav); }
     });
   }
   function scheduleNudge() {
@@ -397,6 +401,120 @@ var isPwaMode = window.matchMedia('(display-mode: standalone)').matches
   function nudgeOnResume() {
     nudgeBottomNav();
     setTimeout(nudgeBottomNav, 200);
+    // Blind nudges are not enough on their own: see healNavPosition below.
+    startNavWatch();
+  }
+
+  // ---------------------------------------------------------------------
+  // Verified re-anchor.
+  //
+  // nudgeBottomNav is a blind poke: it forces a reflow and hopes WKWebView
+  // re-anchors the fixed bar. It usually works. When it does not, nothing
+  // notices and nothing retries, which is why the bar still occasionally
+  // stays detached after a relaunch no matter how many nudge triggers are
+  // added. Adding more triggers cannot fix a poke that silently fails.
+  //
+  // This measures instead. A bar at bottom:0 must have its bottom edge on the
+  // bottom of the layout viewport; anything else is drift, in pixels, and can
+  // be corrected directly.
+  // ---------------------------------------------------------------------
+
+  // Drift in px: positive means the bar is sitting below the viewport edge.
+  // Returns null when there is nothing meaningful to measure.
+  function navBottomDrift() {
+    var nav = document.getElementById('mobile-bottom-nav');
+    if (!nav) return null;
+    if (getComputedStyle(nav).display === 'none') return null;
+    // The bar is deliberately hidden while the keyboard is up and the viewport
+    // is mid-change, so any reading taken then is meaningless.
+    if (document.documentElement.classList.contains('kb-open')) return null;
+    var comp = nav.dataset.navComp ? parseFloat(nav.dataset.navComp) : 0;
+    var r = nav.getBoundingClientRect();
+    // Add back our own correction so this reads WKWebView's idea of where the
+    // bar is, not ours. Without this a recovered browser would still look
+    // "correct" purely because we were holding it in place.
+    return (r.bottom + comp) - window.innerHeight;
+  }
+
+  // position:fixed anchors to the LAYOUT viewport, so innerHeight is the right
+  // comparison even when visualViewport differs (URL bar, keyboard).
+  // The transform the bar should carry right now: our correction if one is
+  // being held, otherwise nothing.
+  function navCompTransform(nav) {
+    var c = nav && nav.dataset.navComp ? parseFloat(nav.dataset.navComp) : 0;
+    return c ? 'translateY(' + (-c) + 'px)' : '';
+  }
+
+  // The Live Preview pill is a second position:fixed element and drifts from
+  // the same stale viewport geometry, so the nav's measured drift is also its
+  // correction; there is no need to measure it separately. Its base transform
+  // (translateX(-50%) for centring, translateZ(0) for the compositor) has to be
+  // preserved, so the offset is appended rather than replacing it.
+  var FAB_BASE_TRANSFORM = 'translateX(-50%) translateZ(0)';
+  function applyFabComp(px) {
+    var fabs = document.querySelectorAll('.preview-fab');
+    for (var i = 0; i < fabs.length; i++) {
+      if (getComputedStyle(fabs[i]).display === 'none') continue;
+      fabs[i].style.transform = px
+        ? FAB_BASE_TRANSFORM + ' translateY(' + (-px) + 'px)'
+        : '';
+    }
+  }
+
+  function applyNavComp(px) {
+    var nav = document.getElementById('mobile-bottom-nav');
+    applyFabComp(px);
+    if (!nav) return;
+    if (!px) {
+      delete nav.dataset.navComp;
+      nav.style.transform = '';
+      return;
+    }
+    nav.dataset.navComp = String(px);
+    nav.style.transform = 'translateY(' + (-px) + 'px)';
+  }
+
+  function healNavPosition(attempt) {
+    var drift = navBottomDrift();
+    if (drift === null) return;
+    // Within a pixel is correct. Drop any correction we were holding, because
+    // a genuine re-anchor is always preferable to an offset we have to track.
+    if (Math.abs(drift) <= 1) { applyNavComp(0); return; }
+    if (attempt < 3) {
+      applyNavComp(0);
+      nudgeBottomNav();
+      setTimeout(function () { healNavPosition(attempt + 1); }, 120);
+      return;
+    }
+    // The reflow did not take. Push the bar into place directly. This cannot
+    // fail the way the poke does, because it does not depend on WKWebView
+    // recomputing anything. It is re-measured on every later trigger and
+    // dropped the moment the browser starts anchoring correctly on its own.
+    applyNavComp(drift);
+    try {
+      console.warn('bottom nav re-anchor failed, applied ' + Math.round(drift) + 'px correction');
+    } catch (e) {}
+  }
+
+  // Resume geometry can settle several frames late, and a cold restore can
+  // land well after first paint, so check across a few seconds rather than
+  // once. Cheap: each pass is one rect read unless something is actually wrong.
+  // Re-apply a held correction to a pill that has only just become visible.
+  // showTool swaps tools without any viewport change, so nothing else would
+  // prompt it, and the pill would appear at the uncorrected position.
+  function reapplyFabComp() {
+    var nav = document.getElementById('mobile-bottom-nav');
+    var c = nav && nav.dataset.navComp ? parseFloat(nav.dataset.navComp) : 0;
+    if (c) applyFabComp(c);
+  }
+  window.__ryxaReapplyFabComp = reapplyFabComp;
+
+  var _navWatchT = [];
+  function startNavWatch() {
+    _navWatchT.forEach(clearTimeout);
+    _navWatchT = [0, 150, 400, 900, 1800, 3000].map(function (ms) {
+      return setTimeout(function () { healNavPosition(0); }, ms);
+    });
   }
   if (window.visualViewport) {
     window.visualViewport.addEventListener('resize', scheduleNudge);
@@ -481,6 +599,9 @@ var isPwaMode = window.matchMedia('(display-mode: standalone)').matches
     setTimeout(nudgeBottomNav, 250);
     setTimeout(nudgeBottomNav, 700);
     setTimeout(nudgeBottomNav, 1500);
+    // And verify, rather than assuming the nudges landed. A cold relaunch that
+    // restores straight into a tool is the case that has kept slipping through.
+    startNavWatch();
   }
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', bootNudges);
@@ -494,7 +615,13 @@ var isPwaMode = window.matchMedia('(display-mode: standalone)').matches
   // Preview pill can render against stale WKWebView viewport geometry and float
   // detached with nothing to re-anchor them. showTool() calls this on every
   // render to cover that case.
+  window.addEventListener('orientationchange', function () { startNavWatch(); });
+  window.addEventListener('resize', function () { healNavPosition(0); }, { passive: true });
   window.__ryxaNudgeNav = nudgeOnResume;
+  // Exposed so the native shell can trigger a verified re-anchor on app
+  // resume, which is a far more reliable signal than any web event fired
+  // inside a WKWebView.
+  window.__ryxaHealNav = function () { startNavWatch(); };
 })();
 
 // Instant tier paint: the sidebar plan label is hidden by body.tier-loading
@@ -2542,6 +2669,10 @@ function showTool(tool) {
   // locked tools to Plans & Billing, so a cleanup below it would be skipped on
   // exactly the path that lands the user on another scrolling page.
   ryxaClosePreviewSheet();
+  // The Live Preview pill only exists for two tools. If a fixed-position
+  // correction is currently being held, re-apply it to a pill that is only
+  // now becoming visible.
+  if (window.__ryxaReapplyFabComp) window.__ryxaReapplyFabComp();
 
   // Tier gate: tools above the user's plan don't render a locked preview;
   // they route straight to Plans & Billing (the single upgrade surface).
