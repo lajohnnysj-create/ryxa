@@ -9,6 +9,10 @@
     {
       "path": "/api/cron/google-ack-sweep",
       "schedule": "0 */6 * * *"
+    },
+    {
+      "path": "/api/cron/stripe-reconcile",
+      "schedule": "0 8 * * *"
     }
   ],
   "redirects": [
