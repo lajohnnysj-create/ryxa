@@ -4542,6 +4542,35 @@
   .bio-s-6f2ad9:hover { background:rgba(124,58,237,0.2); }
   .bio-s-bee3a2 { padding:10px 18px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px var(--accent-glow); }
   .bio-s-00e937 { background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap; }
+    /* Publish status row (Link in Bio + Media Kit share these classes).
+       A flex item will not shrink below its content's intrinsic width unless
+       min-width is cleared, so the "Live at ryxa.io/username [Copy]" line was
+       forcing the row wider than the screen instead of wrapping. */
+    .bio-s-00e937 > .bio-s-7e30d2 { min-width:0;flex:1 1 auto; }
+    .bio-s-00e937 > .bio-s-7e30d2 > div { min-width:0; }
+    /* The status dot is a fixed 8px circle. Without this it is a flex item
+       like any other and squashes into an oval as the row tightens. */
+    .bio-s-fff88d { flex-shrink:0; }
+    /* Long usernames have no natural break point, so allow one anywhere
+       rather than letting the URL push the layout sideways. */
+    .bio-s-00e937 .bio-s-e769ff { overflow-wrap:anywhere; }
+
+    @media (max-width: 640px) {
+      /* Stack instead of wrapping. With space-between and flex-wrap, the
+         button dropped to its own line and sat left-aligned under the text,
+         which read as misaligned rather than deliberate. Full width makes it
+         an obvious tap target and squares the row off. */
+      .bio-s-00e937 { flex-direction:column;align-items:stretch;gap:12px;padding:14px; }
+      .bio-s-00e937 > .bio-s-7e30d2 { align-items:flex-start; }
+      /* Nudge the dot down to sit on the label's text line rather than
+         floating at the top of a two-line block. */
+      .bio-s-00e937 .bio-s-fff88d { margin-top:6px; }
+      .bio-s-00e937 > .ryxa-publish-btn,
+      .bio-s-00e937 > .ryxa-unpublish-btn { width:100%;justify-content:center; }
+      /* The Copy button sat inline after the URL and was the first thing to
+         be pushed off screen. Give it its own line with room to be tapped. */
+      .bio-s-00e937 .bio-s-eaca75 { display:inline-block;margin-left:0;margin-top:6px;padding:5px 10px;font-size:12px; }
+    }
   .bio-s-7e30d2 { display:flex;align-items:center;gap:10px; }
   .bio-s-fff88d { width:8px;height:8px;border-radius:50%;background:var(--muted2); }
   .bio-s-e2b2a1 { font-size:14px;font-weight:500;color:var(--text); }
