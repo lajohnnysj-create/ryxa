@@ -4555,6 +4555,31 @@
        rather than letting the URL push the layout sideways. */
     .bio-s-00e937 .bio-s-e769ff { overflow-wrap:anywhere; }
 
+    /* Live URL chip (Link in Bio + Media Kit).
+       Replaces the old "Live at <bold url> [Copy]" line, which put three
+       competing elements on one row and gave the copy action an 11px pill
+       that was hard to hit on a phone. The whole chip is the button: the URL
+       is the affordance, and the icon only signals what tapping does. */
+    .ryxa-url-chip { display:inline-flex;align-items:center;gap:7px;max-width:100%;
+      margin-top:4px;padding:5px 10px;background:rgba(124,58,237,0.10);
+      border:1px solid rgba(124,58,237,0.28);border-radius:7px;color:#c4b5fd;
+      font-family:'DM Sans',sans-serif;font-size:12.5px;line-height:1.35;
+      text-align:left;cursor:pointer;
+      transition:background .15s,border-color .15s,color .15s; }
+    .ryxa-url-chip:hover { background:rgba(124,58,237,0.16);border-color:rgba(124,58,237,0.45); }
+    .ryxa-url-chip:focus-visible { outline:2px solid rgba(124,58,237,0.6);outline-offset:2px; }
+    /* min-width:0 lets a long username wrap inside the chip instead of
+       stretching it past the card edge. */
+    .ryxa-url-chip-url { min-width:0;overflow-wrap:anywhere; }
+    .ryxa-url-chip-ico { flex-shrink:0;opacity:0.7; }
+    .ryxa-url-chip-ico-done { display:none; }
+    /* Copied state is a class rather than inline styles, so the icon swap and
+       the colour change stay in CSS and the markup survives the round trip. */
+    .ryxa-url-chip.copied { background:rgba(74,222,128,0.14);
+      border-color:rgba(74,222,128,0.40);color:#4ade80; }
+    .ryxa-url-chip.copied .ryxa-url-chip-ico-copy { display:none; }
+    .ryxa-url-chip.copied .ryxa-url-chip-ico-done { display:inline;opacity:1; }
+
     @media (max-width: 640px) {
       /* Stack instead of wrapping. With space-between and flex-wrap, the
          button dropped to its own line and sat left-aligned under the text,
@@ -4567,9 +4592,10 @@
       .bio-s-00e937 .bio-s-fff88d { margin-top:6px; }
       .bio-s-00e937 > .ryxa-publish-btn,
       .bio-s-00e937 > .ryxa-unpublish-btn { width:100%;justify-content:center; }
-      /* The Copy button sat inline after the URL and was the first thing to
-         be pushed off screen. Give it its own line with room to be tapped. */
-      .bio-s-00e937 .bio-s-eaca75 { display:inline-block;margin-left:0;margin-top:6px;padding:5px 10px;font-size:12px; }
+      /* Full width on a phone: the chip is the primary way to get the link,
+         so give it the whole row and a comfortable tap height. */
+      .bio-s-00e937 .ryxa-url-chip { display:flex;width:100%;padding:8px 10px;
+        justify-content:space-between; }
     }
   .bio-s-7e30d2 { display:flex;align-items:center;gap:10px; }
   .bio-s-fff88d { width:8px;height:8px;border-radius:50%;background:var(--muted2); }
