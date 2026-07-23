@@ -1514,7 +1514,7 @@ async function saveMediaKit() {
   if (!isPro()) { showMKStatus('error', 'Media Kit is a Pro feature.'); return; }
   const btn = document.getElementById('mk-save-btn');
   btn.disabled = true;
-  btn.textContent = 'Saving…';
+  btn.classList.add('btn-busy');
   try {
     // Username (shared with Link in Bio)
     const uname = document.getElementById('mk-username').value.trim();
@@ -1636,15 +1636,23 @@ async function saveMediaKit() {
     await deleteMKStaleBgs();
     updateMKPublishUI();
     showMKStatus('success', 'Saved');
-    // Re-render username hint so "Press save to change username" disappears
+    // The saved name is now the baseline for rename detection. Without this
+    // bioOriginalUsername kept its pre-save value, so the "press save" prompt
+    // stayed up after saving and the hint re-render below could not clear it.
     const mkUname = document.getElementById('mk-username')?.value?.trim();
+    if (mkUname && typeof bioOriginalUsername !== 'undefined') bioOriginalUsername = mkUname;
+    // The change is committed, so put the field back behind its lock rather
+    // than leaving it open to an accidental edit.
+    if (typeof setUsernameLocked === 'function') {
+      setUsernameLocked('mk-username', 'mk-username-lock', true);
+    }
     if (mkUname) renderMKUsernameAvailable(mkUname);
   } catch (e) {
     console.error(e);
     showMKStatus('error', e.message || 'Save failed.');
   } finally {
     btn.disabled = false;
-    btn.textContent = 'Save';
+    btn.classList.remove('btn-busy');
   }
 }
 
@@ -2534,7 +2542,7 @@ async function toggleMediaKitPublish() {
   }
   const btn = document.getElementById('mk-publish-btn');
   btn.disabled = true;
-  btn.textContent = wantPublish ? 'Publishing…' : 'Unpublishing…';
+  btn.classList.add('btn-busy');
   try {
     mkState.published = wantPublish;
     await saveMediaKit();
@@ -2545,6 +2553,7 @@ async function toggleMediaKitPublish() {
     showMKStatus('error', 'Failed to ' + (wantPublish ? 'publish' : 'unpublish'));
   } finally {
     btn.disabled = false;
+    btn.classList.remove('btn-busy');
     updateMKPublishUI();
   }
 }

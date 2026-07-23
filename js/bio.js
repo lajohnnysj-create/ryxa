@@ -1125,27 +1125,35 @@ function renderUsernameAvailable(cleaned) {
 // editors). The field is readonly until the pencil is pressed, rather than
 // unlocking on focus as it used to: a stray tap should not put a creator into
 // edit state on a field whose change breaks every link they have shared.
-function toggleUsernameLock(inputId, hintId, btnId) {
+function setUsernameLocked(inputId, btnId, locked) {
   const input = document.getElementById(inputId);
-  if (!input) return;
+  if (!input) return null;
   const wrap = input.closest('.bio-username-prefix-wrap');
-  if (!wrap) return;
+  if (!wrap) return null;
   const btn = document.getElementById(btnId);
-  const editing = !wrap.classList.contains('uname-editing');
-  wrap.classList.toggle('uname-editing', editing);
-  if (btn) btn.setAttribute('aria-label', editing ? 'Done editing username' : 'Edit username');
-
-  if (editing) {
+  wrap.classList.toggle('uname-editing', !locked);
+  if (btn) btn.setAttribute('aria-label', locked ? 'Edit username' : 'Done editing username');
+  if (locked) {
+    input.setAttribute('readonly', 'readonly');
+    input.blur();
+  } else {
     input.removeAttribute('readonly');
     input.focus();
     // Caret to the end rather than selecting everything, so the next keystroke
     // appends instead of wiping the name.
     try { input.setSelectionRange(input.value.length, input.value.length); } catch (e) {}
-    return;
   }
+  return input;
+}
 
-  input.setAttribute('readonly', 'readonly');
-  input.blur();
+function toggleUsernameLock(inputId, hintId, btnId) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  const wrap = input.closest('.bio-username-prefix-wrap');
+  if (!wrap) return;
+  const editing = !wrap.classList.contains('uname-editing');
+  setUsernameLocked(inputId, btnId, !editing);
+  if (editing) return;
 
   const hint = document.getElementById(hintId);
   if (!hint) return;
@@ -4658,7 +4666,7 @@ async function saveBio() {
   }
   const btn = document.getElementById('bio-save-btn');
   btn.disabled = true;
-  btn.textContent = 'Saving…';
+  btn.classList.add('btn-busy');
   try {
     // Validate username if one is entered (required if they want to publish, optional as draft)
     const uname = bioState.username.trim();
@@ -4834,14 +4842,21 @@ async function saveBio() {
 
     updatePublishUI();
     showBioStatus('success', 'Saved');
-    // Re-render username hint so "Press save to change username" disappears
+    // The saved name is now the baseline for rename detection. Without this
+    // bioOriginalUsername kept its pre-save value, so the "press save" prompt
+    // stayed up after saving and the hint re-render below could not clear it.
+    bioOriginalUsername = bioState.username;
+    // The change is committed, so put the field back behind its lock rather
+    // than leaving it open to an accidental edit.
+    setUsernameLocked('bio-username', 'bio-username-lock', true);
+    // Re-render username hint so the pending-save prompt disappears
     if (bioState.username) renderUsernameAvailable(bioState.username);
   } catch (e) {
     console.error(e);
     showBioStatus('error', e.message || 'Save failed.');
   } finally {
     btn.disabled = false;
-    btn.textContent = 'Save';
+    btn.classList.remove('btn-busy');
   }
 }
 
@@ -4872,7 +4887,7 @@ async function togglePublish() {
   }
   const btn = document.getElementById('bio-publish-btn');
   btn.disabled = true;
-  btn.textContent = wantPublish ? 'Publishing…' : 'Unpublishing…';
+  btn.classList.add('btn-busy');
   try {
     bioState.published = wantPublish;
     await saveBio();
@@ -4883,6 +4898,7 @@ async function togglePublish() {
     showBioStatus('error', 'Failed to ' + (wantPublish ? 'publish' : 'unpublish'));
   } finally {
     btn.disabled = false;
+    btn.classList.remove('btn-busy');
     updatePublishUI();
   }
 }
