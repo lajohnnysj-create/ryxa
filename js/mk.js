@@ -2560,7 +2560,13 @@ function updateMKPublishUI() {
     dot.style.background = '#4ade80';
     label.textContent = 'Published';
     sub.innerHTML = uname
-      ? `Live at <strong class="bio-s-313aee">ryxa.io/mediakit/${escapeHtml(uname)}</strong> <button type="button" data-mk-action="copy-mk-link" data-mk-url="https://ryxa.io/mediakit/${escapeHtml(uname)}" class="bio-s-eaca75">Copy</button>`
+      ? `<button type="button" class="ryxa-url-chip" data-mk-action="copy-mk-link"`
+        + ` data-mk-url="https://ryxa.io/mediakit/${escapeHtml(uname)}"`
+        + ` aria-label="Copy your media kit link">`
+        + `<span class="ryxa-url-chip-url">ryxa.io/mediakit/${escapeHtml(uname)}</span>`
+        + `<svg class="ryxa-url-chip-ico ryxa-url-chip-ico-copy" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`
+        + `<svg class="ryxa-url-chip-ico ryxa-url-chip-ico-done" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>`
+        + `</button>`
       : 'Your media kit is live.';
     btn.textContent = 'Unpublish';
     btn.style.display = '';

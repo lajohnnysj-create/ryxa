@@ -1122,6 +1122,29 @@ function renderUsernameAvailable(cleaned) {
 }
 
 async function copyBioLink(url, btn) {
+  // The URL chip holds a span and two icons, so the textContent swap below
+  // would wipe its markup and leave a bare word behind. It carries its copied
+  // state as a class instead, which CSS turns into the tick and the colour.
+  const isChip = btn && btn.classList && btn.classList.contains('ryxa-url-chip');
+  if (isChip) {
+    let ok = true;
+    try {
+      await navigator.clipboard.writeText(url);
+    } catch (e) {
+      const ta = document.createElement('textarea');
+      ta.value = url;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); } catch (e2) { ok = false; }
+      document.body.removeChild(ta);
+    }
+    if (!ok) return;
+    btn.classList.add('copied');
+    setTimeout(() => btn.classList.remove('copied'), 1500);
+    return;
+  }
   try {
     await navigator.clipboard.writeText(url);
     const original = btn.textContent;
@@ -1137,6 +1160,7 @@ async function copyBioLink(url, btn) {
     }, 1500);
   } catch (e) {
     // Fallback for browsers without clipboard API
+    const fallbackOriginal = btn.textContent;
     const ta = document.createElement('textarea');
     ta.value = url;
     ta.style.position = 'fixed';
@@ -1146,7 +1170,9 @@ async function copyBioLink(url, btn) {
     try { document.execCommand('copy'); btn.textContent = 'Copied ✓'; }
     catch { btn.textContent = 'Copy failed'; }
     document.body.removeChild(ta);
-    setTimeout(() => { btn.textContent = 'Copy link'; }, 1500);
+    // Restore what the button actually said, not a hardcoded label: this path
+    // is shared by buttons reading "Copy" and "Copy link".
+    setTimeout(() => { btn.textContent = fallbackOriginal; }, 1500);
   }
 }
 
@@ -4833,8 +4859,17 @@ function updatePublishUI() {
   if (bioState.published) {
     dot.style.background = '#4ade80';
     label.textContent = 'Published';
+    // The whole chip is the copy button: URL as the affordance, icon only to
+    // say what tapping does. "Live at" is dropped, the label directly above
+    // already reads "Published".
     sub.innerHTML = bioState.username
-      ? 'Live at <strong class="bio-s-313aee">ryxa.io/' + bioState.username + '</strong> <button type="button" data-bio-action="copy-bio-link" data-bio-url="https://ryxa.io/' + bioState.username + '" class="bio-s-eaca75">Copy</button>'
+      ? '<button type="button" class="ryxa-url-chip" data-bio-action="copy-bio-link"'
+        + ' data-bio-url="https://ryxa.io/' + bioState.username + '"'
+        + ' aria-label="Copy your page link">'
+        + '<span class="ryxa-url-chip-url">ryxa.io/' + bioState.username + '</span>'
+        + '<svg class="ryxa-url-chip-ico ryxa-url-chip-ico-copy" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>'
+        + '<svg class="ryxa-url-chip-ico ryxa-url-chip-ico-done" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>'
+        + '</button>'
       : 'Your page is live.';
     btn.textContent = 'Unpublish';
     btn.style.display = '';
