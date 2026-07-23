@@ -1301,108 +1301,69 @@ async function fetchMediaKitData(username) {
     const kits = await kitRes.json();
     const kit = kits[0] || null;
 
-    // Step 3: if media kit is in automatic mode, also pull cached IG data.
-    // Reads from public_instagram_kit_data view (RLS-safe — exposes only
-    // the non-sensitive fields needed for public display). The underlying
-    // instagram_connections table has owner-only RLS, which would block
-    // this anon-key request.
-    let ig = null;
-    if (kit && kit.audience_mode === 'automatic') {
-      try {
-        const igRes = await fetch(
-          `${SUPABASE_URL}/rest/v1/public_instagram_kit_data?user_id=eq.${profile.user_id}&select=ig_username,profile_picture_url,account_type,followers_count,follows_count,media_count,reach_30d,total_interactions_30d,views_30d,profile_views_30d,avg_likes,avg_comments,avg_reel_views,avg_story_views,engagement_rate,demographics_age_gender,demographics_gender,demographics_top_countries,demographics_top_cities,data_last_fetched_at,data_fetch_error`,
-          fetchOpts(controller.signal)
-        );
-        if (igRes.ok) {
-          const igRows = await igRes.json();
-          ig = igRows[0] || null;
+    // Step 3: cached social data, only in automatic mode.
+    //
+    // These five run CONCURRENTLY. They used to be five sequential awaits,
+    // which together with the profile and kit lookups meant seven round trips
+    // stacked inside a single 3 second AbortController budget. When that
+    // budget ran out the controller aborted, every outstanding fetch threw,
+    // each catch left its variable null, and the page rendered "Audience data
+    // is not yet available. The creator hasn't connected an account" - which
+    // reads to a brand as though the creator never set it up. Running them at
+    // once turns seven stacked trips into three.
+    const AUTOMATIC = !!(kit && kit.audience_mode === 'automatic');
+    const SOCIAL_SOURCES = [
+      { key: 'ig', view: 'public_instagram_kit_data', select: 'ig_username,profile_picture_url,account_type,followers_count,follows_count,media_count,reach_30d,total_interactions_30d,views_30d,profile_views_30d,avg_likes,avg_comments,avg_reel_views,avg_story_views,engagement_rate,demographics_age_gender,demographics_gender,demographics_top_countries,demographics_top_cities,data_last_fetched_at,data_fetch_error' },
+      { key: 'yt', view: 'public_youtube_kit_data',   select: 'yt_channel_title,yt_custom_url,thumbnail_url,subscriber_count,view_count,video_count,views_30d,watch_time_minutes_30d,avg_view_duration_seconds,subscribers_gained_30d,likes_30d,comments_30d,shares_30d,engagement_rate,avg_views_per_video,demographics_age_gender,demographics_gender,demographics_top_countries,recent_media,data_last_fetched_at,data_fetch_error' },
+      { key: 'tt', view: 'public_tiktok_kit_data',    select: 'tt_display_name,tt_avatar_url,tt_profile_web_link,tt_bio_description,tt_is_verified,follower_count,following_count,likes_count,video_count,avg_likes_per_video,recent_media,data_last_fetched_at,data_fetch_error' },
+      { key: 'tw', view: 'public_twitch_kit_data',    select: 'tw_display_name,tw_login,tw_avatar_url,tw_description,tw_broadcaster_type,tw_profile_url,tw_primary_game,tw_created_at,follower_count,recent_media,top_clips,data_last_fetched_at,data_fetch_error' },
+      { key: 'fb', view: 'public_facebook_kit_data',  select: 'fb_page_name,profile_picture_url,followers_count,fan_count,cached_data,last_refreshed_at' },
+    ];
+
+    const social = { ig: null, yt: null, tt: null, tw: null, fb: null };
+    // Tracks whether any source failed rather than genuinely having no data.
+    // The caller needs this to decide whether the render is safe to cache: a
+    // page that is empty because a fetch was aborted must not be stored and
+    // served for the next six minutes.
+    let socialFetchFailed = false;
+
+    if (AUTOMATIC) {
+      const results = await Promise.all(SOCIAL_SOURCES.map(async (src) => {
+        try {
+          const r = await fetch(
+            `${SUPABASE_URL}/rest/v1/${src.view}?user_id=eq.${profile.user_id}&select=${src.select}`,
+            fetchOpts(controller.signal)
+          );
+          if (!r.ok) return { key: src.key, row: null, failed: true };
+          const rows = await r.json();
+          return { key: src.key, row: rows[0] || null, failed: false };
+        } catch (e) {
+          // An abort lands here too, which is exactly the case that must not
+          // be mistaken for "this creator has no account connected".
+          console.error('mediakit ' + src.key + ' fetch error', e && e.message ? e.message : e);
+          return { key: src.key, row: null, failed: true };
         }
-      } catch (e) {
-        // Non-fatal — fall back to whatever buildAudienceAutomatic renders without data
-        console.error('mediakit IG fetch error', e);
+      }));
+      for (const r of results) {
+        social[r.key] = r.row;
+        if (r.failed) socialFetchFailed = true;
       }
     }
 
-    // Step 3b: YouTube cached data (same automatic mode). Reads from the
-    // public_youtube_kit_data view (safe columns only); the private
-    // youtube_connections table is owner-only RLS.
-    let yt = null;
-    if (kit && kit.audience_mode === 'automatic') {
-      try {
-        const ytRes = await fetch(
-          `${SUPABASE_URL}/rest/v1/public_youtube_kit_data?user_id=eq.${profile.user_id}&select=yt_channel_title,yt_custom_url,thumbnail_url,subscriber_count,view_count,video_count,views_30d,watch_time_minutes_30d,avg_view_duration_seconds,subscribers_gained_30d,likes_30d,comments_30d,shares_30d,engagement_rate,avg_views_per_video,demographics_age_gender,demographics_gender,demographics_top_countries,recent_media,data_last_fetched_at,data_fetch_error`,
-          fetchOpts(controller.signal)
-        );
-        if (ytRes.ok) {
-          const ytRows = await ytRes.json();
-          yt = ytRows[0] || null;
-        }
-      } catch (e) {
-        console.error('mediakit YT fetch error', e);
-      }
-    }
-
-    // Step 3c: TikTok cached data (same automatic mode). Reads from the
-    // public_tiktok_kit_data view (safe columns only); the private
-    // tiktok_connections table is owner-only RLS. Headline-only (no demographics).
-    let tt = null;
-    if (kit && kit.audience_mode === 'automatic') {
-      try {
-        const ttRes = await fetch(
-          `${SUPABASE_URL}/rest/v1/public_tiktok_kit_data?user_id=eq.${profile.user_id}&select=tt_display_name,tt_avatar_url,tt_profile_web_link,tt_bio_description,tt_is_verified,follower_count,following_count,likes_count,video_count,avg_likes_per_video,recent_media,data_last_fetched_at,data_fetch_error`,
-          fetchOpts(controller.signal)
-        );
-        if (ttRes.ok) {
-          const ttRows = await ttRes.json();
-          tt = ttRows[0] || null;
-        }
-      } catch (e) {
-        console.error('mediakit TikTok fetch error', e);
-      }
-    }
-
-    // Step 3d: Twitch cached data (same automatic mode). Reads from the
-    // public_twitch_kit_data view (safe columns only); the private
-    // twitch_connections table is owner-only RLS. Headline-light (followers +
-    // broadcaster_type; no demographics, no views).
-    let tw = null;
-    if (kit && kit.audience_mode === 'automatic') {
-      try {
-        const twRes = await fetch(
-          `${SUPABASE_URL}/rest/v1/public_twitch_kit_data?user_id=eq.${profile.user_id}&select=tw_display_name,tw_login,tw_avatar_url,tw_description,tw_broadcaster_type,tw_profile_url,tw_primary_game,tw_created_at,follower_count,recent_media,top_clips,data_last_fetched_at,data_fetch_error`,
-          fetchOpts(controller.signal)
-        );
-        if (twRes.ok) {
-          const twRows = await twRes.json();
-          tw = twRows[0] || null;
-        }
-      } catch (e) {
-        console.error('mediakit Twitch fetch error', e);
-      }
-    }
-
-    let fb = null;
-    if (kit && kit.audience_mode === 'automatic') {
-      try {
-        const fbRes = await fetch(
-          `${SUPABASE_URL}/rest/v1/public_facebook_kit_data?user_id=eq.${profile.user_id}&select=fb_page_name,profile_picture_url,followers_count,fan_count,cached_data,last_refreshed_at`,
-          fetchOpts(controller.signal)
-        );
-        if (fbRes.ok) {
-          const fbRows = await fbRes.json();
-          fb = fbRows[0] || null;
-          if (fb) {
-            if (fb.followers_count != null) fb.followers_count = Number(fb.followers_count);
-            if (fb.fan_count != null) fb.fan_count = Number(fb.fan_count);
-          }
-        }
-      } catch (e) {
-        console.error('mediakit Facebook fetch error', e);
-      }
+    const ig = social.ig;
+    const yt = social.yt;
+    const tt = social.tt;
+    const tw = social.tw;
+    const fb = social.fb;
+    // Postgres returns bigint as a string; the Facebook panel does arithmetic
+    // on these, so they have to be numbers.
+    if (fb) {
+      if (fb.followers_count != null) fb.followers_count = Number(fb.followers_count);
+      if (fb.fan_count != null) fb.fan_count = Number(fb.fan_count);
     }
 
     clearTimeout(timeout);
-    return { profile, kit, ig, yt, tt, tw, fb };
+    return { profile, kit, ig, yt, tt, tw, fb, socialFetchFailed };
   } catch (e) {
     clearTimeout(timeout);
     console.error('mediakit fetch error', e);
@@ -1545,9 +1506,22 @@ ${customThemeStyle}
   }
   // If no renderedInner, leave the loading placeholder — client JS will fetch + render.
 
-  // 4. Cache headers — fresh for 60s, serve stale up to 5 more minutes while revalidating
+  // 4. Cache headers. Fresh for 60s, then served stale for up to 5 more
+  //    minutes while revalidating.
+  //
+  //    EXCEPT when a social fetch failed or was aborted. That render is
+  //    missing the audience section and instead says the creator has not
+  //    connected an account, which is not true. Caching it would take a
+  //    request that was merely slow and serve the wrong story to every brand
+  //    who opens the link for the next six minutes. Better to pay for a fresh
+  //    render on the next hit than to publish an incorrect one at the edge.
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
-  res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
+  if (result && result.socialFetchFailed) {
+    res.setHeader('Cache-Control', 'no-store');
+    console.error('mediakit: social fetch incomplete for', username, '- response not cached');
+  } else {
+    res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
+  }
 
   // 5. Content Security Policy — ENFORCED.
   // Media kit pages are PUBLIC and render user-supplied content (display name,
