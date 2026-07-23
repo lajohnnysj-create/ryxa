@@ -4601,6 +4601,30 @@
     .uname-editing .uname-lock { color:#4ade80; }
     .bio-username-prefix-wrap.uname-editing { border-color:rgba(124,58,237,0.55); }
 
+    /* Busy button.
+       The label stays in place and a spinner sits over it, so the button keeps
+       its exact width. Swapping "Save" for "Saving..." made the button grow
+       mid-action and shoved the whole action row sideways, which was worse on
+       a phone where the three buttons share one line.
+       The spinner colour is a variable rather than currentColor, because
+       hiding the label means the button's own colour is transparent. */
+    .btn-busy { position:relative;color:transparent !important;pointer-events:none; }
+    .btn-busy::after {
+      content:'';position:absolute;top:50%;left:50%;
+      width:14px;height:14px;margin:-7px 0 0 -7px;
+      border:2px solid transparent;border-radius:50%;
+      border-top-color:var(--btn-spin,#fff);
+      border-right-color:var(--btn-spin,#fff);
+      animation:btn-spin .6s linear infinite; }
+    @keyframes btn-spin { to { transform:rotate(360deg); } }
+    .ryxa-publish-btn.btn-busy { --btn-spin:#4ade80; }
+    .ryxa-unpublish-btn.btn-busy { --btn-spin:var(--muted); }
+    /* Reduced motion still needs to signal that something is happening, so
+       slow the spinner rather than stopping it. */
+    @media (prefers-reduced-motion: reduce) {
+      .btn-busy::after { animation-duration:1.8s; }
+    }
+
     @media (max-width: 640px) {
       .bio-s-00e937 { padding:12px 14px; }
       /* Three actions will not sit beside a paragraph on a phone. Give the
