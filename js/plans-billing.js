@@ -605,6 +605,11 @@ function plansBillingRouteCheck() {
     });
     // Hide the dashboard topbar so the hero image flows to the very top.
     document.body.classList.add('plans-billing-active');
+    // This page is hash-routed and never goes through showTool, so it has to
+    // release the live-preview scroll lock itself. Without this, arriving here
+    // straight from an open preview sheet leaves the page unscrollable, and
+    // even the scrollTo below is a no-op while the lock is on.
+    if (typeof window.ryxaClosePreviewSheet === 'function') window.ryxaClosePreviewSheet();
     renderPlansBilling();
     window.scrollTo(0, 0);
     // Subscription source (stripe vs apple) decides the paid-user panel;

@@ -2507,7 +2507,42 @@ function showFollowerTool() {
   }
 }
 
+// Close the mobile live-preview sheet and release the scroll lock it holds.
+//
+// Link in Bio and Media Kit lock page scroll while their preview sheet is
+// open: html.preview-sheet-locked sets overflow:hidden, height:100% and
+// touch-action:none. Nothing cleared that when the user left the editor, so
+// the lock survived into whatever opened next. The symptom is confusing rather
+// than obviously broken: the page renders normally and the fixed bottom nav
+// and menu still respond, but nothing scrolls, so it reads as a frozen screen
+// rather than a sheet left open somewhere else.
+//
+// Exposed on window because Plans & Billing is hash-routed and never calls
+// showTool, so it needs to run this on its own way in.
+function ryxaClosePreviewSheet() {
+  document.documentElement.classList.remove('preview-sheet-locked');
+  ['bio-preview-col', 'mk-preview-col'].forEach(function (id) {
+    var _col = document.getElementById(id);
+    if (_col) _col.classList.remove('sheet-open');
+  });
+  // Reset the pill too, not just the lock, otherwise returning to the editor
+  // would find a button labelled "Close Preview" for a sheet that is down.
+  ['bio-preview-fab', 'mk-preview-fab'].forEach(function (id) {
+    var _fab = document.getElementById(id);
+    if (!_fab) return;
+    _fab.setAttribute('aria-expanded', 'false');
+    var _label = _fab.querySelector('.preview-fab-label');
+    if (_label) _label.textContent = 'Live Preview';
+  });
+}
+window.ryxaClosePreviewSheet = ryxaClosePreviewSheet;
+
 function showTool(tool) {
+  // Above the tier gate deliberately: that gate returns early and routes
+  // locked tools to Plans & Billing, so a cleanup below it would be skipped on
+  // exactly the path that lands the user on another scrolling page.
+  ryxaClosePreviewSheet();
+
   // Tier gate: tools above the user's plan don't render a locked preview;
   // they route straight to Plans & Billing (the single upgrade surface).
   // Unknown tier (still loading) falls through and renders normally.
