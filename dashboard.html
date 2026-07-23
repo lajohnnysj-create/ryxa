@@ -4541,60 +4541,60 @@
   .bio-s-6f2ad9 { display:none;padding:9px 14px;background:rgba(124,58,237,0.1);color:#c4b5fd;border:1px solid rgba(124,58,237,0.25);border-radius:8px;font-size:13px;font-weight:500;text-decoration:none;cursor:pointer;transition:all 0.15s; }
   .bio-s-6f2ad9:hover { background:rgba(124,58,237,0.2); }
   .bio-s-bee3a2 { padding:10px 18px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px var(--accent-glow); }
-  .bio-s-00e937 { background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap; }
-    /* Publish status row (Link in Bio + Media Kit share these classes).
-       A flex item will not shrink below its content's intrinsic width unless
-       min-width is cleared, so the "Live at ryxa.io/username [Copy]" line was
-       forcing the row wider than the screen instead of wrapping. */
-    .bio-s-00e937 > .bio-s-7e30d2 { min-width:0;flex:1 1 auto; }
-    .bio-s-00e937 > .bio-s-7e30d2 > div { min-width:0; }
-    /* The status dot is a fixed 8px circle. Without this it is a flex item
-       like any other and squashes into an oval as the row tightens. */
+  .bio-s-00e937 { background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px 18px;margin-bottom:20px;display:flex;flex-direction:column;gap:8px; }
+    /* Publish status card (Link in Bio + Media Kit share these rules).
+       Two rows, not one wrapping row. Previously the status text and the URL
+       were nested together beside the dot while the button was a sibling, so
+       when the row wrapped on a phone the URL kept an 18px indent while the
+       button sat flush against the card. Ragged left edges and three stacked
+       blocks. Splitting it into a header row and a detail row makes both the
+       alignment and the hierarchy explicit. */
+    .pub-status-top { display:flex;align-items:center;gap:10px; }
+    /* The label takes the free space, which is what pushes the button right.
+       min-width:0 lets it shrink rather than forcing the row wider. */
+    .pub-status-label { font-size:14px;font-weight:500;color:var(--text);flex:1 1 auto;min-width:0; }
+    /* 18px is the dot (8px) plus the gap (10px), so the detail line hangs
+       directly under the label rather than under the dot. */
+    .pub-status-sub { font-size:12px;color:var(--muted);padding-left:18px;overflow-wrap:anywhere; }
+    .pub-status-top > .ryxa-publish-btn,
+    .pub-status-top > .ryxa-unpublish-btn { flex-shrink:0; }
+    /* A status dot is a fixed circle: without this it is a flex item like any
+       other and squashes into an oval as the row tightens. */
     .bio-s-fff88d { flex-shrink:0; }
-    /* Long usernames have no natural break point, so allow one anywhere
-       rather than letting the URL push the layout sideways. */
-    .bio-s-00e937 .bio-s-e769ff { overflow-wrap:anywhere; }
 
-    /* Live URL chip (Link in Bio + Media Kit).
+    /* Live URL chip.
        Replaces the old "Live at <bold url> [Copy]" line, which put three
        competing elements on one row and gave the copy action an 11px pill
        that was hard to hit on a phone. The whole chip is the button: the URL
-       is the affordance, and the icon only signals what tapping does. */
+       is the affordance, the icon only says what tapping does. It hugs its
+       content rather than stretching, so a short URL does not leave a gap
+       before the icon. */
     .ryxa-url-chip { display:inline-flex;align-items:center;gap:7px;max-width:100%;
-      margin-top:4px;padding:5px 10px;background:rgba(124,58,237,0.10);
+      padding:5px 10px;background:rgba(124,58,237,0.10);
       border:1px solid rgba(124,58,237,0.28);border-radius:7px;color:#c4b5fd;
       font-family:'DM Sans',sans-serif;font-size:12.5px;line-height:1.35;
       text-align:left;cursor:pointer;
       transition:background .15s,border-color .15s,color .15s; }
     .ryxa-url-chip:hover { background:rgba(124,58,237,0.16);border-color:rgba(124,58,237,0.45); }
     .ryxa-url-chip:focus-visible { outline:2px solid rgba(124,58,237,0.6);outline-offset:2px; }
-    /* min-width:0 lets a long username wrap inside the chip instead of
-       stretching it past the card edge. */
     .ryxa-url-chip-url { min-width:0;overflow-wrap:anywhere; }
     .ryxa-url-chip-ico { flex-shrink:0;opacity:0.7; }
     .ryxa-url-chip-ico-done { display:none; }
-    /* Copied state is a class rather than inline styles, so the icon swap and
-       the colour change stay in CSS and the markup survives the round trip. */
+    /* Copied state is a class, not inline styles, so the icon swap and the
+       colour change stay in CSS and the chip's markup survives the round trip. */
     .ryxa-url-chip.copied { background:rgba(74,222,128,0.14);
       border-color:rgba(74,222,128,0.40);color:#4ade80; }
     .ryxa-url-chip.copied .ryxa-url-chip-ico-copy { display:none; }
     .ryxa-url-chip.copied .ryxa-url-chip-ico-done { display:inline;opacity:1; }
 
     @media (max-width: 640px) {
-      /* Stack instead of wrapping. With space-between and flex-wrap, the
-         button dropped to its own line and sat left-aligned under the text,
-         which read as misaligned rather than deliberate. Full width makes it
-         an obvious tap target and squares the row off. */
-      .bio-s-00e937 { flex-direction:column;align-items:stretch;gap:12px;padding:14px; }
-      .bio-s-00e937 > .bio-s-7e30d2 { align-items:flex-start; }
-      /* Nudge the dot down to sit on the label's text line rather than
-         floating at the top of a two-line block. */
-      .bio-s-00e937 .bio-s-fff88d { margin-top:6px; }
-      .bio-s-00e937 > .ryxa-publish-btn,
-      .bio-s-00e937 > .ryxa-unpublish-btn { width:100%;justify-content:center; }
-      /* Full width on a phone: the chip is the primary way to get the link,
-         so give it the whole row and a comfortable tap height. */
-      .bio-s-00e937 .ryxa-url-chip { display:flex;width:100%;padding:8px 10px;
+      .bio-s-00e937 { padding:14px; }
+      /* Drop the hanging indent so the URL lines up with the card edge and
+         the header row above it. */
+      .pub-status-sub { padding-left:0; }
+      .pub-status-top > .ryxa-publish-btn,
+      .pub-status-top > .ryxa-unpublish-btn { padding:7px 12px;font-size:12px; }
+    }
         justify-content:space-between; }
     }
   .bio-s-7e30d2 { display:flex;align-items:center;gap:10px; }
@@ -7612,14 +7612,12 @@
 
         <!-- Status row: published/draft + publish toggle -->
         <div class="bio-s-00e937">
-          <div class="bio-s-7e30d2">
+          <div class="pub-status-top">
             <span id="bio-status-dot" class="bio-s-fff88d"></span>
-            <div>
-              <div id="bio-status-label" class="bio-s-e2b2a1">Not published</div>
-              <div id="bio-status-sub" class="bio-s-e769ff">Your page isn't live yet. Publish to share it.</div>
-            </div>
+            <div id="bio-status-label" class="pub-status-label">Not published</div>
+            <button id="bio-publish-btn" data-bio-action="toggle-publish" class="ryxa-publish-btn" style="display:none;">Publish</button>
           </div>
-          <button id="bio-publish-btn" data-bio-action="toggle-publish" class="ryxa-publish-btn" style="display:none;">Publish</button>
+          <div id="bio-status-sub" class="pub-status-sub">Your page isn't live yet. Publish to share it.</div>
         </div>
 
         <!-- Inline status/error message - shown next to the Save/Publish actions. -->
@@ -8988,14 +8986,12 @@
 
         <!-- Status bar -->
         <div class="bio-s-00e937">
-          <div class="bio-s-7e30d2">
+          <div class="pub-status-top">
             <span id="mk-status-dot" class="bio-s-fff88d"></span>
-            <div>
-              <div id="mk-status-label" class="bio-s-e2b2a1">Not published</div>
-              <div id="mk-status-sub" class="bio-s-e769ff">Your media kit isn't live yet. Publish to share it.</div>
-            </div>
+            <div id="mk-status-label" class="pub-status-label">Not published</div>
+            <button id="mk-publish-btn" data-mk-action="toggle-publish" class="ryxa-publish-btn" style="display:none;">Publish</button>
           </div>
-          <button id="mk-publish-btn" data-mk-action="toggle-publish" class="ryxa-publish-btn" style="display:none;">Publish</button>
+          <div id="mk-status-sub" class="pub-status-sub">Your media kit isn't live yet. Publish to share it.</div>
         </div>
 
         <!-- Inline status/error message - shown next to the Save/Publish actions. -->
