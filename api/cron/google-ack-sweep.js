@@ -21,6 +21,8 @@
 // Response: { checked, acknowledged, alreadyOk, failed, atRisk }
 
 const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
+const NOTIFICATION_TO = 'hello@ryxa.io';
+const NOTIFICATION_FROM = 'Ryxa <hello@ryxa.io>';
 
 function getServiceKey() {
   var k = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -31,6 +33,53 @@ function getCronSecret() {
   var v = process.env.CRON_SECRET;
   if (!v) throw new Error('CRON_SECRET not configured');
   return v;
+}
+
+function escapeHtml(str) {
+  return String(str == null ? '' : str)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+// Only sent when something needed a late acknowledgement or one failed. A
+// normal run is silent, so mail arriving means the inline acknowledge in
+// verify-google-purchase is not landing, and purchases were within hours of
+// being auto-refunded by Google.
+async function sendAckAlert(body) {
+  var key = process.env.RESEND_API_KEY;
+  if (!key) { console.warn('RESEND_API_KEY not set, skipping ack alert'); return; }
+  var atRisk = Array.isArray(body.atRisk) ? body.atRisk : [];
+  var html =
+    '<h2>Google Play acknowledgement sweep needed to act</h2>' +
+    '<p>Google auto-refunds any purchase left unacknowledged for 72 hours. ' +
+    'verify-google-purchase acknowledges inline, so this sweep having work to ' +
+    'do means that path is failing.</p>' +
+    '<ul>' +
+    '<li>Checked: ' + escapeHtml(body.checked) + '</li>' +
+    '<li>Acknowledged late: <strong>' + escapeHtml(body.acknowledged) + '</strong></li>' +
+    '<li>Already fine: ' + escapeHtml(body.alreadyOk) + '</li>' +
+    '<li>Failed: <strong>' + escapeHtml(body.failed) + '</strong></li>' +
+    '</ul>' +
+    (atRisk.length
+      ? '<p style="color:#b00;"><strong>Past 48 hours unacknowledged:</strong><br>' +
+        escapeHtml(atRisk.join(', ')) + '</p>'
+      : '') +
+    '<p style="color:#666;font-size:12px;">Acknowledgement only. No tier was changed.</p>';
+  try {
+    var r = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + key, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from: NOTIFICATION_FROM,
+        to: [NOTIFICATION_TO],
+        subject: 'Google Play ack sweep: ' + body.acknowledged + ' late, ' + body.failed + ' failed',
+        html: html
+      })
+    });
+    if (!r.ok) console.warn('ack alert email failed:', r.status);
+  } catch (e) {
+    console.warn('ack alert email exception (non-fatal):', e.message);
+  }
 }
 
 module.exports = async function handler(req, res) {
@@ -71,6 +120,11 @@ module.exports = async function handler(req, res) {
     // and the sweep is the only thing preventing a refund.
     if (body && Array.isArray(body.atRisk) && body.atRisk.length) {
       console.error('UNACKNOWLEDGED PURCHASES NEAR DEADLINE:', body.atRisk.join(', '));
+    }
+    // Alert only when the sweep actually had to do something, or could not.
+    // A clean run stays silent so the mail keeps its meaning.
+    if (body && ((body.acknowledged || 0) > 0 || (body.failed || 0) > 0)) {
+      await sendAckAlert(body);
     }
 
     res.status(200).json(body);
