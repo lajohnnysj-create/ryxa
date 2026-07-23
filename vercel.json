@@ -12,7 +12,7 @@
     },
     {
       "path": "/api/cron/stripe-reconcile",
-      "schedule": "0 8 * * *"
+      "schedule": "0 8 1 * *"
     }
   ],
   "redirects": [
