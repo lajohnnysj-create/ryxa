@@ -4580,6 +4580,27 @@
     .ryxa-url-chip.copied .ryxa-url-chip-ico-copy { display:none; }
     .ryxa-url-chip.copied .ryxa-url-chip-ico-done { display:inline;opacity:1; }
 
+    /* Username lock.
+       The field ships readonly and is unlocked by an explicit edit button
+       rather than by focusing it. The old behaviour removed readonly on
+       focus, which meant a stray tap put the field into edit state and gave
+       password managers something to autofill. An explicit toggle also gives
+       the change a deliberate confirm step, which matters when renaming
+       breaks every link the creator has already shared. */
+    .uname-lock { flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;
+      width:34px;height:34px;margin-right:4px;background:transparent;border:none;
+      border-radius:7px;color:var(--muted);cursor:pointer;
+      transition:background .15s,color .15s; }
+    .uname-lock:hover { background:rgba(255,255,255,0.06);color:var(--text); }
+    .uname-lock:focus-visible { outline:2px solid rgba(124,58,237,0.6);outline-offset:-2px; }
+    .uname-lock-done { display:none; }
+    /* Editing: pencil becomes a tick and the field border lifts, so the state
+       is legible without reading the icon. */
+    .uname-editing .uname-lock-edit { display:none; }
+    .uname-editing .uname-lock-done { display:inline; }
+    .uname-editing .uname-lock { color:#4ade80; }
+    .bio-username-prefix-wrap.uname-editing { border-color:rgba(124,58,237,0.55); }
+
     @media (max-width: 640px) {
       .bio-s-00e937 { padding:12px 14px; }
       /* Three actions will not sit beside a paragraph on a phone. Give the
@@ -7624,11 +7645,12 @@
 
             <!-- Username -->
             <div class="bio-s-2a8685">
-              <div class="bio-s-990d95">Your public URL</div>
+              <div class="bio-s-990d95">Your public username</div>
               <div class="bio-s-c481fc">
                 <div class="bio-username-prefix-wrap bio-s-1e7cd4">
                   <span class="bio-username-prefix">ryxa.io/</span>
-                  <input type="search" id="bio-username" name="claim-handle-search" aria-label="Username" placeholder="yourname" maxlength="30" readonly data-bio-action-focus="remove-readonly" data-bio-action-input="username-input" autocomplete="off" autocorrect="off" data-1p-ignore="true" data-lpignore="true" class="bio-s-81be0c">
+                  <input type="search" id="bio-username" name="claim-handle-search" aria-label="Username" placeholder="yourname" maxlength="30" readonly data-bio-action-input="username-input" autocomplete="off" autocorrect="off" data-1p-ignore="true" data-lpignore="true" class="bio-s-81be0c">
+                  <button type="button" id="bio-username-lock" data-bio-action="toggle-username-lock" class="uname-lock" aria-label="Edit username"><svg class="uname-lock-ico uname-lock-edit" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg><svg class="uname-lock-ico uname-lock-done" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></button>
                 </div>
               </div>
               <div id="bio-username-hint" class="bio-s-ddc897">Same username as your Media Kit. You can change it up to 2 times per week.</div>
@@ -8997,13 +9019,14 @@
             <!-- Username (shared with Link in Bio) -->
             <div class="mk-section">
               <div class="mk-section-header">
-                <div class="mk-section-label">Your public URL</div>
+                <div class="mk-section-label">Your public username</div>
               </div>
               <div class="mk-section-body">
                 <div class="bio-s-c481fc">
                   <div class="bio-username-prefix-wrap bio-s-1e7cd4" >
                     <span class="bio-username-prefix">ryxa.io/mediakit/</span>
-                    <input type="search" id="mk-username" name="claim-handle-search" aria-label="Username" placeholder="yourname" maxlength="30" readonly data-mk-action-focus="remove-readonly" autocomplete="off" autocorrect="off" data-1p-ignore="true" data-lpignore="true" data-mk-action-input="username-input" class="bio-s-81be0c">
+                    <input type="search" id="mk-username" name="claim-handle-search" aria-label="Username" placeholder="yourname" maxlength="30" readonly autocomplete="off" autocorrect="off" data-1p-ignore="true" data-lpignore="true" data-mk-action-input="username-input" class="bio-s-81be0c">
+                    <button type="button" id="mk-username-lock" data-mk-action="toggle-username-lock" class="uname-lock" aria-label="Edit username"><svg class="uname-lock-ico uname-lock-edit" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg><svg class="uname-lock-ico uname-lock-done" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></button>
                   </div>
                 </div>
                 <div id="mk-username-hint" class="bio-s-ddc897">Same username as your Link in Bio. You can change it up to 2 times per week.</div>
