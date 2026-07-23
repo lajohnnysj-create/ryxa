@@ -17,6 +17,10 @@
 //   UNDER-GRANTED live subscription at Stripe, tier missing. Costs a customer,
 //                 and they typically churn rather than write in.
 //
+// A silent monitor is not a monitor. When issues are found this emails
+// hello@ryxa.io, matching the alerting pattern in report-content.js. A clean
+// run sends nothing, so the absence of mail means healthy rather than broken.
+//
 // Auth: Vercel cron sends CRON_SECRET, same pattern as bunny-cleanup.
 //
 // GET /api/cron/stripe-reconcile
@@ -26,6 +30,8 @@
 // The response contains user ids, so treat it as customer data.
 
 const SUPABASE_URL = 'https://kjytapcgxukalwsyputk.supabase.co';
+const NOTIFICATION_TO = 'hello@ryxa.io';
+const NOTIFICATION_FROM = 'Ryxa <hello@ryxa.io>';
 
 // Price -> tier. MUST stay in sync with create-checkout-session.ts. If a new
 // price is added there and not here, its subscribers get reported as tier
@@ -44,6 +50,85 @@ const ENTITLED = ['active', 'trialing'];
 const AT_RISK = ['past_due', 'unpaid'];
 
 const MAX_PAGES = 20; // 100 per page, so 2000 subscriptions before truncating
+
+function escapeHtml(str) {
+  return String(str == null ? '' : str)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+// Plain-English descriptions, so the alert is actionable without having to
+// come back and read this file to remember what a key means.
+var ISSUE_HELP = {
+  paying_but_no_tier:
+    'Being charged by Stripe with no tier granted. Highest priority: they are paying for nothing.',
+  stripe_active_no_db_row:
+    'Live Stripe subscription with no subscriptions row at all. Paid and never provisioned.',
+  paid_tier_not_live_at_stripe:
+    'Tier granted but Stripe has no live subscription. Likely a cancellation whose webhook never arrived.',
+  paid_tier_no_stripe_id:
+    'Paid tier with no Stripe subscription id recorded.',
+  paid_tier_stripe_not_entitled:
+    'Stripe status is not active or trialing, but the tier is still granted.',
+  payment_failing:
+    'Stripe is retrying a failed payment. Access is intentionally kept during retries; these are likely churn.',
+  tier_mismatch:
+    'The Stripe price and the granted tier disagree.'
+};
+
+async function sendAlertEmail(summary, issues) {
+  var key = process.env.RESEND_API_KEY;
+  if (!key) { console.warn('RESEND_API_KEY not set, skipping reconcile alert'); return; }
+
+  var rows = '';
+  var counts = summary.issue_counts || {};
+  for (var name in counts) {
+    if (!Object.prototype.hasOwnProperty.call(counts, name)) continue;
+    rows +=
+      '<tr>' +
+      '<td style="padding:6px 10px;border-bottom:1px solid #eee;"><strong>' +
+      escapeHtml(name) + '</strong></td>' +
+      '<td style="padding:6px 10px;border-bottom:1px solid #eee;text-align:right;">' +
+      counts[name] + '</td>' +
+      '<td style="padding:6px 10px;border-bottom:1px solid #eee;color:#555;">' +
+      escapeHtml(ISSUE_HELP[name] || '') + '</td>' +
+      '</tr>';
+  }
+
+  var detail = issues.slice(0, 50).map(function (i) {
+    return escapeHtml(JSON.stringify(i));
+  }).join('\n');
+  if (issues.length > 50) detail += '\n... and ' + (issues.length - 50) + ' more';
+
+  var html =
+    '<h2>Stripe reconciliation found ' + summary.total_issues + ' issue(s)</h2>' +
+    '<p>Compared ' + summary.stripe_subscriptions_seen + ' Stripe subscriptions against ' +
+    summary.db_stripe_rows + ' database rows.</p>' +
+    (summary.truncated
+      ? '<p style="color:#b00;"><strong>Result truncated.</strong> More subscriptions exist than the page limit allows. Raise MAX_PAGES.</p>'
+      : '') +
+    '<table style="border-collapse:collapse;font-size:14px;">' + rows + '</table>' +
+    '<p style="margin-top:18px;"><strong>Detail</strong></p>' +
+    '<pre style="white-space:pre-wrap;background:#f4f4f5;padding:12px;border-radius:8px;font-size:12px;">' +
+    detail + '</pre>' +
+    '<p style="color:#666;font-size:12px;">Nothing was changed. This job only reports.</p>';
+
+  try {
+    var res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + key, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from: NOTIFICATION_FROM,
+        to: [NOTIFICATION_TO],
+        subject: 'Stripe reconciliation: ' + summary.total_issues + ' issue(s)',
+        html: html
+      })
+    });
+    if (!res.ok) console.warn('reconcile alert email failed:', res.status, await res.text().catch(function () { return ''; }));
+  } catch (e) {
+    console.warn('reconcile alert email exception (non-fatal):', e.message);
+  }
+}
 
 function getServiceKey() {
   var k = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -214,6 +299,7 @@ module.exports = async function handler(req, res) {
     if (issues.length) {
       console.error('STRIPE RECONCILE ISSUES:', JSON.stringify(summary.issue_counts));
       console.error('detail:', JSON.stringify(issues));
+      await sendAlertEmail(summary, issues);
     } else {
       console.log('stripe reconcile clean:', JSON.stringify(summary));
     }
