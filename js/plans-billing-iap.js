@@ -166,12 +166,21 @@ function iapRenderSection() {
     // No native rail here (web, or US Android where checkout links out to
     // Stripe): clear any store markup left from a previous render, then leave
     // the page alone.
+    //
+    // (When the rail IS visible, the reveal CSS is ensured below before any
+    // button markup is written.)
     try {
       host.querySelectorAll('.pb-iap-slot').forEach(function (s) { s.innerHTML = ''; });
     } catch (e) {}
     return;
   }
   if (!document.body.classList.contains('plans-billing-active')) return;
+  // The collapsed-by-default CSS must exist before any store button markup is
+  // written. Every event path runs the gate (which injects it) alongside this
+  // render, but the 1.6s DOMContentLoaded fallback calls this function alone,
+  // and on a slow native init that could paint the buttons expanded until
+  // iapReady arrived. Idempotent, so calling it here too costs nothing.
+  iapEnsureGateCss();
   var slots = host.querySelectorAll('.pb-iap-slot');
   if (!slots.length) return;
   var cycle = (typeof plansBillingCycle !== 'undefined' && plansBillingCycle) ? plansBillingCycle : 'annual';
