@@ -613,7 +613,7 @@ function renderMKUsernameAvailable(cleaned) {
         class="bio-s-8911f1">
         Copy link
       </button>
-    </div>${isChanged ? '<div class="bio-s-19cf92">Press save to change username</div>' : ''}`;
+    </div>${isChanged ? '<div class="bio-s-19cf92">Press save to update your username.</div>' : ''}`;
   hint.style.color = 'var(--muted)';
 }
 
@@ -3241,6 +3241,8 @@ mkRegisterAction('toggle-publish', () => toggleMediaKitPublish());
 
 // Username input - two handlers via per-event style
 mkRegisterAction('remove-readonly', (e, el) => el.removeAttribute('readonly'));
+mkRegisterAction('toggle-username-lock', () =>
+  toggleUsernameLock('mk-username', 'mk-username-hint', 'mk-username-lock'));
 mkRegisterAction('username-input', () => onMKUsernameInput());
 
 // Section accordions

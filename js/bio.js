@@ -1117,8 +1117,45 @@ function renderUsernameAvailable(cleaned) {
         class="bio-s-8911f1">
         Copy link
       </button>
-    </div>${isChanged ? '<div class="bio-s-19cf92">Press save to change username</div>' : ''}`;
+    </div>${isChanged ? '<div class="bio-s-19cf92">Press save to update your username.</div>' : ''}`;
   hint.style.color = 'var(--muted)';
+}
+
+// Username lock, shared by Link in Bio and the Media Kit (one username, two
+// editors). The field is readonly until the pencil is pressed, rather than
+// unlocking on focus as it used to: a stray tap should not put a creator into
+// edit state on a field whose change breaks every link they have shared.
+function toggleUsernameLock(inputId, hintId, btnId) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  const wrap = input.closest('.bio-username-prefix-wrap');
+  if (!wrap) return;
+  const btn = document.getElementById(btnId);
+  const editing = !wrap.classList.contains('uname-editing');
+  wrap.classList.toggle('uname-editing', editing);
+  if (btn) btn.setAttribute('aria-label', editing ? 'Done editing username' : 'Edit username');
+
+  if (editing) {
+    input.removeAttribute('readonly');
+    input.focus();
+    // Caret to the end rather than selecting everything, so the next keystroke
+    // appends instead of wiping the name.
+    try { input.setSelectionRange(input.value.length, input.value.length); } catch (e) {}
+    return;
+  }
+
+  input.setAttribute('readonly', 'readonly');
+  input.blur();
+
+  const hint = document.getElementById(hintId);
+  if (!hint) return;
+  const current = (input.value || '').trim();
+  // Nothing to save, so nothing to prompt about.
+  if (!current || current === bioOriginalUsername) return;
+  // Never overwrite an availability error: "press save" is the wrong advice
+  // when the name is taken or the change limit has been reached.
+  if (hint.querySelector('.bio-s-dbc3a0')) return;
+  hint.innerHTML = '<div class="bio-s-19cf92">Press save to update your username.</div>';
 }
 
 async function copyBioLink(url, btn) {
@@ -5681,6 +5718,8 @@ bioRegisterAction('back-to-bio', () => { if (typeof showTool === 'function') sho
 bioRegisterAction('ban-upgrade', () => { if (typeof goToPricing === 'function') goToPricing('pro'); });
 bioRegisterAction('toggle-publish', () => togglePublish());
 bioRegisterAction('remove-readonly', (e, el) => el.removeAttribute('readonly'));
+bioRegisterAction('toggle-username-lock', () =>
+  toggleUsernameLock('bio-username', 'bio-username-hint', 'bio-username-lock'));
 bioRegisterAction('username-input', () => onUsernameInput());
 bioRegisterAction('toggle-section', (e, el) => toggleBioSection(el.dataset.bioSection));
 bioRegisterAction('open-cropper-avatar', (e, el) => openCropper(el, 'avatar'));
