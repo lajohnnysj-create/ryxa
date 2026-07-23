@@ -4541,23 +4541,16 @@
   .bio-s-6f2ad9 { display:none;padding:9px 14px;background:rgba(124,58,237,0.1);color:#c4b5fd;border:1px solid rgba(124,58,237,0.25);border-radius:8px;font-size:13px;font-weight:500;text-decoration:none;cursor:pointer;transition:all 0.15s; }
   .bio-s-6f2ad9:hover { background:rgba(124,58,237,0.2); }
   .bio-s-bee3a2 { padding:10px 18px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;font-family:DM Sans,sans-serif;cursor:pointer;box-shadow:0 0 20px var(--accent-glow); }
-  .bio-s-00e937 { background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px 18px;margin-bottom:20px;display:flex;flex-direction:column;gap:8px; }
-    /* Publish status card (Link in Bio + Media Kit share these rules).
-       Two rows, not one wrapping row. Previously the status text and the URL
-       were nested together beside the dot while the button was a sibling, so
-       when the row wrapped on a phone the URL kept an 18px indent while the
-       button sat flush against the card. Ragged left edges and three stacked
-       blocks. Splitting it into a header row and a detail row makes both the
-       alignment and the hierarchy explicit. */
-    .pub-status-top { display:flex;align-items:center;gap:10px; }
-    /* The label takes the free space, which is what pushes the button right.
-       min-width:0 lets it shrink rather than forcing the row wider. */
-    .pub-status-label { font-size:14px;font-weight:500;color:var(--text);flex:1 1 auto;min-width:0; }
-    /* 18px is the dot (8px) plus the gap (10px), so the detail line hangs
-       directly under the label rather than under the dot. */
-    .pub-status-sub { font-size:12px;color:var(--muted);padding-left:18px;overflow-wrap:anywhere; }
-    .pub-status-top > .ryxa-publish-btn,
-    .pub-status-top > .ryxa-unpublish-btn { flex-shrink:0; }
+  .bio-s-00e937 { background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px 16px;margin-bottom:20px;display:flex;align-items:center;flex-wrap:wrap;gap:8px 10px; }
+    /* Publish status strip (Link in Bio + Media Kit share these rules).
+       One wrapping line: state dot, state label, live URL. The publish action
+       lives in the header beside Save, with the other page-level actions,
+       which is what lets this be a single readable line instead of a card
+       trying to hold a two-line text block and a button at the same time.
+       On a narrow screen the URL simply wraps to its own line, aligned to the
+       card edge, rather than inheriting an indent from the dot. */
+    .pub-status-label { font-size:14px;font-weight:500;color:var(--text);flex-shrink:0; }
+    .pub-status-sub { font-size:12px;color:var(--muted);min-width:0;overflow-wrap:anywhere; }
     /* A status dot is a fixed circle: without this it is a flex item like any
        other and squashes into an oval as the row tightens. */
     .bio-s-fff88d { flex-shrink:0; }
@@ -4570,7 +4563,7 @@
        content rather than stretching, so a short URL does not leave a gap
        before the icon. */
     .ryxa-url-chip { display:inline-flex;align-items:center;gap:7px;max-width:100%;
-      padding:5px 10px;background:rgba(124,58,237,0.10);
+      padding:4px 9px;background:rgba(124,58,237,0.10);
       border:1px solid rgba(124,58,237,0.28);border-radius:7px;color:#c4b5fd;
       font-family:'DM Sans',sans-serif;font-size:12.5px;line-height:1.35;
       text-align:left;cursor:pointer;
@@ -4588,12 +4581,14 @@
     .ryxa-url-chip.copied .ryxa-url-chip-ico-done { display:inline;opacity:1; }
 
     @media (max-width: 640px) {
-      .bio-s-00e937 { padding:14px; }
-      /* Drop the hanging indent so the URL lines up with the card edge and
-         the header row above it. */
-      .pub-status-sub { padding-left:0; }
-      .pub-status-top > .ryxa-publish-btn,
-      .pub-status-top > .ryxa-unpublish-btn { padding:7px 12px;font-size:12px; }
+      .bio-s-00e937 { padding:12px 14px; }
+      /* Three actions will not sit beside a paragraph on a phone. Give the
+         group its own full-width row and let the buttons share it evenly, so
+         they land as one tidy band instead of wrapping one at a time.
+         Scoped to .pub-actions: .bio-s-15b47d is also the Grid Planner's
+         header group, which is not part of this change. */
+      .pub-actions { width:100%; }
+      .pub-actions > * { flex:1 1 0;justify-content:center;text-align:center; }
     }
         justify-content:space-between; }
     }
@@ -7604,19 +7599,17 @@
           <div>
             <p class="bio-s-9e2e36">Build your one-page creator profile and share a single link that leads to everything.</p>
           </div>
-          <div class="bio-s-15b47d">
+          <div class="bio-s-15b47d pub-actions">
             <a id="bio-view-live" href="#" target="_blank" rel="noopener" class="bio-s-6f2ad9">View live page</a>
+            <button id="bio-publish-btn" data-bio-action="toggle-publish" class="ryxa-publish-btn" style="display:none;">Publish</button>
             <button id="bio-save-btn" data-bio-action="save" class="bio-s-bee3a2">Save</button>
           </div>
         </div>
 
-        <!-- Status row: published/draft + publish toggle -->
+        <!-- Status strip: state + live URL. Actions live in the header above. -->
         <div class="bio-s-00e937">
-          <div class="pub-status-top">
-            <span id="bio-status-dot" class="bio-s-fff88d"></span>
-            <div id="bio-status-label" class="pub-status-label">Not published</div>
-            <button id="bio-publish-btn" data-bio-action="toggle-publish" class="ryxa-publish-btn" style="display:none;">Publish</button>
-          </div>
+          <span id="bio-status-dot" class="bio-s-fff88d"></span>
+          <div id="bio-status-label" class="pub-status-label">Not published</div>
           <div id="bio-status-sub" class="pub-status-sub">Your page isn't live yet. Publish to share it.</div>
         </div>
 
@@ -8978,19 +8971,17 @@
           <div>
             <p class="bio-s-9e2e36">Professional creator media kit. Share with brands or download as PDF.</p>
           </div>
-          <div class="bio-s-15b47d">
+          <div class="bio-s-15b47d pub-actions">
             <a id="mk-view-live" href="#" target="_blank" rel="noopener" class="bio-s-6f2ad9">View live page</a>
+            <button id="mk-publish-btn" data-mk-action="toggle-publish" class="ryxa-publish-btn" style="display:none;">Publish</button>
             <button id="mk-save-btn" data-mk-action="save" class="bio-s-bee3a2">Save</button>
           </div>
         </div>
 
-        <!-- Status bar -->
+        <!-- Status strip: state + live URL. Actions live in the header above. -->
         <div class="bio-s-00e937">
-          <div class="pub-status-top">
-            <span id="mk-status-dot" class="bio-s-fff88d"></span>
-            <div id="mk-status-label" class="pub-status-label">Not published</div>
-            <button id="mk-publish-btn" data-mk-action="toggle-publish" class="ryxa-publish-btn" style="display:none;">Publish</button>
-          </div>
+          <span id="mk-status-dot" class="bio-s-fff88d"></span>
+          <div id="mk-status-label" class="pub-status-label">Not published</div>
           <div id="mk-status-sub" class="pub-status-sub">Your media kit isn't live yet. Publish to share it.</div>
         </div>
 
