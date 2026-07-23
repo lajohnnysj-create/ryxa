@@ -9,6 +9,11 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=2">
 <link rel="shortcut icon" href="/favicon.ico?v=2">
 <meta name="theme-color" content="#07070f">
+<!-- Smart App Banner. Renders Apple's own native banner at the top of the page
+     in iOS Safari, with a real Open/View button. Converts better than any badge
+     we place ourselves because it is system UI shown to someone already on an
+     iPhone, and it costs one tag. Ignored everywhere else. -->
+<meta name="apple-itunes-app" content="app-id=6788064376">
 <title>Build a creator business that's actually yours | Ryxa</title>
 <meta name="description" content="Ryxa helps creators monetize their audience and build a professional brand. Link in bio, courses, and digital products in one AI dashboard.">
 <meta name="keywords" content="creator tools, free creator tools, link in bio, follow-back audit, instagram unfollower tracker, media kit, grid planner, script builder, invoice generator, qr code generator, creator growth tools">
@@ -977,6 +982,58 @@
   @media (max-width:640px) {
     .fees-grid { grid-template-columns: 1fr !important; gap: 24px !important; }
     .fees-grid .fees-divider { width: 80px !important; height: 1px !important; margin: 0 auto; }
+  }
+</style>
+
+<!-- App availability band. Deliberately its own strip rather than a third
+     column in the fees grid above: that section is value propositions, and a
+     download is a call to action. Structured so a Play badge can sit beside
+     the App Store one without a rewrite. -->
+<section class="app-band" aria-labelledby="app-band-title">
+  <div class="app-band-inner">
+    <div class="app-band-text">
+      <div class="app-band-eyebrow">Now on iPhone</div>
+      <h2 id="app-band-title" class="app-band-title">Take Ryxa with you.</h2>
+      <p class="app-band-sub">Your dashboard, your sales, and your links. On the go.</p>
+    </div>
+    <div class="app-band-badges">
+      <a href="https://apps.apple.com/app/id6788064376" target="_blank" rel="noopener"
+         class="app-band-badge" aria-label="Download Ryxa on the App Store">
+        <img src="/app-store-badge.svg" alt="Download on the App Store" width="140" height="47" loading="lazy">
+      </a>
+    </div>
+  </div>
+</section>
+<style>
+  .app-band { padding: 56px 24px; }
+  .app-band-inner {
+    max-width: 800px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 32px; flex-wrap: wrap;
+    background: rgba(124,58,237,0.07);
+    border: 1px solid rgba(124,58,237,0.22);
+    border-radius: 16px; padding: 28px 32px;
+  }
+  /* min-width:0 so the text block can shrink instead of forcing the badge to
+     wrap awkwardly on mid-size screens. */
+  .app-band-text { min-width: 0; flex: 1 1 320px; }
+  .app-band-eyebrow {
+    font-size: 12px; font-weight: 600; letter-spacing: 1.2px;
+    text-transform: uppercase; color: #c4b5fd; margin-bottom: 8px;
+  }
+  .app-band-title {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: clamp(22px, 3.4vw, 30px); font-weight: 800;
+    letter-spacing: -0.8px; line-height: 1.15; color: #fff; margin: 0 0 8px;
+  }
+  .app-band-sub { font-size: 15px; color: rgba(255,255,255,0.62); margin: 0; }
+  .app-band-badges { display: flex; gap: 12px; flex-shrink: 0; }
+  .app-band-badge { display: inline-flex; transition: opacity .15s; }
+  .app-band-badge:hover { opacity: 0.85; }
+  .app-band-badge img { display: block; height: 47px; width: auto; }
+  @media (max-width: 640px) {
+    .app-band { padding: 40px 20px; }
+    .app-band-inner { flex-direction: column; align-items: flex-start; padding: 24px; }
   }
 </style>
 
