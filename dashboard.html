@@ -4613,8 +4613,10 @@
     .uname-editing .uname-lock { color:#c4b5fd; }
     .bio-username-prefix-wrap.uname-editing { border-color:rgba(124,58,237,0.55); }
 
-    /* Connect button held back pending a provider approval. Disabled rather
-       than hidden, so the integration is still visibly on the roadmap. */
+    /* FB-GATE-TEMP: delete these two rules on Meta approval. Connect button
+       held back pending provider approval, disabled rather than hidden so the
+       integration stays visibly on the roadmap. See the FB-GATE-TEMP header
+       block in js/settings.js for the full removal list. */
     .settings-s-266a6c.is-coming-soon { opacity: 0.45; cursor: not-allowed; }
     .settings-s-266a6c.is-coming-soon:hover { opacity: 0.45; }
     /* The title attribute only surfaces on hover, which does not exist on a
@@ -11577,6 +11579,9 @@
           <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="#1877F2" d="M24 12a12 12 0 1 0-13.88 11.85v-8.38H7.08V12h3.04V9.36c0-3 1.79-4.67 4.53-4.67 1.31 0 2.68.24 2.68.24v2.95h-1.51c-1.49 0-1.95.92-1.95 1.87V12h3.32l-.53 3.47h-2.79v8.38A12 12 0 0 0 24 12z"/></svg>
           Connect Facebook
         </button>
+        <!-- FB-GATE-TEMP: delete this div on Meta approval. Shown/hidden by
+             applyFacebookComingSoon() in js/settings.js. See the FB-GATE-TEMP
+             header block in that file for the full removal list. -->
         <div id="settings-facebook-soon" class="settings-coming-soon" style="display:none;">Coming soon. Facebook connections are pending Meta approval.</div>
       </div>
 
