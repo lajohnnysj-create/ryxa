@@ -2268,10 +2268,17 @@
       display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 90;
       background: var(--surface); border-top: 1px solid var(--border);
       padding-bottom: env(safe-area-inset-bottom, 0px);
-      /* WKWebView fixed-position hardening: own compositor layer so the nav
-         doesn't drift with content during momentum scroll / viewport shifts. */
-      transform: translateZ(0); will-change: transform;
-      -webkit-backface-visibility: hidden; backface-visibility: hidden;
+      /* NO transform / will-change / backface here, deliberately.
+         This element previously carried translateZ(0) + will-change:transform
+         as "WKWebView fixed-position hardening". That promotion is what caused
+         the bar to detach after an app resume. A plain position:fixed element
+         is repositioned by the LAYOUT engine on every viewport change, which is
+         reliable. Promoting it to its own compositor layer moves that job to
+         the compositor, which does not re-anchor after a suspend/resume and
+         keeps painting the layer at its last known offset. The hardening was
+         causing the exact drift it was added to prevent.
+         If momentum-scroll drift ever reappears, fix it some other way: do not
+         reintroduce layer promotion on a viewport-fixed element. */
       /* Coordinated reveal: the whole nav stays invisible until the tier-
          dependent button (Plans<->Media Kit) is resolved, then the entire bar
          fades in as one unit. This avoids the other buttons rendering first and
@@ -2362,9 +2369,11 @@
       cursor: pointer; -webkit-tap-highlight-color: transparent;
       backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
       animation: previewFabGlow 2.4s ease-in-out infinite;
-      /* translateZ + backface: same WKWebView fixed-position hardening as the nav. */
-      transform: translateX(-50%) translateZ(0);
-      -webkit-backface-visibility: hidden; backface-visibility: hidden;
+      /* translateX only. The translateZ(0) and backface-visibility that used to
+         sit here promoted this to its own compositor layer and caused the same
+         resume drift as the nav. The centring translate is required; the
+         promotion was not. */
+      transform: translateX(-50%);
     }
     .preview-fab svg { width: 15px; height: 15px; flex-shrink: 0; }
     /* Share section under the preview inside the sheet. The pill mirrors the
