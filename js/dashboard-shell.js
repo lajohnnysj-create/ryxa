@@ -365,26 +365,20 @@ var isPwaMode = window.matchMedia('(display-mode: standalone)').matches
       if (getComputedStyle(fabs[i]).display !== 'none') { anyFabVisible = true; break; }
     }
     if (!navVisible && !anyFabVisible) return;
-    // Two-part re-anchor. (1) A transform poke on the nav bumps the compositor so
-    // the fixed layer repaints. (2) A forced layout reflow (reading offsetHeight)
-    // plus a no-op scrollTo makes WKWebView recompute fixed elements against
-    // current viewport geometry instead of the stale geometry it held while
-    // suspended - the widely-used workaround for the long-standing WKWebView
-    // position:fixed drift bug, where the visualViewport offset doesn't reset and
-    // fixed headers/footers detach until a layout is forced. The pill keeps its
-    // own centering transform (translateX(-50%)), so it's re-anchored by the
-    // shared reflow below rather than by overwriting its transform.
-    if (navVisible) { nav.style.transform = 'translateZ(0.01px)'; }
+    // Forced reflow only. Reading offsetHeight plus a no-op scrollTo makes
+    // WKWebView recompute fixed elements against current viewport geometry
+    // rather than the stale geometry it held while suspended. This is now a
+    // backstop: with layer promotion removed from the nav and the pill, the
+    // layout engine handles their positioning directly and should not need
+    // prompting. Kept because it is cheap and covers the case where it does.
+    // NO transform poke here any more. Writing a transform, even for a single
+    // frame, promotes the bar to its own compositor layer, and that promotion
+    // is what caused the drift this function exists to repair. Forcing a
+    // layout read and a no-op scroll makes WebKit recompute fixed positions
+    // without touching compositing at all.
     /* eslint-disable-next-line no-unused-expressions */
     document.body.offsetHeight; // force synchronous layout for all fixed elements
     try { window.scrollTo(0, window.scrollY); } catch (e) {}
-    requestAnimationFrame(function () {
-      // Restore the compensating offset rather than clearing to empty. This
-      // runs on every scroll, so clearing would wipe a correction that
-      // healNavPosition is holding and the bar would jump back out of place
-      // the first time the user scrolled.
-      if (navVisible) { nav.style.transform = navCompTransform(nav); }
-    });
   }
   function scheduleNudge() {
     clearTimeout(_navNudgeT);
@@ -438,19 +432,12 @@ var isPwaMode = window.matchMedia('(display-mode: standalone)').matches
 
   // position:fixed anchors to the LAYOUT viewport, so innerHeight is the right
   // comparison even when visualViewport differs (URL bar, keyboard).
-  // The transform the bar should carry right now: our correction if one is
-  // being held, otherwise nothing.
-  function navCompTransform(nav) {
-    var c = nav && nav.dataset.navComp ? parseFloat(nav.dataset.navComp) : 0;
-    return c ? 'translateY(' + (-c) + 'px)' : '';
-  }
-
   // The Live Preview pill is a second position:fixed element and drifts from
   // the same stale viewport geometry, so the nav's measured drift is also its
   // correction; there is no need to measure it separately. Its base transform
   // (translateX(-50%) for centring, translateZ(0) for the compositor) has to be
   // preserved, so the offset is appended rather than replacing it.
-  var FAB_BASE_TRANSFORM = 'translateX(-50%) translateZ(0)';
+  var FAB_BASE_TRANSFORM = 'translateX(-50%)';
   function applyFabComp(px) {
     var fabs = document.querySelectorAll('.preview-fab');
     for (var i = 0; i < fabs.length; i++) {
