@@ -395,7 +395,7 @@ var isPwaMode = window.matchMedia('(display-mode: standalone)').matches
   function nudgeOnResume() {
     nudgeBottomNav();
     setTimeout(nudgeBottomNav, 200);
-    // Blind nudges are not enough on their own: see healNavPosition below.
+    // Blind nudges are not enough on their own: see the frame watch below.
     startNavWatch();
   }
 
@@ -461,27 +461,6 @@ var isPwaMode = window.matchMedia('(display-mode: standalone)').matches
     nav.style.transform = 'translateY(' + (-px) + 'px)';
   }
 
-  function healNavPosition(attempt) {
-    var drift = navBottomDrift();
-    if (drift === null) return;
-    // Within a pixel is correct. Drop any correction we were holding, because
-    // a genuine re-anchor is always preferable to an offset we have to track.
-    if (Math.abs(drift) <= 1) { applyNavComp(0); return; }
-    if (attempt < 3) {
-      applyNavComp(0);
-      nudgeBottomNav();
-      setTimeout(function () { healNavPosition(attempt + 1); }, 120);
-      return;
-    }
-    // The reflow did not take. Push the bar into place directly. This cannot
-    // fail the way the poke does, because it does not depend on WKWebView
-    // recomputing anything. It is re-measured on every later trigger and
-    // dropped the moment the browser starts anchoring correctly on its own.
-    applyNavComp(drift);
-    try {
-      console.warn('bottom nav re-anchor failed, applied ' + Math.round(drift) + 'px correction');
-    } catch (e) {}
-  }
 
   // Resume geometry can settle several frames late, and a cold restore can
   // land well after first paint, so check across a few seconds rather than
@@ -496,12 +475,88 @@ var isPwaMode = window.matchMedia('(display-mode: standalone)').matches
   }
   window.__ryxaReapplyFabComp = reapplyFabComp;
 
-  var _navWatchT = [];
+  // ---------------------------------------------------------------------
+  // State-driven watch.
+  //
+  // This used to be a fixed schedule of timers (0, 150, 400, 900, 1800, 3000)
+  // that each ran a check. That still encodes an ASSUMPTION about when iOS
+  // finishes reattaching the viewport: if it settles at 3.5s, the last timer
+  // has already given up and the bar stays detached. More timers would not fix
+  // that, they would just move the guess.
+  //
+  // Poll per animation frame instead and stop on an OBSERVED condition rather
+  // than a deadline. rAF also runs against the frame about to be painted, so
+  // the measurement is of what will actually be on screen.
+  // ---------------------------------------------------------------------
+  var _navRaf = null;
+  var _navWatchStart = 0;
+  var _navStableFrames = 0;
+  // Three, not two. Resume geometry can wobble: correct for a single frame and
+  // wrong again the next. Three consecutive frames is 50ms at 60fps, so it
+  // costs nothing and will not mistake a transient for a settled viewport.
+  var NAV_STABLE_FRAMES = 3;
+  // Do not correct immediately. For the first stretch, let iOS finish on its
+  // own; intervening mid-settle risks holding an offset for geometry that was
+  // about to right itself.
+  var NAV_GRACE_MS = 400;
+  // Hard stop. A rAF loop that never exits would read layout every frame
+  // forever, which is a battery cost for no benefit.
+  var NAV_WATCH_MS = 5000;
+
+  function stopNavWatch() {
+    if (_navRaf) { cancelAnimationFrame(_navRaf); _navRaf = null; }
+  }
+
+  function navWatchFrame(ts) {
+    _navRaf = null;
+    var now = ts || (window.performance && performance.now ? performance.now() : Date.now());
+    var elapsed = now - _navWatchStart;
+    var drift = navBottomDrift();
+
+    // Nothing measurable right now (bar hidden, or keyboard up mid-change).
+    // Stop; any later trigger restarts the watch.
+    if (drift === null) return;
+
+    if (Math.abs(drift) <= 1) {
+      // The browser is anchoring correctly, so release any correction we were
+      // holding. A real re-anchor always beats an offset we have to maintain.
+      applyNavComp(0);
+      _navStableFrames++;
+      if (_navStableFrames >= NAV_STABLE_FRAMES) return;
+      _navRaf = requestAnimationFrame(navWatchFrame);
+      return;
+    }
+
+    _navStableFrames = 0;
+
+    if (elapsed >= NAV_GRACE_MS) {
+      // Past the grace window and still wrong, so this is not iOS still
+      // settling. Nudge first (a genuine re-anchor is preferable), and if the
+      // drift persists the next frames will apply the compensating offset,
+      // which cannot fail the way the nudge can.
+      if (elapsed < NAV_GRACE_MS * 2) {
+        applyNavComp(0);
+        nudgeBottomNav();
+      } else {
+        applyNavComp(drift);
+      }
+    }
+
+    if (elapsed < NAV_WATCH_MS) {
+      _navRaf = requestAnimationFrame(navWatchFrame);
+    } else if (Math.abs(drift) > 1) {
+      try {
+        console.warn('bottom nav still drifting after watch, holding ' +
+          Math.round(drift) + 'px correction');
+      } catch (e) {}
+    }
+  }
+
   function startNavWatch() {
-    _navWatchT.forEach(clearTimeout);
-    _navWatchT = [0, 150, 400, 900, 1800, 3000].map(function (ms) {
-      return setTimeout(function () { healNavPosition(0); }, ms);
-    });
+    stopNavWatch();
+    _navWatchStart = window.performance && performance.now ? performance.now() : Date.now();
+    _navStableFrames = 0;
+    _navRaf = requestAnimationFrame(navWatchFrame);
   }
   if (window.visualViewport) {
     window.visualViewport.addEventListener('resize', scheduleNudge);
@@ -570,6 +625,9 @@ var isPwaMode = window.matchMedia('(display-mode: standalone)').matches
   window.addEventListener('scroll', scheduleNudge, { passive: true });
   document.addEventListener('visibilitychange', function () {
     if (document.visibilityState === 'visible') nudgeOnResume();
+    // rAF is paused while hidden anyway; drop the loop so a backgrounded tab
+    // is not holding a pending callback.
+    else stopNavWatch();
   });
   // pageshow fires on bfcache/suspend restores; persisted=true means the page
   // was resumed from cache rather than freshly loaded (the exact float case).
@@ -603,7 +661,16 @@ var isPwaMode = window.matchMedia('(display-mode: standalone)').matches
   // detached with nothing to re-anchor them. showTool() calls this on every
   // render to cover that case.
   window.addEventListener('orientationchange', function () { startNavWatch(); });
-  window.addEventListener('resize', function () { healNavPosition(0); }, { passive: true });
+  // Debounced: resize fires repeatedly during URL-bar show/hide and keyboard
+  // transitions, and each raw call would cancel and restart the watch, leaving
+  // a rAF loop running continuously. One restart once the burst settles is
+  // enough, and a held correction from the previous geometry needs rechecking
+  // anyway.
+  var _navResizeT = null;
+  window.addEventListener('resize', function () {
+    clearTimeout(_navResizeT);
+    _navResizeT = setTimeout(startNavWatch, 200);
+  }, { passive: true });
   window.__ryxaNudgeNav = nudgeOnResume;
   // Exposed so the native shell can trigger a verified re-anchor on app
   // resume, which is a far more reliable signal than any web event fired
