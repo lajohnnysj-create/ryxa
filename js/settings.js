@@ -878,7 +878,7 @@ function applyFacebookComingSoon() { // FB-GATE-TEMP
   }
   btn.disabled = true;
   btn.classList.add('is-coming-soon');
-  btn.setAttribute('title', 'Coming soon. Facebook connections are pending Meta approval.');
+  btn.setAttribute('title', 'Facebook connect coming soon.');
   // A hover tooltip alone would be invisible to most users, since touch
   // devices have no hover at all. The note carries the same message where it
   // can actually be read.
@@ -947,7 +947,7 @@ async function connectFacebookAccount() {
   // Re-checked here, not just on the button: the disabled attribute is a DOM
   // state and starting a flow that Meta will reject helps nobody.
   if (!facebookConnectAllowed()) {
-    showFacebookMsg('error', 'Facebook connections are coming soon, pending Meta approval.');
+    showFacebookMsg('error', 'Facebook connect coming soon.');
     return;
   }
   const btn = document.getElementById('settings-facebook-connect-btn');
