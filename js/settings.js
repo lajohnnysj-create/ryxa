@@ -816,6 +816,61 @@ function showInstagramMsg(type, text) {
 // Facebook Connection (Settings) - mirrors the Instagram block,
 // with a Page picker for accounts that manage more than one Page.
 // ============================================================
+// Facebook connect is held back until Meta approves the app. Users were
+// hitting the button and getting an opaque OAuth failure, so it is disabled
+// with an explanation instead. Two accounts bypass it so the flow can still be
+// exercised end to end while approval is pending.
+//
+// This is a UX gate, not a security boundary: the real gate is Meta, and the
+// OAuth would fail for an unapproved app regardless of what the client allows.
+// connectFacebookAccount() re-checks anyway so a devtools edit to the DOM
+// cannot start a flow that is only going to error.
+//
+// TO REVERSE ON APPROVAL: set this to true. Everything below goes inert and
+// the button behaves normally for everyone. The rest can then be deleted at
+// leisure rather than under time pressure.
+const FACEBOOK_CONNECT_OPEN = false;
+
+// Supabase user ids rather than email addresses: this file is publicly
+// readable, and a UUID in source reveals nothing worth harvesting.
+const FACEBOOK_EARLY_ACCESS = [
+  '2a220c21-0337-4e81-911f-28740ddeeaba',
+  '81880735-a212-4ae1-87a8-ebac6a22025d'
+];
+
+function facebookConnectAllowed() {
+  if (FACEBOOK_CONNECT_OPEN) return true;
+  try {
+    var uid = (currentUser && currentUser.id ? currentUser.id : '').toLowerCase().trim();
+    return !!uid && FACEBOOK_EARLY_ACCESS.indexOf(uid) !== -1;
+  } catch (e) {
+    // Fail closed: an unreadable session should not open the gate.
+    return false;
+  }
+}
+
+// Applied every time the disconnected block renders, because that block is
+// shown and hidden on each status load and would otherwise come back enabled.
+function applyFacebookComingSoon() {
+  var btn = document.getElementById('settings-facebook-connect-btn');
+  var note = document.getElementById('settings-facebook-soon');
+  if (!btn) return;
+  if (facebookConnectAllowed()) {
+    btn.disabled = false;
+    btn.removeAttribute('title');
+    btn.classList.remove('is-coming-soon');
+    if (note) note.style.display = 'none';
+    return;
+  }
+  btn.disabled = true;
+  btn.classList.add('is-coming-soon');
+  btn.setAttribute('title', 'Coming soon. Facebook connections are pending Meta approval.');
+  // A hover tooltip alone would be invisible to most users, since touch
+  // devices have no hover at all. The note carries the same message where it
+  // can actually be read.
+  if (note) note.style.display = 'block';
+}
+
 async function loadFacebookConnectionStatus() {
   const disconnectedEl = document.getElementById('settings-facebook-disconnected');
   const connectedEl = document.getElementById('settings-facebook-connected');
@@ -861,6 +916,7 @@ async function loadFacebookConnectionStatus() {
       if (disconnectedEl) disconnectedEl.style.display = 'block';
       if (connectedEl) connectedEl.style.display = 'none';
       if (pickEl) pickEl.style.display = 'none';
+      applyFacebookComingSoon();
     }
   } catch (err) {
     console.error('Failed to load Facebook status:', err);
@@ -873,6 +929,12 @@ function fbConnectButtonDefault() {
 
 async function connectFacebookAccount() {
   if (!currentUser) return;
+  // Re-checked here, not just on the button: the disabled attribute is a DOM
+  // state and starting a flow that Meta will reject helps nobody.
+  if (!facebookConnectAllowed()) {
+    showFacebookMsg('error', 'Facebook connections are coming soon, pending Meta approval.');
+    return;
+  }
   const btn = document.getElementById('settings-facebook-connect-btn');
   if (btn) {
     btn.disabled = true;
@@ -906,6 +968,9 @@ function resetFacebookConnectButton(force) {
   if (!force && !/Redirecting to Facebook/i.test(btn.innerText || btn.textContent || '')) return;
   btn.disabled = false;
   btn.innerHTML = fbConnectButtonDefault();
+  // This runs after a cancelled sheet or a failed attempt and would otherwise
+  // hand back an enabled button regardless of the gate.
+  applyFacebookComingSoon();
 }
 
 async function loadFacebookPages() {
