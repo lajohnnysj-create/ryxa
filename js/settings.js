@@ -816,30 +816,44 @@ function showInstagramMsg(type, text) {
 // Facebook Connection (Settings) - mirrors the Instagram block,
 // with a Page picker for accounts that manage more than one Page.
 // ============================================================
-// Facebook connect is held back until Meta approves the app. Users were
-// hitting the button and getting an opaque OAuth failure, so it is disabled
-// with an explanation instead. Two accounts bypass it so the flow can still be
-// exercised end to end while approval is pending.
+// ===== FB-GATE-TEMP =========================================================
+// TEMPORARY. Delete everything tagged FB-GATE-TEMP once Meta approves the app.
+// There is no feature flag by design: this should leave no residue.
+//
+//   grep -rn "FB-GATE-TEMP" js/settings.js dashboard.html
+//
+// Six pieces, in deletion order:
+//   1. This block (FACEBOOK_EARLY_ACCESS, facebookConnectAllowed,
+//      applyFacebookComingSoon), js/settings.js
+//   2. The early return in connectFacebookAccount(), js/settings.js
+//   3. The applyFacebookComingSoon() call in the "Not connected" branch of
+//      loadFacebookConnectionStatus(), js/settings.js
+//   4. The applyFacebookComingSoon() call in resetFacebookConnectButton(),
+//      js/settings.js
+//   5. <div id="settings-facebook-soon">, dashboard.html
+//   6. The .settings-coming-soon and .is-coming-soon rules, dashboard.html
+//
+// Nothing outside these two files was touched: all nine api/facebook-*.js
+// routes, the media kit, and the database are exactly as they were, so the
+// deletion restores the previous behaviour completely.
+//
+// WHY: users were pressing Connect and getting an opaque OAuth failure,
+// because Meta has not approved the app yet. Disabled with an explanation is
+// a better failure. Two accounts bypass it so the flow can still be exercised
+// end to end while approval is pending.
 //
 // This is a UX gate, not a security boundary: the real gate is Meta, and the
 // OAuth would fail for an unapproved app regardless of what the client allows.
-// connectFacebookAccount() re-checks anyway so a devtools edit to the DOM
-// cannot start a flow that is only going to error.
-//
-// TO REVERSE ON APPROVAL: set this to true. Everything below goes inert and
-// the button behaves normally for everyone. The rest can then be deleted at
-// leisure rather than under time pressure.
-const FACEBOOK_CONNECT_OPEN = false;
+// ============================================================================
 
 // Supabase user ids rather than email addresses: this file is publicly
 // readable, and a UUID in source reveals nothing worth harvesting.
-const FACEBOOK_EARLY_ACCESS = [
+const FACEBOOK_EARLY_ACCESS = [ // FB-GATE-TEMP
   '2a220c21-0337-4e81-911f-28740ddeeaba',
   '81880735-a212-4ae1-87a8-ebac6a22025d'
 ];
 
-function facebookConnectAllowed() {
-  if (FACEBOOK_CONNECT_OPEN) return true;
+function facebookConnectAllowed() { // FB-GATE-TEMP
   try {
     var uid = (currentUser && currentUser.id ? currentUser.id : '').toLowerCase().trim();
     return !!uid && FACEBOOK_EARLY_ACCESS.indexOf(uid) !== -1;
@@ -851,7 +865,7 @@ function facebookConnectAllowed() {
 
 // Applied every time the disconnected block renders, because that block is
 // shown and hidden on each status load and would otherwise come back enabled.
-function applyFacebookComingSoon() {
+function applyFacebookComingSoon() { // FB-GATE-TEMP
   var btn = document.getElementById('settings-facebook-connect-btn');
   var note = document.getElementById('settings-facebook-soon');
   if (!btn) return;
@@ -916,7 +930,7 @@ async function loadFacebookConnectionStatus() {
       if (disconnectedEl) disconnectedEl.style.display = 'block';
       if (connectedEl) connectedEl.style.display = 'none';
       if (pickEl) pickEl.style.display = 'none';
-      applyFacebookComingSoon();
+      applyFacebookComingSoon(); // FB-GATE-TEMP
     }
   } catch (err) {
     console.error('Failed to load Facebook status:', err);
@@ -929,6 +943,7 @@ function fbConnectButtonDefault() {
 
 async function connectFacebookAccount() {
   if (!currentUser) return;
+  // FB-GATE-TEMP (delete this block on Meta approval)
   // Re-checked here, not just on the button: the disabled attribute is a DOM
   // state and starting a flow that Meta will reject helps nobody.
   if (!facebookConnectAllowed()) {
@@ -968,8 +983,8 @@ function resetFacebookConnectButton(force) {
   if (!force && !/Redirecting to Facebook/i.test(btn.innerText || btn.textContent || '')) return;
   btn.disabled = false;
   btn.innerHTML = fbConnectButtonDefault();
-  // This runs after a cancelled sheet or a failed attempt and would otherwise
-  // hand back an enabled button regardless of the gate.
+  // FB-GATE-TEMP: runs after a cancelled sheet or a failed attempt and would
+  // otherwise hand back an enabled button regardless of the gate.
   applyFacebookComingSoon();
 }
 
